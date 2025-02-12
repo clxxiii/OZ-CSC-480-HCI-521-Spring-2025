@@ -1,6 +1,4 @@
-import './App.css'
-import ReactLogo from "./assets/react.svg"
-import Counter from './components/Counter';
+import ReactLogo from "../assets/react.svg"
 
 export default function App() {
 
@@ -9,13 +7,10 @@ export default function App() {
     <div className="container">
       <h1 className="d-flex gap-2 align-items-center">
         <img src={ReactLogo} alt="" />
-        <span>Starter Frontend App</span>
+        <span>Login</span>
       </h1>
       <hr />
 
-      <Counter />
     </div>
   )
 }
-
-
