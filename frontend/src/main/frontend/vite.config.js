@@ -11,8 +11,4 @@ export default defineConfig({
     outDir: "out",
     emptyOutDir: true
   },
-  preview: {
-    port: 5173, 
-    strictPort: true, 
-  }
 });
