@@ -1,5 +1,5 @@
 import React from 'react';
-import Login from '../components/LogIn';
+import LoginBox from '../components/LogIn';
 
 const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
   const handleGoogleLogin = () => {
@@ -12,7 +12,7 @@ const LoginPage = ({ setIsAuthenticated, setIsGuest }) => {
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100">
-      <Login handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin} />
+      <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin} />
     </div>
   );
 };
