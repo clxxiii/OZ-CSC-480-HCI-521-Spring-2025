@@ -37,6 +37,9 @@
     <!-- Configures the application on a specified context root -->
     <webApplication contextRoot="/" location="quote-service.war" />
 
+<!-- Enable static content serving -->
+    <httpDispatcher enableWelcomePage="true"/>
+
     <!-- Default SSL configuration enables trust for default certificates from the Java runtime -->
     <ssl id="defaultSSLConfig" trustDefaultCerts="true" />
 </server>
