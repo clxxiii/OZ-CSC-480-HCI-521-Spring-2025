@@ -37,7 +37,11 @@
     <applicationManager autoExpand="true"/>
 
     <!-- Configures the application on a specified context root -->
-    <webApplication contextRoot="/" location="user-service.war" />
+    <webApplication contextRoot="/" location="user-service.war">
+        <appProperties>
+            <variable name="CONNECTION_STRING" value="${env.CONNECTION_STRING}"/>
+        </appProperties>
+    </webApplication>
 
         <!-- Enable static content serving -->
     <httpDispatcher enableWelcomePage="true"/>
