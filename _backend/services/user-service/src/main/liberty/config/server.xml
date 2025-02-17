@@ -43,6 +43,13 @@
         </appProperties>
     </webApplication>
 
+    <variable name="ORIGIN" value="localhost:5173"/>
+    <cors domain="/users"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST"
+        allowCredentials="true"/>
+
+
         <!-- Enable static content serving -->
     <httpDispatcher enableWelcomePage="true"/>
 

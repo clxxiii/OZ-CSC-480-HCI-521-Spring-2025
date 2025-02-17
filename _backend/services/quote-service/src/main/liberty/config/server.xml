@@ -46,6 +46,14 @@
 <!-- Enable static content serving -->
     <httpDispatcher enableWelcomePage="true"/>
 
+    
+    <variable name="ORIGIN" value="localhost:5173"/>
+    <cors domain="/quotes"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST"
+        allowCredentials="true"/>
+
+
     <!-- Default SSL configuration enables trust for default certificates from the Java runtime -->
     <ssl id="defaultSSLConfig" trustDefaultCerts="true" />
 </server>
