@@ -17,6 +17,8 @@ const LandingPage = () => {
     navigate("/login"); 
   };
 
+  const isLoggedIn = false;
+
   return (
     <div className="container vh-100 d-flex flex-column">
       <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: "33vh" }}>
@@ -28,9 +30,6 @@ const LandingPage = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button className="btn btn-primary mt-3" onClick={handleLoginRedirect}>
-          Login
-        </button>
       </div>
 
       <div className="flex-grow-1 d-flex justify-content-center">
