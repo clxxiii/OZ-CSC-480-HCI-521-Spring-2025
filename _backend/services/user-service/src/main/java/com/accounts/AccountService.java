@@ -41,12 +41,14 @@ public class AccountService {
         } catch (Exception e) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
+                    .entity("[\"Cannot parse JSON object!\"]")
                     .build();
         }
 
         if (accountCollection.find(eq("email", accountDocument.getString("email"))).first() != null) {
             return Response
                     .status(Response.Status.CONFLICT)
+                    .entity("[\"Email already exists!\"]")
                     .build();
         }
 
@@ -76,7 +78,8 @@ public class AccountService {
             objectId = new ObjectId(accountID);
         } catch (Exception e) {
             return Response
-                    .status(Response.Status.BAD_REQUEST)
+                    .status(Response.Status.NOT_FOUND)
+                    .entity("[\"Invalid object id!\"]")
                     .build();
         }
 
@@ -89,7 +92,7 @@ public class AccountService {
         if (doc == null) {
             return Response
                     .status(Response.Status.NOT_FOUND)
-                    .type(MediaType.APPLICATION_JSON)
+                    .entity("[\"Account not found!\"]")
                     .build();
         }
 
@@ -107,6 +110,7 @@ public class AccountService {
         } catch (Exception e) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
+                    .entity("[\"Invalid object id!\"]")
                     .build();
         }
 
@@ -127,6 +131,7 @@ public class AccountService {
         } catch (Exception e) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
+                    .entity("[\"Invalid object id!\"]")
                     .build();
         }
 
@@ -136,6 +141,7 @@ public class AccountService {
         } catch (Exception e) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
+                    .entity("[\"Cannot parse Json!\"]")
                     .build();
         }
 
@@ -150,6 +156,7 @@ public class AccountService {
         } else {
             return Response
                     .status(Response.Status.NOT_FOUND)
+                    .entity("[\"Account Not found!\"]")
                     .build();
         }
     }
