@@ -13,7 +13,6 @@ public class ObjectIdDeserializer extends JsonDeserializer<ObjectId> {
     @Override
     public ObjectId deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-        //System.out.println("Deserializing id: "+node.textValue());
 
         if(node.isNull()) {
             System.out.println("Deserializing id: null detected");

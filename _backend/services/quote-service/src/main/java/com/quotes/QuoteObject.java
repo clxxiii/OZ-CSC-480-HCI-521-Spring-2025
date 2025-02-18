@@ -1,17 +1,19 @@
 package com.quotes;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.bson.types.ObjectId;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.codecs.pojo.annotations.BsonId;
-
+import jakarta.validation.constraints.Pattern;
 import java.util.ArrayList;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class QuoteObject {
     @BsonId
     @JsonProperty("_id")
-    //@JsonDeserialize(using = ObjectIdDeserializer.class)
+    @JsonDeserialize(using = ObjectIdDeserializer.class)
     private ObjectId id;
 
     @JsonProperty("author")

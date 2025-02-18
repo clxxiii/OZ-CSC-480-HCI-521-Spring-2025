@@ -20,8 +20,12 @@ public class QuotesUpdateResource {
 
             //Map json to Java Object
             ObjectMapper objectMapper = new ObjectMapper();
-
             QuoteObject quote = objectMapper.readValue(rawJson, QuoteObject.class);
+
+            quote = SanitizerClass.sanitizeQuote(quote);
+            if(quote == null) {
+                return Response.status(Response.Status.CONFLICT).entity("Error when sanitizing quote, returned null").build();
+            }
 
             boolean updated = mongo.updateQuote(quote);
 

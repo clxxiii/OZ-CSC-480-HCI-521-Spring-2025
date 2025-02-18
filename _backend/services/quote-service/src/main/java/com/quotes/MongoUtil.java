@@ -3,14 +3,10 @@ package com.quotes;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.*;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.json.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
 
 import java.io.StringWriter;
 import java.util.Arrays;
@@ -55,7 +51,7 @@ public class MongoUtil {
                 new Document("$search", new Document("index", "QuotesAtlasSearch")
                         .append("text", new Document("query", searchQuery)
                                 .append("path", Arrays.asList("quote", "author"))
-                                .append("fuzzy", new Document("maxEdits", 2))
+                                .append("fuzzy", new Document("maxEdits", 3))
                         )
                 ),
                 new Document("$sort", new Document("score", -1)), //sort by relevance
@@ -185,16 +181,20 @@ public class MongoUtil {
             //give quote a new id
             quoteData.setId(new ObjectId());
 
+            if(quoteData.getText().isEmpty()) {
+                return null;
+            }
+
             //create document to insert
             Document quoteDoc = new Document()
                     .append("_id", quoteData.getId())
                     .append("author", quoteData.getAuthor())
                     .append("quote", quoteData.getText())
-                    .append("bookmarks", quoteData.getBookmarks())
-                    .append("shares", quoteData.getShares())
+                    .append("bookmarks", 0)
+                    .append("shares", 0)
                     .append("date", quoteData.getDate())
                     .append("tags", quoteData.getTags())
-                    .append("flags", quoteData.getFlags());
+                    .append("flags", 0);
 
             collection.insertOne(quoteDoc);
             return quoteData.getId();

@@ -18,6 +18,11 @@ public class QuoteDeleteResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteQuote(@PathParam("quoteId") String quoteID) {
         try{
+            //check id is in valid form
+            if(!SanitizerClass.validObjectId(quoteID)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Given ID is not valid ObjectId").build();
+            }
+
             ObjectId objectId = new ObjectId(quoteID);
             boolean result = mongo.deleteQuote(objectId);
             if(result) {
