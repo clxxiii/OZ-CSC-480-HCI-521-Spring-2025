@@ -6,7 +6,7 @@ import LoginPage from './pages/LoginPage';
 import Layout from './components/Layout';
 import SavedQuotes from './pages/SavedQuotes';
 import QuoteForm from './components/QuoteForm';
-import { userQuotes, bookmarkedQuotes } from './placeholderdata'
+import { userQuotes, bookmarkedQuotes } from './placeholderdata';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
