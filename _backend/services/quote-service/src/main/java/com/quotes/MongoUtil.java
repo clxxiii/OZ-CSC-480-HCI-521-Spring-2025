@@ -51,7 +51,7 @@ public class MongoUtil {
                 new Document("$search", new Document("index", "QuotesAtlasSearch")
                         .append("text", new Document("query", searchQuery)
                                 .append("path", Arrays.asList("quote", "author"))
-                                .append("fuzzy", new Document("maxEdits", 3))
+                                .append("fuzzy", new Document("maxEdits", 2))
                         )
                 ),
                 new Document("$sort", new Document("score", -1)), //sort by relevance
