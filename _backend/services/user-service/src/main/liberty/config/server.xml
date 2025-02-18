@@ -39,7 +39,7 @@
 
     <!-- System variables -->
     <variable name="CONNECTION_STRING" value="${env.CONNECTION_STRING}"/>
-    <variable name="ORIGIN" value="${env.ORIGIN}"/> <!-- this will be updated to a variable from .env -->
+    <variable name="ORIGIN" value="localhost:9080"/> <!-- this will be updated to a variable from .env -->
 
     <!-- Configures the application on a specified context root -->
     <webApplication contextRoot="/" location="user-service.war">
