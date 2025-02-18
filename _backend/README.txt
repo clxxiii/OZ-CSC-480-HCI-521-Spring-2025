@@ -44,7 +44,7 @@ Run the Maven build command:
 
 Navigate to the services directory:
 
-    cd csc480-web/_backend/services
+    cd csc480-web/_backend/services/quote-service
 
 Run the build script:
 
@@ -58,9 +58,9 @@ For development mode, use:
 
     mvn liberty:dev
 
-Once the server is running, access the API at:
+Once the server is running,  access the API documentation at:
 
-    http://localhost:9081/users
+    http://localhost:9082/
 
 API documentation is included with the service.
 
@@ -70,7 +70,7 @@ API documentation is included with the service.
 
 Navigate to the services directory:
 
-    cd csc480-web/_backend/services
+    cd csc480-web/_backend/services/user-service
 
 Run the build script:
 
@@ -84,9 +84,9 @@ For development mode, use:
 
     mvn liberty:dev
 
-Once the server is running, access the API at:
+Once the server is running, access the API documentation at:
 
-    http://localhost:9081/users
+    http://localhost:9081/
 
 API documentation is included with the service.
 
