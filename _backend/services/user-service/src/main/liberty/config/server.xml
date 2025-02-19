@@ -53,7 +53,7 @@
     <cors domain="/users"
         allowedOrigins="${ORIGIN}"
         allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
-        allowedHeaders="Content-Type"
+        allowedHeaders="Content-Type, Authorization"
         allowCredentials="true"/>
 
 
