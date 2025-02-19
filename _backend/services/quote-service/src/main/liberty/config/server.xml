@@ -30,27 +30,33 @@
 
     <!-- To access this server from a remote client add a host attribute to the following element, e.g. host="*" -->
     <httpEndpoint id="defaultHttpEndpoint"
+                  host="*"
                   httpPort="9082"
                   httpsPort="9443" />
 
     <!-- Automatically expand WAR files and EAR files -->
     <applicationManager autoExpand="true"/>
 
+    <!-- System variables -->
+    <variable name="CONNECTION_STRING" value="${env.CONNECTION_STRING}"/>
+    <variable name="ORIGIN" value="http://localhost:9080"/> <!-- this will be updated to a variable from .env -->
+
+
     <!-- Configures the application on a specified context root -->
     <webApplication contextRoot="/" location="quote-service.war">
         <appProperties>
-            <variable name="CONNECTION_STRING" value="${env.CONNECTION_STRING}"/>
+            <property name="CONNECTION_STRING" value="${CONNECTION_STRING}"/>
+            <property name="ORIGIN" value="${ORIGIN}"></property>
         </appProperties>
     </webApplication>
 
-<!-- Enable static content serving -->
+    <!-- Enable static content serving -->
     <httpDispatcher enableWelcomePage="true"/>
 
-    
-    <variable name="ORIGIN" value="localhost:5173"/>
+    <!-- CORS configuration-->
     <cors domain="/quotes"
         allowedOrigins="${ORIGIN}"
-        allowedMethods="GET, POST"
+        allowedMethods="GET, POST, PUT, DELETE"
         allowCredentials="true"/>
 
 
