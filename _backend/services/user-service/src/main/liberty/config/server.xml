@@ -68,10 +68,10 @@
     </webApplication>
 
     <!-- CORs configuration -->
-    <cors domain="/users"
+    <cors domain="/users/*"
         allowedOrigins="${ORIGIN}"
         allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
-        allowedHeaders="Content-Type, Authorization"
+        allowedHeaders="*"
         allowCredentials="true"/>
 
 

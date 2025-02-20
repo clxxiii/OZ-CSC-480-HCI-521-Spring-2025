@@ -1,5 +1,8 @@
-const QUOTE_SERVICE_URL = import.meta.env.VITE_QUOTE_SERVICE_URL || "http://localhost:9082";
-const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:9081";
+const QUOTE_SERVICE_URL =
+  import.meta.env.VITE_QUOTE_SERVICE_URL || "http://localhost:9082";
+const USER_SERVICE_URL =
+  import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:9081";
+
 
 export const createQuote = async ({ quote, author, tags }) => {
   try {
@@ -19,27 +22,37 @@ export const createQuote = async ({ quote, author, tags }) => {
     });
 
     if (!response.ok) {
+
       const errorMessage = await response.text();
       console.error("Backend Error:", errorMessage); 
       throw new Error("Failed to create quote");
     }
-
     return await response.json();
+    
   } catch (error) {
     console.error("Error creating quote:", error);
+    // Re-throw or return a fallback value
+    throw error;
   }
 };
 
-
 export const deleteQuote = async (quoteId) => {
   try {
-    const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/delete/${quoteId}`, {
-      method: "DELETE",
-    });
-    if (!response.ok) throw new Error("Failed to delete quote");
-    return await response.json();
+    const response = await fetch(
+      `${QUOTE_SERVICE_URL}/quotes/delete/${quoteId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    const contentType = response.headers.get("Content-Type");
+    if (contentType && contentType.includes("application/json")) {
+      return await response.json();
+    }
+    return { message: "Quote deleted successfully" }; // Fallback for non-JSON response
   } catch (error) {
     console.error("Error deleting quote:", error);
+    throw error; // Re-throw to handle in UI
   }
 };
 
@@ -48,7 +61,8 @@ export const reportQuote = async (reportData) => {
     const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/report/id`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ quoteID: reportData.quoteID }),dy
+      body: JSON.stringify({ quoteID: reportData.quoteID }),
+      dy,
     });
     if (!response.ok) throw new Error("Failed to report quote");
     return await response.json();
@@ -60,7 +74,7 @@ export const reportQuote = async (reportData) => {
 export const searchQuotes = async (query, isQuoteID = false) => {
   try {
     const endpoint = isQuoteID
-      ? `${QUOTE_SERVICE_URL}/quotes/search/id/${query}` 
+      ? `${QUOTE_SERVICE_URL}/quotes/search/id/${query}`
       : `${QUOTE_SERVICE_URL}/quotes/search/query/${query}`; //Search by text
 
     const response = await fetch(endpoint);
@@ -87,14 +101,16 @@ export const updateQuote = async (quoteData) => {
 
 export const fetchTopBookmarkedQuotes = async () => {
   try {
-    const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/search/topBookmarked`);
-    
+    const response = await fetch(
+      `${QUOTE_SERVICE_URL}/quotes/search/topBookmarked`
+    );
+
     if (!response.ok) throw new Error("Failed to fetch top bookmarked quotes");
 
     const data = await response.json();
-    
+
     if (!data || data.length === 0) {
-      return []; 
+      return [];
     }
 
     return data;
@@ -117,7 +133,9 @@ export const fetchUserProfile = async (userId) => {
 
 export const fetchTopSharedQuotes = async () => {
   try {
-    const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/search/topShared`);
+    const response = await fetch(
+      `${QUOTE_SERVICE_URL}/quotes/search/topShared`
+    );
     if (!response.ok) throw new Error("Failed to fetch top shared quotes");
 
     const data = await response.json();
