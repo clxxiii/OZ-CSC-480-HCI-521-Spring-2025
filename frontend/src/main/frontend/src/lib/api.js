@@ -3,14 +3,17 @@ const QUOTE_SERVICE_URL =
 const USER_SERVICE_URL =
   import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:9081";
 
-export const createQuote = async ({ quote, author = "Unknown", tags = [] }) => {
+
+export const createQuote = async ({ quote, author, tags }) => {
   try {
     const quoteData = {
-      author,
-      quote,
-      date: 1663222, // example integer date
-      tags,
+      quote, 
+      author: author || "Unknown",
+      date: Math.floor(new Date().getTime() / 1000), //convert to Unix timestamp for int
+      tags: tags || []
     };
+
+    console.log("Sending API Payload:", JSON.stringify(quoteData)); 
 
     const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/create`, {
       method: "POST",
@@ -19,12 +22,13 @@ export const createQuote = async ({ quote, author = "Unknown", tags = [] }) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to create quote (status: ${response.status})`);
-    }
 
-    // Assuming the server returns JSON with the new quote ID or details
-    const data = await response.json();
-    return data;
+      const errorMessage = await response.text();
+      console.error("Backend Error:", errorMessage); 
+      throw new Error("Failed to create quote");
+    }
+    return await response.json();
+    
   } catch (error) {
     console.error("Error creating quote:", error);
     // Re-throw or return a fallback value

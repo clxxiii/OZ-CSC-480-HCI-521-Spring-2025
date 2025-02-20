@@ -31,27 +31,28 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
     setLoading(true);
     setError(null);
     setSuccess(false);
-  
-    if (!quoteText.trim()) {  //Prevent empty quote submission
+
+    if (!quoteText.trim()) {  
       setError("Quote text cannot be empty.");
       setLoading(false);
       return;
     }
-  
+
     const quoteData = {
-      text: quoteText.trim(),
-      author,
-      tags,
-      date: new Date().toISOString().split("T")[0], 
+      quote: quoteText.trim(), // ✅ Changed from "text" to "quote"
+      author: author || "Unknown",
+      tags: tags || [],
+      date: new Date().toISOString().split("T")[0], // Ensure correct date format
     };
-  
+
+    console.log("Sending Quote Data:", quoteData); // ✅ Debugging Log
+
     try {
       const response = await createQuote(quoteData);
-  
       if (!response || response.error) { 
         throw new Error("Failed to create quote.");
       }
-  
+
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
       onSubmit(quoteData);
@@ -60,11 +61,13 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
       setTags(["inspirational", "motivating"]);
       setCustomTag("");
     } catch (err) {
+      console.error("Error submitting quote:", err);
       setError("Error submitting quote. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+};
+
   
 
   return (
