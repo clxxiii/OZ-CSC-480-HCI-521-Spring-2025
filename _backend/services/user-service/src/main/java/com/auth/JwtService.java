@@ -13,13 +13,12 @@ public class JwtService {
         try {
             AccountService accountService = new AccountService();
             Document user = accountService.accountCollection.find(eq("email", email)).first();
-            if (user == null) {
-                throw new RuntimeException("User not found");
-            }
 
             String[] groups;
-            if (user.getInteger("admin") == 1) {
-                groups = new String[]{"admin", "user"};
+            if (user == null) {
+                groups = new String[]{"user"};
+            } else if (user.getInteger("admin") == 1) {
+                    groups = new String[]{"admin"};
             } else {
                 groups = new String[]{"user"};
             }
