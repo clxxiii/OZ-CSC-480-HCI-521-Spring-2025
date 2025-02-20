@@ -124,26 +124,36 @@ const DebugPage = () => {
 
   const handleUpdateQuote = async (e) => {
     e.preventDefault();
+  
+    if (!updateId.trim()) {
+      setUpdateResult("Error: Quote ID is required.");
+      return;
+    }
+  
     const tagsArray = updateTagsInput
       .split(",")
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0);
-
-    // Typically, an update expects an _id + any fields you want to change
+  
     const payload = {
-      _id: updateId, // Required for your endpoint
+      _id: updateId.trim(),
+      author: updateAuthor || "Unknown",
+      quote: updateText || "",
+      tags: tagsArray.length ? tagsArray : [],
     };
-    if (updateAuthor) payload.author = updateAuthor;
-    if (updateText) payload.quote = updateText;
-    if (tagsArray.length) payload.tags = tagsArray;
-
+  
+    console.log("Sending Update Payload:", JSON.stringify(payload, null, 2));
+  
     try {
       const result = await updateQuote(payload);
+      console.log("Update Success:", result);
       setUpdateResult(result);
     } catch (error) {
-      setUpdateResult(`Error updating quote: ${error.message}`);
+      console.error("Error updating quote:", error);
+      setUpdateResult({ error: `Failed to update quote: ${error.message}` });
     }
   };
+  
 
   //
   // 6) FETCH TOP BOOKMARKED

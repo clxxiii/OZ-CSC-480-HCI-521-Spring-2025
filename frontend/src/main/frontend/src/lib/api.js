@@ -84,17 +84,34 @@ export const searchQuotes = async (query, isQuoteID = false) => {
 
 export const updateQuote = async (quoteData) => {
   try {
+    console.log("Sending update request:", JSON.stringify(quoteData));
+
     const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/update`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(quoteData),
     });
-    if (!response.ok) throw new Error("Failed to update quote");
-    return await response.json();
+
+    const text = await response.text(); 
+    console.log("Raw API Response:", text); 
+
+    if (!response.ok) {
+      console.error("Backend returned an error:", text);
+      throw new Error(`Failed to update quote: ${text}`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      console.error("Error parsing JSON:", text);
+      throw new Error("Invalid JSON response from server.");
+    }
   } catch (error) {
     console.error("Error updating quote:", error);
+    throw error;
   }
 };
+
 
 export const fetchTopBookmarkedQuotes = async () => {
   try {
