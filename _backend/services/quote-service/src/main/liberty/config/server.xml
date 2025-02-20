@@ -13,10 +13,13 @@
     <!-- Define server ports -->
     <variable name="http.port" defaultValue="9082"/>
     <variable name="frontend.root" defaultValue="http://localhost:9080"/>
+    <variable name="CONNECTION_STRING" value="${env.CONNECTION_STRING}"/>
 
-    <httpEndpoint httpPort="${http.port}" httpsPort="9443"
-                  id="defaultHttpEndpoint"
-                  host="*"/>
+    <!-- HTTP Endpoint -->
+    <httpEndpoint id="defaultHttpEndpoint"
+                  host="*"
+                  httpPort="${http.port}"
+                  httpsPort="9443"/>
 
     <!-- Web Application Configuration -->
     <webApplication contextRoot="/" location="quote-service.war">
@@ -29,7 +32,7 @@
     <!-- Enable static content serving -->
     <httpDispatcher enableWelcomePage="true"/>
 
-    <!-- CORS configuration per endpoint -->
+    <!-- CORS Configuration -->
     <cors domain="/quotes/*"
           allowedOrigins="${frontend.root}"
           allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
@@ -42,4 +45,5 @@
 
     <!-- Default SSL configuration -->
     <ssl id="defaultSSLConfig" trustDefaultCerts="true"/>
+
 </server>
