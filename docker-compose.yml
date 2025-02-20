@@ -22,13 +22,13 @@ services:
     environment:
       CONNECTION_STRING: ${CONNECTION_STRING}
 #      CONNECTION_STRING: mongodb://user:password@users_database:27017
-#  quotes-database:
-#    image: mongo
-#    volumes:
-#      - quotes_db:/data/db
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: user
-#      MONGO_INITDB_ROOT_PASSWORD: password
+ quotes-database:
+   image: mongo
+   volumes:
+     - quotes_db:/data/db
+   environment:
+     MONGO_INITDB_ROOT_USERNAME: user
+     MONGO_INITDB_ROOT_PASSWORD: password
 
   user-service:
     build: ./_backend/services/user-service
@@ -41,13 +41,13 @@ services:
       CLIENT_SECRET: ${CLIENT_SECRET}
       REDIRECT_URI: ${REDIRECT_URI}
 
-#  users-database:
-#    image: mongo
-#    volumes:
-#      - users_db:/data/db
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: user
-#      MONGO_INITDB_ROOT_PASSWORD: password
+ users-database:
+   image: mongo
+   volumes:
+     - users_db:/data/db
+   environment:
+     MONGO_INITDB_ROOT_USERNAME: user
+     MONGO_INITDB_ROOT_PASSWORD: password
 
 volumes:
   quotes_db:
