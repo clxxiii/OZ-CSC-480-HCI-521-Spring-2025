@@ -3,17 +3,16 @@ const QUOTE_SERVICE_URL =
 const USER_SERVICE_URL =
   import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:9081";
 
-
 export const createQuote = async ({ quote, author, tags }) => {
   try {
     const quoteData = {
-      quote, 
+      quote,
       author: author || "Unknown",
       date: Math.floor(new Date().getTime() / 1000), //convert to Unix timestamp for int
-      tags: tags || []
+      tags: tags || [],
     };
 
-    console.log("Sending API Payload:", JSON.stringify(quoteData)); 
+    console.log("Sending API Payload:", JSON.stringify(quoteData));
 
     const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/create`, {
       method: "POST",
@@ -22,13 +21,11 @@ export const createQuote = async ({ quote, author, tags }) => {
     });
 
     if (!response.ok) {
-
       const errorMessage = await response.text();
-      console.error("Backend Error:", errorMessage); 
+      console.error("Backend Error:", errorMessage);
       throw new Error("Failed to create quote");
     }
     return await response.json();
-    
   } catch (error) {
     console.error("Error creating quote:", error);
     // Re-throw or return a fallback value
@@ -123,7 +120,9 @@ export const fetchTopBookmarkedQuotes = async () => {
 //user profile (From User Service)
 export const fetchUserProfile = async (userId) => {
   try {
-    const response = await fetch(`${USER_SERVICE_URL}/users/${userId}`);
+    const response = await fetch(
+      `${USER_SERVICE_URL}/users/search/id/${userId}`
+    );
     if (!response.ok) throw new Error("Failed to fetch user profile");
     return await response.json();
   } catch (error) {
