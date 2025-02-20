@@ -1,17 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 import QuoteCard from "../components/QuoteCard";
 import QuoteUploadModal from "../components/QuoteUploadModal";
-import { userQuotes, bookmarkedQuotes } from "../placeholderdata"
+import { fetchTopBookmarkedQuotes } from "../lib/api";
 
 const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [quoteText, setQuoteText] = useState(""); 
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [showModal, setShowModal] = useState(false); 
+  const [isLoggedIn, setIsLoggedIn] = useState(true); 
+  const [showModal, setShowModal] = useState(false);
+  const [quotes, setQuotes] = useState([]); 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
+
+useEffect(() => {
+  const loadQuotes = async () => {
+    try {
+      const data = await fetchTopBookmarkedQuotes();
+      
+      if (!data || data.length === 0) {
+        setError("No quotes yet! Try adding your own");
+      } else {
+        setQuotes(data);
+      }
+      
+    } catch (err) {
+      console.error("Error fetching quotes:", err);
+      setError("Failed to load quotes");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadQuotes();
+}, []);
 
   const handleSavedQuotesRedirect = () => {
     navigate("/saved-quotes");
@@ -38,17 +63,13 @@ const LandingPage = () => {
     setShowModal(false); 
   };
 
-  const quotes = [...userQuotes, ...bookmarkedQuotes];
-
+  //Filter quotes
   const filteredQuotes = quotes.filter((quote) => {
-    const matchesSearch = 
+    return (
       quote.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
       quote.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quote.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    const matchesVisibility = quote.visibility === "public" || (isLoggedIn && quote.uploadedById === 101);//placeholder
-
-    return matchesSearch && matchesVisibility;
+      quote.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
   });
 
   return (
@@ -91,7 +112,11 @@ const LandingPage = () => {
 
       <div className="flex-grow-1 d-flex justify-content-center">
         <div className="row w-100">
-          {filteredQuotes.length > 0 ? (
+          {loading ? (
+            <p className="text-center w-100">Loading quotes...</p>
+          ) : error ? (
+            <p className="text-center w-100">{error}</p>
+          ) : filteredQuotes.length > 0 ? (
             filteredQuotes.map((quote) => (
               <QuoteCard key={quote.quoteId} quote={quote} />
             ))
