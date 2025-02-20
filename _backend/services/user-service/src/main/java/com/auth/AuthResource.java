@@ -8,7 +8,11 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.gson.Gson;
+import jakarta.mail.Session;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
@@ -42,7 +46,7 @@ public class AuthResource{
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/callback")
-    public Response exchangeCode(@QueryParam("code") String code) throws IOException {
+    public Response exchangeCode(@QueryParam("code") String code,@Context HttpServletRequest request) throws IOException {
         String clientId = System.getenv("CLIENT_ID");
         String clientSecret = System.getenv("CLIENT_SECRET");
         String redirectUri = System.getenv("REDIRECT_URI");
@@ -61,12 +65,20 @@ public class AuthResource{
 
         //get user info
         HttpRequestFactory requestFactory = httpTransport.createRequestFactory();
-        HttpRequest request = requestFactory.buildGetRequest(new GenericUrl("https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=" + tokenResponse.getAccessToken()));
-        HttpResponse response = request.execute();
+        HttpRequest request1 = requestFactory.buildGetRequest(new GenericUrl("https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=" + tokenResponse.getAccessToken()));
+        HttpResponse response = request1.execute();
         GoogleIdToken.Payload payload = new Gson().fromJson(response.parseAsString(), GoogleIdToken.Payload.class);
-
+        System.out.println(payload);
+        //need to fix here
         String jwt = JwtService.buildJwt(payload.getEmail());
-        return Response.ok().entity(Map.of("payload", payload, "jwt", jwt)).build();
+//        HttpServletRequest request = SessionUtils.getRequest();
+        String remoteUser = request.getRemoteUser();
+//        Set<String> roles = getRoles(request);
+        HttpSession session = request.getSession();
+        session.setAttribute("quotableToken", jwt);
+        session.setAttribute("email", payload.getEmail());
+//        return Response.ok().entity(Map.of("payload", payload, "jwt", jwt)).location(URI.create("http://localhost:9080")).build();
+        return Response.status(Response.Status.FOUND).location(URI.create("http://localhost:9080")).build();
     }
 
     @GET

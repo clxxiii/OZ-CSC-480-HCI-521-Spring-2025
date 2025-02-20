@@ -11,6 +11,8 @@ import { userQuotes, bookmarkedQuotes } from './placeholderdata';
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+
+
   return (
     <Router>
       <Routes>
