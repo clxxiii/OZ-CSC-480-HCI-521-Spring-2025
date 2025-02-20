@@ -1,51 +1,74 @@
 import React, { useState } from "react";
+import { createQuote } from "../lib/api"; 
 
 const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteText }) => {
   if (!isVisible) return null;
 
   const [author, setAuthor] = useState("Unknown");
   const [tags, setTags] = useState(["inspirational", "motivating"]);
-  const [customTag, setCustomTag] = useState(""); 
+  const [customTag, setCustomTag] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
-  const handleQuoteTextChange = (e) => {
-    setQuoteText(e.target.value);
-  };
-
-  const handleAuthorChange = (e) => {
-    setAuthor(e.target.value || "Unknown");
-  };
+  const handleQuoteTextChange = (e) => setQuoteText(e.target.value);
+  const handleAuthorChange = (e) => setAuthor(e.target.value || "Unknown");
 
   const handleTagChange = (e) => {
     const selectedTags = Array.from(e.target.selectedOptions, (option) => option.value);
     setTags(selectedTags);
   };
 
-  const handleCustomTagChange = (e) => {
-    setCustomTag(e.target.value);
-  };
-
+  const handleCustomTagChange = (e) => setCustomTag(e.target.value);
   const handleAddCustomTag = () => {
     if (customTag && !tags.includes(customTag)) {
       setTags([...tags, customTag]);
-      setCustomTag(""); 
+      setCustomTag("");
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+  
+    if (!quoteText.trim()) {  //Prevent empty quote submission
+      setError("Quote text cannot be empty.");
+      setLoading(false);
+      return;
+    }
+  
     const quoteData = {
-      text: quoteText,
+      text: quoteText.trim(),
       author,
-      tags
+      tags,
+      date: new Date().toISOString().split("T")[0], 
     };
-    onSubmit(quoteData);
-    setQuoteText(""); 
-    setAuthor("Unknown");
-    setTags(["inspirational", "motivating"]);
-    setCustomTag(""); 
+  
+    try {
+      const response = await createQuote(quoteData);
+  
+      if (!response || response.error) { 
+        throw new Error("Failed to create quote.");
+      }
+  
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+      onSubmit(quoteData);
+      setQuoteText("");
+      setAuthor("Unknown");
+      setTags(["inspirational", "motivating"]);
+      setCustomTag("");
+    } catch (err) {
+      setError("Error submitting quote. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+  
 
   return (
-    <div className="modal show" style={{ display: 'block' }} aria-labelledby="uploadQuoteModal">
+    <div className="modal show" style={{ display: "block" }} aria-labelledby="uploadQuoteModal">
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
@@ -54,6 +77,9 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
           </div>
           <div className="modal-body">
             <p>Submit your new quote:</p>
+
+            {error && <div className="alert alert-danger">{error}</div>}
+            {success && <div className="alert alert-success">Quote submitted successfully!</div>}
 
             <textarea
               className="form-control"
@@ -109,7 +135,14 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Close</button>
-            <button type="button" className="btn btn-primary" onClick={handleSubmit}>Submit</button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "Submitting..." : "Submit"}
+            </button>
           </div>
         </div>
       </div>
