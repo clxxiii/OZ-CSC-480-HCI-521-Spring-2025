@@ -47,18 +47,19 @@ const QuoteForm = () => {
     }
   };
 
-  const handleDeleteQuote = async (e) => {
-    e.preventDefault();
-    if (!updateId.trim()) return;
+const handleDeleteQuote = async (e) => {
+  e.preventDefault();
+  if (!updateId.trim()) return;
 
-    try {
-      await deleteQuote(updateId);
-    } catch (error) {
-      console.error("Error deleting quote:", error);
-    } finally {
-      localStorage.setItem("alertMessage", "Quote deleted successfully!");
-      navigate("/"); 
-  };
+  try {
+    await deleteQuote(updateId);
+  } catch (error) {
+    console.error("Error deleting quote:", error);
+  } finally {
+    localStorage.setItem("alertMessage", "Quote deleted successfully!");
+    navigate("/"); 
+  } 
+};
 
   return (
     <div className="container vh-100 d-flex flex-column justify-content-center align-items-center">
