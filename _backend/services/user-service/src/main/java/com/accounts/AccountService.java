@@ -91,9 +91,8 @@ public class AccountService {
                 .path("/")
                 .comment("JWT Token")
                 .maxAge(3600)
-                .httpOnly(true)
                 .secure(true)
-                .sameSite(NewCookie.SameSite.LAX)
+                .sameSite(NewCookie.SameSite.NONE)
                 .build();
 
         return Response
