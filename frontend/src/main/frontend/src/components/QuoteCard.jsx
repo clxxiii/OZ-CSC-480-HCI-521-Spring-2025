@@ -13,7 +13,7 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
       state: {
         quote: {
           _id: quote._id,
-          text: quote.quote, /
+          text: quote.quote, 
           author: quote.author,
           tags: quote.tags || [],
           bookmarks: quote.bookmarks,
