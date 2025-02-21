@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
 import QuoteCard from "../components/QuoteCard";
@@ -8,7 +8,7 @@ import { fetchTopBookmarkedQuotes } from "../lib/api";
 const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [quoteText, setQuoteText] = useState(""); 
-  const [isLoggedIn, setIsLoggedIn] = useState(true); 
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [quotes, setQuotes] = useState([]); 
   const [loading, setLoading] = useState(true);
@@ -53,6 +53,7 @@ const LandingPage = () => {
     if (isLoggedIn) {
       setShowModal(true); 
     } else {
+      setIsLoggedIn(false)
       navigate("/login"); 
     }
   };
