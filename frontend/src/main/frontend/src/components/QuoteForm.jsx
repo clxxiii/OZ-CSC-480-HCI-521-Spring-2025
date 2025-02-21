@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react"; 
 import { useLocation } from "react-router-dom";
-import { updateQuote } from "../lib/api";
+import { updateQuote, deleteQuote } from "../lib/api";
 
 const QuoteForm = () => {
   const location = useLocation();
-  const { quote } = location.state || {}; // ✅ Get quote from navigation state
+  const { quote } = location.state || {}; 
 
   const [updateId, setUpdateId] = useState("");
   const [updateText, setUpdateText] = useState("");
@@ -12,11 +12,10 @@ const QuoteForm = () => {
   const [updateTagsInput, setUpdateTagsInput] = useState("");
   const [updateResult, setUpdateResult] = useState(null);
 
-  // ✅ Populate the form with the received quote data
   useEffect(() => {
     if (quote) {
       setUpdateId(quote._id);
-      setUpdateText(quote.text || ""); // ✅ Use the correct key for text
+      setUpdateText(quote.text || ""); 
       setUpdateAuthor(quote.author || "Unknown");
       setUpdateTagsInput(quote.tags ? quote.tags.join(", ") : "");
     }
@@ -26,7 +25,6 @@ const QuoteForm = () => {
     e.preventDefault();
 
     if (!updateId.trim()) {
-      setUpdateResult("Error: Quote ID is required.");
       return;
     }
 
@@ -50,7 +48,20 @@ const QuoteForm = () => {
       setUpdateResult(result);
     } catch (error) {
       console.error("Error updating quote:", error);
-      setUpdateResult({ error: `Failed to update quote: ${error.message}` });
+    }
+  };
+
+  const handleDeleteQuote = async (e) => {
+    e.preventDefault();
+
+    if (!updateId.trim()) {
+      return;
+    }
+
+    try {
+      await deleteQuote(updateId);
+    } catch (error) {
+      console.error("Error deleting quote:", error);
     }
   };
 
@@ -89,7 +100,9 @@ const QuoteForm = () => {
           />
         </div>
         <button type="submit" className="btn btn-primary">Update Quote</button>
-        {updateResult && <div className="alert alert-info mt-3">{JSON.stringify(updateResult)}</div>}
+      </form>
+      <form className="w-50 mt-3" onSubmit={handleDeleteQuote}>
+        <button type="submit" className="btn btn-danger">Delete Quote</button>
       </form>
     </div>
   );
