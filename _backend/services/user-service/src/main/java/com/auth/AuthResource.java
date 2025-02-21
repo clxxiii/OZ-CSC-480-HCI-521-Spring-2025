@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 
 import java.io.*;
 import java.net.URI;
@@ -23,6 +24,8 @@ import static com.mongodb.client.model.Filters.eq;
 
 @Path("/auth")
 public class AuthResource{
+
+    public static AccountService accountService = new AccountService();
 
 
     @GET
@@ -77,12 +80,17 @@ public class AuthResource{
                 .secure(true)
                 .sameSite(NewCookie.SameSite.LAX)
                 .build();
-        return Response.ok().cookie(jwtCookie).entity(Map.of("payload", payload, "jwt", jwt)).build();
+
+        Account account = new Account(payload.getEmail(), payload.get("name").toString(), 0, tokenResponse.getAccessToken(), tokenResponse.getRefreshToken(),
+                tokenResponse.getExpiresInSeconds(), Arrays.asList(tokenResponse.getScope().split(" ")), tokenResponse.getTokenType());
+
+        return accountService.newUserWithCookie(account, jwtCookie);
     }
 
     @GET
     @Path("/jwt")
     @Produces(MediaType.TEXT_PLAIN)
+    @Operation( summary = "Ignore me I am a test!")
     public Response getJwt(@HeaderParam("Session-Id") String sessionId) {
         if (sessionId == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("[\"Missing Session Id!\"]").build();

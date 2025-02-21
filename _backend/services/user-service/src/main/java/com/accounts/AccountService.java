@@ -7,6 +7,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.UpdateResult;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -56,6 +57,31 @@ public class AccountService {
 
         return Response
                 .status(Response.Status.OK)
+                .entity(accountDocument.toJson())
+                .build();
+
+    }
+
+    public Response newUserWithCookie(Account account, NewCookie cookie) {
+        Document accountDocument = Document.parse(account.toJson());
+
+        if (accountCollection.find(eq("email", accountDocument.getString("email"))).first() != null) {
+            Document updateFields = new Document();
+            updateFields.append("access_token", account.access_token);
+            updateFields.append("refresh_token", account.refresh_token);
+            updateFields.append("expires_at", account.expires_at);
+            updateFields.append("scope", account.scope);
+            updateFields.append("token_type", account.token_type);
+
+            accountCollection.updateOne(eq("email", accountDocument.getString("email")),
+                    new Document("$set", updateFields));
+        } else {
+            accountCollection.insertOne(accountDocument);
+        }
+
+        return Response
+                .status(Response.Status.OK)
+                .cookie(cookie)
                 .entity(accountDocument.toJson())
                 .build();
 

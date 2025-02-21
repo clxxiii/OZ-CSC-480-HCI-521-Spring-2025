@@ -18,7 +18,7 @@ public class JwtService {
             if (user == null) {
                 groups = new String[]{"user"};
             } else if (user.getInteger("admin") == 1) {
-                    groups = new String[]{"admin"};
+                groups = new String[]{"admin"};
             } else {
                 groups = new String[]{"user"};
             }
