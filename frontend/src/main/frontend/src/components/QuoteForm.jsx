@@ -3,17 +3,19 @@ import { useLocation } from "react-router-dom";
 
 const QuoteForm = () => {
   const location = useLocation();
-  const { quote } = location.state || {};
+  const { quote } = location.state || {}; 
 
   const [quoteText, setQuoteText] = useState(quote ? quote.text : "");
   const [author, setAuthor] = useState(quote ? quote.author : "");
   const [tags, setTags] = useState(quote ? quote.tags.join(", ") : "");
 
+
   useEffect(() => {
     if (quote) {
-      setQuoteText(quote.text);
-      setAuthor(quote.author);
-      setTags(quote.tags.join(", "));
+      setUpdateId(quote._id);
+      setUpdateText(quote.text || ""); 
+      setUpdateAuthor(quote.author || "Unknown");
+      setUpdateTagsInput(quote.tags ? quote.tags.join(", ") : "");
     }
   }, [quote]);
 

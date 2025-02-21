@@ -9,7 +9,22 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
   const [shareUser, setShareUser] = useState("");
 
   const handleClick = () => {
+<<<<<<< Updated upstream
     navigate(`/quote/${quote.id}`, { state: { quote } });
+=======
+    navigate(`/edit-quote/${quote._id}`, {
+      state: { quote: { 
+        _id: quote._id,
+        text: quote.quote, 
+        author: quote.author,
+        tags: quote.tags || [],
+        bookmarks: quote.bookmarks,
+        shares: quote.shares,
+        flags: quote.flags,
+        date: quote.date
+      }}
+    });
+>>>>>>> Stashed changes
   };
 
   const handleBookmarkClick = (e) => {
