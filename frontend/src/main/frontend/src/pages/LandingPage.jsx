@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import QuoteCard from "../components/QuoteCard";
 import QuoteUploadModal from "../components/QuoteUploadModal";
 import LoginBox from "../components/Login";
-import { fetchTopBookmarkedQuotes } from "../lib/api";
+import { fetchMe, fetchTopBookmarkedQuotes } from "../lib/api";
 
 const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,11 +40,8 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLogin(true);
-    }, 3000);
-    return () => clearTimeout(timer);
   }, []);
+
 
   const handleSavedQuotesRedirect = () => {
     navigate("/saved-quotes");
@@ -66,18 +63,6 @@ const LandingPage = () => {
     setShowModal(false); 
   };
 
-  const handleCloseLogin = () => {
-    setShowLogin(false);
-  };
-
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:9081/users/auth/login";
-  };
-
-  const handleGuestLogin = () => {
-    setIsLoggedIn(true);
-    setShowLogin(false);
-  };
 
   const handleSubmitQuote = (quoteText) => {
     alert(`Quote Submitted: ${quoteText}`);
@@ -94,13 +79,6 @@ const LandingPage = () => {
 
   return (
     <div className="container vh-100 d-flex flex-column position-relative">
-      {showLogin && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1050 }}>
-          <div className="bg-white p-4 rounded shadow-lg">
-            <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin} handleCloseLogin={handleCloseLogin} />
-          </div>
-        </div>
-      )}
       
       <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: "33vh" }}>
         <h1 className="mb-3">Quote Web App</h1>

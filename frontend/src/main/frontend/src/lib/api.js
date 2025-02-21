@@ -161,3 +161,21 @@ export const fetchTopSharedQuotes = async () => {
     return [];
   }
 };
+
+export const fetchMe = async () => {
+  try {
+    const response = await fetch(
+      `${USER_SERVICE_URL}/users/accounts/whoami`,
+      {
+        credentials: "include"
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch user");
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching top shared quotes:", error);
+    return null;
+  }
+};

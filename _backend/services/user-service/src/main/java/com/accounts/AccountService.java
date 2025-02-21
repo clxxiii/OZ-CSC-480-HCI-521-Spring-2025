@@ -1,5 +1,8 @@
 package com.accounts;
 
+import com.auth.AuthResource;
+import com.auth.JwtService;
+import com.ibm.websphere.security.jwt.JwtToken;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -13,12 +16,12 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import jakarta.ws.rs.core.Response;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
-
 
 public class AccountService {
 
@@ -62,10 +65,13 @@ public class AccountService {
 
     }
 
-    public Response newUserWithCookie(Account account, NewCookie cookie) {
+    public Response newUserWithCookie(Account account) {
         Document accountDocument = Document.parse(account.toJson());
+        Document oldAccountDocument = accountCollection.find(eq("email", accountDocument.getString("email"))).first();
 
-        if (accountCollection.find(eq("email", accountDocument.getString("email"))).first() != null) {
+        String id;
+
+        if (oldAccountDocument != null) {
             Document updateFields = new Document();
             updateFields.append("access_token", account.access_token);
             updateFields.append("refresh_token", account.refresh_token);
@@ -73,24 +79,34 @@ public class AccountService {
             updateFields.append("scope", account.scope);
             updateFields.append("token_type", account.token_type);
 
-            accountCollection.updateOne(eq("email", accountDocument.getString("email")),
-                    new Document("$set", updateFields));
+            id = oldAccountDocument.getObjectId("_id").toString();
         } else {
-            accountCollection.insertOne(accountDocument);
+            id = accountCollection.insertOne(accountDocument).getInsertedId().asObjectId().getValue().toString();
         }
 
+        System.out.println(id);
+
+        NewCookie cookie = new NewCookie.Builder("jwt")
+                .value(JwtService.buildJwt(id))
+                .path("/")
+                .comment("JWT Token")
+                .maxAge(3600)
+                .secure(true)
+                .sameSite(NewCookie.SameSite.NONE)
+                .build();
+
         return Response
-                .status(Response.Status.OK)
+                .status(Response.Status.FOUND)
                 .cookie(cookie)
-                .entity(accountDocument.toJson())
+                .location(URI.create(AuthResource.HOME_URL))
                 .build();
 
     }
 
     public Response retrieveUser(String accountID, Boolean includeOauth) {
         ArrayList<String> fieldsList = new ArrayList<String>(
-                List.of("email", "username", "admin", "notifications", "myQuotes",
-                        "favoriteQuote", "sharedQuotes", "myTags", "description"));
+                List.of("Email", "Username", "admin", "Notifications", "myQuotes",
+                        "FavoriteQuote", "SharedQuotes", "MyTags", "Description"));
 
         if (includeOauth) {
             List<String> oauthList = List.of("access_token", "refresh_token", "expires_at", "scope",
@@ -240,7 +256,4 @@ public class AccountService {
         return doc.getObjectId("_id").toHexString();
     }
 
-
-
 }
-
