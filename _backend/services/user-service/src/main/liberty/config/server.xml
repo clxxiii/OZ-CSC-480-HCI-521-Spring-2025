@@ -48,8 +48,6 @@
            keyName="defaultKeyStore"
            groupNameAttribute="groups"/>
 
-    <ssl id="defaultSSLConfig" trustDefaultCerts="true" />
-
     <!-- Automatically expand WAR files and EAR files -->
     <applicationManager autoExpand="true"/>
 

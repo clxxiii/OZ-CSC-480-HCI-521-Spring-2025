@@ -11,8 +11,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.jwt.Claim;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.security.Principal;
+import java.util.Set;
 
 @Path("/accounts")
 public class AccountsResource {
@@ -65,11 +67,15 @@ public class AccountsResource {
 
         if (user != null) {
             json.add("user", user.getName());
-            json.add("isAdmin", securityContext.isUserInRole("admin"));
-            json.add("isUser", securityContext.isUserInRole("user"));
-            json.add("roles", Json.createArrayBuilder()
-                    .add(securityContext.isUserInRole("admin") ? "admin" : "")
-                    .add(securityContext.isUserInRole("user") ? "user" : ""));
+
+            if (user instanceof JsonWebToken jwt) {
+                Set<String> groups = jwt.getGroups();  // Extract groups claim
+                json.add("groups", Json.createArrayBuilder(groups));
+
+                // Debug output
+                System.out.println("User: " + user.getName());
+                System.out.println("Groups: " + groups);
+            }
         } else {
             json.add("error", "Not authenticated");
         }
