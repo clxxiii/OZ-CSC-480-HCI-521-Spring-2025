@@ -21,10 +21,9 @@ const LandingPage = () => {
   useEffect(() => {
     const loadQuotes = async () => {
       try {
-        console.log("Fetching top bookmarked quotes..."); // Debugging log
+        console.log("Fetching top bookmarked quotes..."); 
         const data = await fetchTopBookmarkedQuotes();
-        console.log("Fetched Quotes:", data); // ✅ Log fetched data
-        
+        console.log("Fetched Quotes:", data);
         if (!data || data.length === 0) {
           setError("No quotes yet! Try adding your own");
         } else {
@@ -43,16 +42,20 @@ const LandingPage = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowLogin(true);
-    }, 3000); // Show login popup after 3 seconds
+    }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSavedQuotesRedirect = () => {
-    navigate("/saved-quotes");
-  };
-
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
+  };
+
+  const handleUploadQuote = () => {
+    if (isLoggedIn) {
+      setShowModal(true); 
+    } else {
+      navigate("/login"); 
+    }
   };
 
   const handleCloseModal = () => {
@@ -99,6 +102,7 @@ const LandingPage = () => {
           value={searchQuery}
           onChange={handleSearchChange}
         />
+        <button className="btn btn-success mt-3" onClick={handleUploadQuote}>Upload Quote</button>
       </div>
       <div className="flex-grow-1 d-flex justify-content-center">
         <div className="row w-100">
@@ -115,6 +119,7 @@ const LandingPage = () => {
           )}
         </div>
       </div>
+      {showModal && <QuoteUploadModal handleClose={handleCloseModal} />}
     </div>
   );
 };
