@@ -21,9 +21,10 @@ const LandingPage = () => {
   useEffect(() => {
     const loadQuotes = async () => {
       try {
-        console.log("Fetching top bookmarked quotes..."); 
+        console.log("Fetching top bookmarked quotes..."); // Debugging log
         const data = await fetchTopBookmarkedQuotes();
-        console.log("Fetched Quotes:", data);
+        console.log("Fetched Quotes:", data); // ✅ Log fetched data
+        
         if (!data || data.length === 0) {
           setError("No quotes yet! Try adding your own");
         } else {
@@ -45,6 +46,10 @@ const LandingPage = () => {
     }, 3000); // Show login popup after 3 seconds
     return () => clearTimeout(timer);
   }, []);
+
+  const handleSavedQuotesRedirect = () => {
+    navigate("/saved-quotes");
+  };
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -69,9 +74,9 @@ const LandingPage = () => {
 
   const filteredQuotes = quotes.filter((quote) => {
     return (
-      quote.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quote.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quote.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      (quote.author && quote.author.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (quote.quote && quote.quote.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (quote.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
     );
   });
 
@@ -103,7 +108,7 @@ const LandingPage = () => {
             <p className="text-center w-100">{error}</p>
           ) : filteredQuotes.length > 0 ? (
             filteredQuotes.map((quote) => (
-              <QuoteCard key={quote.quoteId} quote={quote} />
+              <QuoteCard key={quote._id} quote={quote} />
             ))
           ) : (
             <p className="text-center w-100">No quotes found.</p>

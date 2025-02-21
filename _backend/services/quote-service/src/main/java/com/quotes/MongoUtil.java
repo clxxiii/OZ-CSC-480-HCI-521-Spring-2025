@@ -38,7 +38,7 @@ public class MongoUtil {
 
         //return (result != null) ? result.toJson() : null;
         if(result != null) {
-            result.put("_id", result.getObjectId("_id").toString()); //gets rid of "$oid" field
+            result.put("_id", result.getObjectId("_id").toString()); //gets rid of "$oid" subfield
             return result.toJson();
         }
         return null;
@@ -213,6 +213,7 @@ public class MongoUtil {
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
 
         for(Document doc : results) {
+            doc.put("_id", doc.getObjectId("_id").toString());
             JsonObject jsonObject = Json.createReader(new java.io.StringReader(doc.toJson())).readObject();
             jsonArrayBuilder.add(jsonObject);
         }
@@ -233,6 +234,7 @@ public class MongoUtil {
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
 
         for(Document doc : results) {
+            doc.put("_id", doc.getObjectId("_id").toString());
             JsonObject jsonObject = Json.createReader(new java.io.StringReader(doc.toJson())).readObject();
             jsonArrayBuilder.add(jsonObject);
         }
@@ -243,6 +245,30 @@ public class MongoUtil {
         }
         return stringWriter.toString();
     }
+
+    public String getTopFlagged() {
+        MongoCollection<Document> collection = database.getCollection("Quotes");
+
+        AggregateIterable<Document> results = collection.aggregate(Arrays.asList(
+                new Document("$match", new Document("flags", new Document("$gt", 2))), //get only quotes where flags >= 2
+                new Document("$sort", new Document("flags", -1)) //sort in decending order
+        ));
+
+        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+
+        for(Document doc : results) {
+            doc.put("_id", doc.getObjectId("_id").toString());
+            JsonObject jsonObject = Json.createReader(new java.io.StringReader(doc.toJson())).readObject();
+            jsonArrayBuilder.add(jsonObject);
+        }
+
+        StringWriter stringWriter = new StringWriter();
+        try (JsonWriter jsonWriter = Json.createWriter(stringWriter)) {
+            jsonWriter.writeArray(jsonArrayBuilder.build());
+        }
+        return stringWriter.toString();
+    }
+
 
     public static void close() {
         if(mongoClient != null) {

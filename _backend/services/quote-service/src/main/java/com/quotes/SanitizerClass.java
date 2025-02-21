@@ -7,7 +7,7 @@ public class SanitizerClass {
     public static String sanitize(String input) {
         if(input == null) return null;
         //forces string to not contain any special characters
-        return input.replaceAll("[^a-zA-Z0-9]", "");
+        return input.replaceAll("[^a-zA-Z0-9 .,!?'\"()\\-]", "");
     }
 
     public static QuoteObject sanitizeQuote(QuoteObject quote) {
@@ -24,6 +24,7 @@ public class SanitizerClass {
                 }
                 quote.setTags(tagList);
             }
+            return quote;
         }
         return null;
     }
