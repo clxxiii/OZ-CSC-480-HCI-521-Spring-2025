@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import QuoteCard from "../components/QuoteCard";
 import QuoteUploadModal from "../components/QuoteUploadModal";
 import LoginBox from "../components/Login";
-import { fetchTopBookmarkedQuotes } from "../lib/api";
+import { fetchMe, fetchTopBookmarkedQuotes } from "../lib/api";  
 import AlertMessage from "../components/AlertMessage";
 
 const LandingPage = () => {
@@ -55,7 +55,7 @@ const LandingPage = () => {
     const message = localStorage.getItem("alertMessage");
     if (message) {
       setAlert({ type: "success", message });
-      localStorage.removeItem("alertMessage"); // Clear message after displaying
+      localStorage.removeItem("alertMessage");
     }
   }, []);
 
@@ -75,14 +75,9 @@ const LandingPage = () => {
       setShowLogin(true); 
     }
   };
-  
 
   const handleCloseModal = () => {
     setShowModal(false); 
-  };
-
-  const handleCloseLogin = () => {
-    setShowLogin(false);
   };
 
   const handleGoogleLogin = () => {
@@ -113,7 +108,7 @@ const LandingPage = () => {
       {showLogin && (
         <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1050 }}>
           <div className="bg-white p-4">
-            <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin} handleCloseLogin={handleCloseLogin} />
+            <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin} />
           </div>
         </div>
       )}
@@ -181,16 +176,6 @@ const LandingPage = () => {
             ) : (
               <p className="text-center w-100">No quotes found.</p>
             )}
-          </div>
-        </div>
-
-        <hr className="my-5" />
-        <div className="text-center my-5">
-          <h2 className="mb-3"> Popular Topics </h2>
-          <div className="d-flex justify-content-center gap-3">
-            <span className="badge bg-primary p-2">Live</span>
-            <span className="badge bg-secondary p-2">Laugh</span>
-            <span className="badge bg-success p-2">Love</span>
           </div>
         </div>
       </div>
