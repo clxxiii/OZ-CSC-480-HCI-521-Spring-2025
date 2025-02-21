@@ -10,6 +10,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.gson.Gson;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -66,7 +67,17 @@ public class AuthResource{
         GoogleIdToken.Payload payload = new Gson().fromJson(response.parseAsString(), GoogleIdToken.Payload.class);
 
         String jwt = JwtService.buildJwt(payload.getEmail());
-        return Response.ok().entity(Map.of("payload", payload, "jwt", jwt)).build();
+
+        NewCookie jwtCookie = new NewCookie.Builder("jwt")
+                .value(jwt)
+                .path("/")
+                .comment("JWT Token")
+                .maxAge(3600)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite(NewCookie.SameSite.LAX)
+                .build();
+        return Response.ok().cookie(jwtCookie).entity(Map.of("payload", payload, "jwt", jwt)).build();
     }
 
     @GET

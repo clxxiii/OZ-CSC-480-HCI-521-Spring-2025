@@ -24,28 +24,32 @@
         Then uncomment the user element. -->
 
 
-
-
-
     <!-- To access this server from a remote client add a host attribute to the following element, e.g. host="*" -->
     <httpEndpoint id="defaultHttpEndpoint"
                   host="*"
                   httpPort="9081"
                   httpsPort="9443" />
 
-    <keyStore id="defaultKeyStore" password="quotablepw"/>
+    <keyStore id="defaultKeyStore"
+              location="defaultKeyStore.jks"
+              password="quotablepw"/>
 
-    <jwtBuilder id="jwtFrontEndBuilder" issuer="quotable" expiry="24h"/>
+    <jwtBuilder id="jwtFrontEndBuilder"
+                issuer="quotable"
+                expiry="24h"
+                signatureAlgorithm="RS256"
+                keyAlias="defaultkeystore"
+                keyStoreRef="defaultKeyStore"/>
 
-    <mpJwt id="mpJwtConfig" issuer="quotable" groupNameAttribute="groups"/>
-
-
-
+    <mpJwt id="mpJwtConfig"
+           issuer="quotable"
+           tokenHeader="Authorization"
+           signatureAlgorithm="RS256"
+           keyName="defaultKeyStore"
+           groupNameAttribute="groups"/>
 
     <!-- Automatically expand WAR files and EAR files -->
     <applicationManager autoExpand="true"/>
-
-
 
     <!-- System variables -->
     <variable name="CONNECTION_STRING" value="${env.CONNECTION_STRING}"/>
@@ -57,7 +61,7 @@
             <property name="CONNECTION_STRING" value="${CONNECTION_STRING}"/>
             <property name="ORIGIN" value="${ORIGIN}"></property>
         </appProperties>
-         <application-bnd>
+        <application-bnd>
             <security-role name="admin">
                 <group name="admin"/>
             </security-role>
@@ -71,7 +75,48 @@
     <cors domain="/users/*"
         allowedOrigins="${ORIGIN}"
         allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
-        allowedHeaders="*"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/accounts/create"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/accounts/search"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/accounts/update"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/accounts/delete"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/accounts/admin"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    
+    <cors domain="/users/auth/login"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/auth/callback"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/auth/jwt"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
         allowCredentials="true"/>
 
 

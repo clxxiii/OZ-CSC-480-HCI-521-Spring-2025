@@ -16,27 +16,30 @@ const LandingPage = () => {
 
   const navigate = useNavigate();
 
-useEffect(() => {
-  const loadQuotes = async () => {
-    try {
-      const data = await fetchTopBookmarkedQuotes();
-      
-      if (!data || data.length === 0) {
-        setError("No quotes yet! Try adding your own");
-      } else {
-        setQuotes(data);
-      }
-      
-    } catch (err) {
-      console.error("Error fetching quotes:", err);
-      setError("Failed to load quotes");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ✅ Fetching quotes using the same method as the Debug Page
+  useEffect(() => {
+    const loadQuotes = async () => {
+      try {
+        console.log("Fetching top bookmarked quotes..."); // Debugging log
+        const data = await fetchTopBookmarkedQuotes();
+        
+        console.log("Fetched Quotes:", data); // ✅ Log fetched data
 
-  loadQuotes();
-}, []);
+        if (!data || data.length === 0) {
+          setError("No quotes yet! Try adding your own");
+        } else {
+          setQuotes(data);
+        }
+      } catch (err) {
+        console.error("Error fetching quotes:", err);
+        setError("Failed to load quotes");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadQuotes();
+  }, []);
 
   const handleSavedQuotesRedirect = () => {
     navigate("/saved-quotes");
@@ -63,12 +66,12 @@ useEffect(() => {
     setShowModal(false); 
   };
 
-  //Filter quotes
+  // ✅ Ensure filtering works correctly based on the API response structure
   const filteredQuotes = quotes.filter((quote) => {
     return (
-      quote.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quote.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quote.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      (quote.author && quote.author.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (quote.quote && quote.quote.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (quote.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
     );
   });
 
@@ -118,7 +121,7 @@ useEffect(() => {
             <p className="text-center w-100">{error}</p>
           ) : filteredQuotes.length > 0 ? (
             filteredQuotes.map((quote) => (
-              <QuoteCard key={quote.quoteId} quote={quote} />
+              <QuoteCard key={quote._id} quote={quote} />
             ))
           ) : (
             <p className="text-center w-100">No quotes found.</p>
