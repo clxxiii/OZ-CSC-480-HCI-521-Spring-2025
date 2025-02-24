@@ -10,3 +10,10 @@ h1 {
   font-weight: 700;
   line-height: 48px;
 }
+
+.form-control::placeholder {
+  color: #ADB5BD;
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400;
+}
