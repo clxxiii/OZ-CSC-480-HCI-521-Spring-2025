@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useNavigate } from "react-router-dom";
 import QuoteCard from "../components/QuoteCard";
 import QuoteUploadModal from "../components/QuoteUploadModal";
 import LoginBox from "../components/Login";
-import { fetchMe, fetchTopBookmarkedQuotes } from "../lib/api";  
+import { fetchTopBookmarkedQuotes } from "../lib/api";  
 import AlertMessage from "../components/AlertMessage";
+import Splash from "../components/Splash";
 
 const LandingPage = () => {
   const [alert, setAlert] = useState(null);
@@ -14,11 +14,9 @@ const LandingPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(true); 
   const [showModal, setShowModal] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [quotes, setQuotes] = useState([]); 
+  const [topQuotes, setTopQuotes] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const loadQuotes = async () => {
@@ -29,7 +27,7 @@ const LandingPage = () => {
         if (!data || data.length === 0) {
           setError("No quotes yet! Try adding your own");
         } else {
-          setQuotes(data);
+          setTopQuotes(data);
         }
       } catch (err) {
         console.error("Error fetching quotes:", err);
@@ -59,13 +57,6 @@ const LandingPage = () => {
     }
   }, []);
 
-  const handleSavedQuotesRedirect = () => {
-    navigate("/saved-quotes");
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
 
   const handleUploadQuote = () => {
     if (isLoggedIn) {
@@ -95,7 +86,7 @@ const LandingPage = () => {
     setShowModal(false); 
   };
 
-  const filteredQuotes = quotes.filter((quote) => {
+  const filteredQuotes = topQuotes.filter((quote) => {
     return (
       (quote.author && quote.author.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (quote.quote && quote.quote.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -104,7 +95,7 @@ const LandingPage = () => {
   });
 
   return (
-    <div>
+    <>
       {showLogin && (
         <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1050 }}>
           <div className="bg-white p-4">
@@ -119,58 +110,25 @@ const LandingPage = () => {
         </div>
       )}
 
-      <div className="bg-light py-5">
-        <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ height: "33vh" }}>
-          <h1 className="fw-bold">Find, Share & Save Quotes Effortlessly</h1>
-          <h2 className="text-muted fs-5">Find insightful quotes from various authors and themes</h2>
+      <Splash />
 
-          <input
-            type="text" 
-            className="form-control w-50 mx-auto shadow-sm"
-            placeholder="Search quotes, authors, or themes..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
+      <QuoteUploadModal
+        isVisible={showModal}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmitQuote}
+        quoteText={quoteText}
+        setQuoteText={setQuoteText}
+      />
 
-          <input
-            type="text"
-            className="form-control w-50 mx-auto shadow-sm mt-3"
-            placeholder="Enter your own quote and press Enter"
-            value={quoteText}
-            onChange={(e) => setQuoteText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleUploadQuote();
-              }
-            }}
-          />
-
-          <button className="btn btn-dark mt-3 px-4 shadow-sm" onClick={handleSavedQuotesRedirect}>
-            View Saved Quotes
-          </button>
-        </div>
-      </div>
-
-      <div className="container my-5">
-        <div className="text-center mb-5">
-          <h2 className="mb-3"> Top Quotes </h2>
-          <QuoteUploadModal
-            isVisible={showModal}
-            onClose={handleCloseModal}
-            onSubmit={handleSubmitQuote}
-            quoteText={quoteText}
-            setQuoteText={setQuoteText}
-          />
-        </div>
-
-        <div className="flex-grow-1 d-flex justify-content-center">
-          <div className="row w-100">
+        <div style={{padding: "40px", display: "flex", flexDirection: "column", gap: "24px", justifyContent: "center", alignItems: "center"}}>
+          <h1>Top Quotes</h1>
+          <div className="d-flex w-100" style={{gap: "40px", flexWrap: "wrap"}}>
             {loading ? (
               <p className="text-center w-100">Loading quotes...</p>
             ) : error ? (
               <p className="text-center w-100">{error}</p>
-            ) : filteredQuotes.length > 0 ? (
-              filteredQuotes.map((quote) => (
+            ) : topQuotes.length > 0 ? (
+              topQuotes.map((quote) => (
                 <QuoteCard key={quote._id} quote={quote} />
               ))
             ) : (
@@ -178,8 +136,7 @@ const LandingPage = () => {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </>
   );
 };
 
