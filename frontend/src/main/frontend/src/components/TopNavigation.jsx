@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const TopNavigation = ({ user }) => {
 
@@ -14,9 +14,10 @@ const TopNavigation = ({ user }) => {
     fontSize: '24px'
   };
 
-  //
+  const navigate = useNavigate();
+
   //  Upload Quote currently does nothing. 
-  // 
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light sticky-top">
         <Link className="navbar-brand pl-2" to="/">Logo</Link>
@@ -31,7 +32,7 @@ const TopNavigation = ({ user }) => {
           {!user && (
             <>
               <li className="nav-item">
-                <Link className="nav-link" to="/login">Login</Link>
+                <button className="btn btn-dark" onClick={ () => { navigate("/login") } }>Login</button>
               </li>
             </>
           )}
