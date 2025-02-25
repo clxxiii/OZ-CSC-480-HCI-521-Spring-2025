@@ -9,6 +9,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.NewCookie;
@@ -36,7 +37,7 @@ public class AuthResource {
         String CLIENT_ID = System.getenv("CLIENT_ID");
         String CLIENT_SECRET = System.getenv("CLIENT_SECRET");
         String REDIRECT_URI = System.getenv("REDIRECT_URI");
-        Collection<String> scopes = new ArrayList<>(List.of("https://www.googleapis.com/auth/userinfo.email"));
+        Collection<String> scopes = new ArrayList<>(List.of("https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"));
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(new NetHttpTransport(),
                 GsonFactory.getDefaultInstance(), CLIENT_ID, CLIENT_SECRET, scopes).setAccessType("offline")
                 .setDataStoreFactory(new FileDataStoreFactory(new File("tokens")))
@@ -71,7 +72,11 @@ public class AuthResource {
         HttpResponse response = request.execute();
         GoogleIdToken.Payload payload = new Gson().fromJson(response.parseAsString(), GoogleIdToken.Payload.class);
 
-        Account account = new Account(payload.getEmail(), payload.get("name").toString(), 0,
+        Gson gson = new Gson();
+        String jsonObject = gson.toJson(payload);
+        JsonObject convertedObject = new Gson().fromJson(jsonObject, JsonObject.class);
+
+        Account account = new Account(payload.getEmail(), convertedObject.get("name").getAsString(), 0,
                 tokenResponse.getAccessToken(), tokenResponse.getRefreshToken(),
                 tokenResponse.getExpiresInSeconds(), Arrays.asList(tokenResponse.getScope().split(" ")),
                 tokenResponse.getTokenType());

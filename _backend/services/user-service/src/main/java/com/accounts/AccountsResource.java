@@ -25,6 +25,7 @@ import com.ibm.websphere.security.jwt.JwtConsumer;
 import com.ibm.websphere.security.jwt.JwtToken;
 
 import java.security.Principal;
+import java.util.Arrays;
 
 @Path("/accounts")
 public class AccountsResource {
@@ -42,8 +43,7 @@ public class AccountsResource {
     })
     @Operation(summary = "Creates a new user account. Ensure the request header is `application/json` and provide a JSON body in the specified format.")
     @RequestBody(description = "Example request body endpoint is expecting.", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON, examples = @ExampleObject(name = "Example", value = "{\"email\": \"Example Email\", "
-            +
-            "\"Username\": \"Example Name\", \"admin\": 1," + "\"access_token\": \"sample_access_token\", "
+            + "\"Username\": \"Example Name\", \"admin\": 1," + "\"access_token\": \"sample_access_token\", "
             + "\"refresh_token\": \"sample_refresh_token\", " + "\"expires_at\": 1700000000, "
             + "\"scope\": [\"read\", \"write\"], " + "\"token_type\": \"Bearer\", "
             + "\"Notifications\": [\"Welcome message\"], " + "\"MyQuotes\": [\"Life is beautiful\"], "
@@ -56,12 +56,22 @@ public class AccountsResource {
 
     @GET
     @Path("/search/{id}")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Account has been found. Will return the account as json.", content = @Content(mediaType = "application/json")),
+            @APIResponse(responseCode = "404", description = "Account has not been found in the database.")
+    })
+    @Operation(summary = "Search a user account by ID.")
     public Response search(@PathParam("id") String id) {
         return accountService.retrieveUser(id, true);
     }
 
     @DELETE
     @Path("/delete/{id}")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Account has been deleted."),
+            @APIResponse(responseCode = "404", description = "Account has not been found in the database.")
+    })
+    @Operation(summary = "Delete a user account by ID.")
     public Response delete(@PathParam("id") String id) {
         return accountService.deleteUser(id);
     }
@@ -70,6 +80,13 @@ public class AccountsResource {
     @Path("/update/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "User Successfully updated in the database. Will return updated account document.", content = @Content(mediaType = "application/json")),
+            @APIResponse(responseCode = "400", description = "Invalid JSON format."),
+            @APIResponse(responseCode = "404", description = "Account was not found or the ID was invalid."),
+    })
+    @Operation(summary = "Updates a user account. Ensure the request header is `application/json` and provide a JSON body in the specified format.")
+    @RequestBody(description = "Example request body endpoint is expecting.", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON, examples = @ExampleObject(name = "Example", value = "{ " + "\"SharedQuotes\": [\"Success is a journey\"]" + " }")))
     public Response update(@PathParam("id") String id, String accountJson) {
         return accountService.updateUser(accountJson, id);
     }
@@ -86,14 +103,13 @@ public class AccountsResource {
     @GET
     @Path("/whoami")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Ignore me I am a test!")
     public Response whoAmI(@Context HttpServletRequest request) {
         System.out.println(request.getCookies());
-        Cookie jwtCookie = null;
-        for (Cookie c : request.getCookies()) {
-            if (c.getName().equals("jwt"))
-                jwtCookie = c;
-        }
+        Cookie jwtCookie = Arrays.stream(request.getCookies())
+                .filter(c -> "jwt".equals(c.getName()))
+                .findFirst()
+                .orElse(null);
+
         if (jwtCookie == null) {
             return Response
                     .status(Status.UNAUTHORIZED)
