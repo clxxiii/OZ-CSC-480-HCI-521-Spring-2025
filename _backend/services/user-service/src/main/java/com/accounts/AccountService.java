@@ -45,14 +45,14 @@ public class AccountService {
         } catch (Exception e) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
-                    .entity("[\"Cannot parse JSON object!\"]")
+                    .entity(new Document("error", "Cannot parse JSON object!").toJson())
                     .build();
         }
 
         if (accountCollection.find(eq("email", accountDocument.getString("email"))).first() != null) {
             return Response
                     .status(Response.Status.CONFLICT)
-                    .entity("[\"Email already exists!\"]")
+                    .entity(new Document("error", "Email already exists!").toJson())
                     .build();
         }
 
@@ -67,19 +67,20 @@ public class AccountService {
 
     public Response newUserWithCookie(Account account) {
         Document accountDocument = Document.parse(account.toJson());
-        Document oldAccountDocument = accountCollection.find(eq("email", accountDocument.getString("email"))).first();
+        Document oldAccountDocument = accountCollection.find(eq("Email", accountDocument.getString("Email"))).first();
 
         String id;
 
         if (oldAccountDocument != null) {
             Document updateFields = new Document();
             updateFields.append("access_token", account.access_token);
-            updateFields.append("refresh_token", account.refresh_token);
             updateFields.append("expires_at", account.expires_at);
             updateFields.append("scope", account.scope);
             updateFields.append("token_type", account.token_type);
 
             id = oldAccountDocument.getObjectId("_id").toString();
+            accountCollection.updateOne(oldAccountDocument,
+                    new Document("$set", updateFields));
         } else {
             id = accountCollection.insertOne(accountDocument).getInsertedId().asObjectId().getValue().toString();
         }
@@ -121,7 +122,7 @@ public class AccountService {
         } catch (Exception e) {
             return Response
                     .status(Response.Status.NOT_FOUND)
-                    .entity("[\"Invalid object id!\"]")
+                    .entity(new Document("error", "Invalid object id!").toJson())
                     .build();
         }
 
@@ -134,7 +135,7 @@ public class AccountService {
         if (doc == null) {
             return Response
                     .status(Response.Status.NOT_FOUND)
-                    .entity("[\"Account not found!\"]")
+                    .entity(new Document("error", "Account not found!").toJson())
                     .build();
         }
 
@@ -151,8 +152,8 @@ public class AccountService {
             objectId = new ObjectId(accountID);
         } catch (Exception e) {
             return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("[\"Invalid object id!\"]")
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(new Document("error", "Invalid object id!").toJson())
                     .build();
         }
 
@@ -172,8 +173,8 @@ public class AccountService {
             objectId = new ObjectId(id);
         } catch (Exception e) {
             return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("[\"Invalid object id!\"]")
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(new Document("error", "Invalid object id!").toJson())
                     .build();
         }
 
@@ -183,22 +184,31 @@ public class AccountService {
         } catch (Exception e) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
-                    .entity("[\"Cannot parse Json!\"]")
+                    .entity(new Document("error", "Cannot parse Json!").toJson())
                     .build();
         }
 
-        UpdateResult updateResult = accountCollection.replaceOne(
-                eq("_id", objectId), updatedAccountDocument);
+        UpdateResult updateResult = accountCollection.updateOne(
+                eq("_id", objectId),
+                new Document("$set", updatedAccountDocument)
+        );
 
         if (updateResult.getModifiedCount() == 1) {
-            return Response
-                    .status(Response.Status.OK)
-                    .entity(updatedAccountDocument.toJson())
-                    .build();
+            try {
+                return Response
+                        .status(Response.Status.OK)
+                        .entity(accountCollection.find(eq("_id", objectId)).first().toJson())
+                        .build();
+            } catch (NullPointerException e) {
+                return Response
+                        .status(Response.Status.NOT_FOUND)
+                        .entity(new Document("error", "Account Not found!").toJson())
+                        .build();
+            }
         } else {
             return Response
                     .status(Response.Status.NOT_FOUND)
-                    .entity("[\"Account Not found!\"]")
+                    .entity(new Document("error", "Account Not found!").toJson())
                     .build();
         }
     }
