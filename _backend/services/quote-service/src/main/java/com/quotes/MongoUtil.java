@@ -54,6 +54,7 @@ public class MongoUtil {
                                 .append("fuzzy", new Document("maxEdits", 2))
                         )
                 ),
+                new Document("$match", new Document("private", new Document("$ne", true))), //Exclude private quotes
                 new Document("$sort", new Document("score", -1)), //sort by relevance
                 new Document("$limit", 10)
         ));
@@ -148,6 +149,10 @@ public class MongoUtil {
                 //same as above, shouldn't change more than 1 per update.
                 newData.append("flags", quote.getFlags());
             }
+            if(quote.getisPrivate() != ogQuote.getisPrivate()) {
+                // can't check for "private" field being null. So only update if value is different
+                newData.append("private", quote.getisPrivate());
+            }
 
 
             //create update operation
@@ -157,6 +162,23 @@ public class MongoUtil {
             return modifiedCount > 0;
         } catch(Exception e) {
             e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updateAll() { //Adding new privacy and creator fields to all existing documents
+        // not for actual production use
+        try {
+            MongoCollection<Document> collection = database.getCollection("Quotes");
+
+            Document newFields = new Document().append("private", false).append("creator", "Temp@test.com"); //fields to be added
+            Document updateOperation = new Document("$set", newFields);
+
+            collection.updateMany(new Document(), updateOperation);
+
+            return true;
+        } catch (Exception e) {
+            System.out.print(e);
             return false;
         }
     }
@@ -194,10 +216,12 @@ public class MongoUtil {
                     .append("shares", 0)
                     .append("date", unixTime)
                     .append("tags", quoteData.getTags())
-                    .append("flags", 0);
+                    .append("flags", 0)
+                    .append("private", quoteData.getisPrivate())
+                    .append("creator", quoteData.getCreator());
 
-            collection.insertOne(quoteDoc);
-            return quoteData.getId();
+            collection.insertOne(quoteDoc); //insert into database
+            return quoteData.getId(); //return new quote id
         } catch (Exception e) {
             System.out.println("Exception in MongoUtil/createQuote: "+e);
             return null;
@@ -229,7 +253,9 @@ public class MongoUtil {
         MongoCollection<Document> collection = database.getCollection("Quotes");
 
         AggregateIterable<Document> results = collection.aggregate(Arrays.asList(
-                new Document("$sort", new Document("shares", -1)), new Document("$limit", 100)));
+                new Document("$match", new Document("private", new Document("$ne", true))), // exclude private quotes
+                new Document("$sort", new Document("shares", -1)), // sort by shares in descending order
+                new Document("$limit", 100))); //limit to 100 results
 
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
 
@@ -250,8 +276,10 @@ public class MongoUtil {
         MongoCollection<Document> collection = database.getCollection("Quotes");
 
         AggregateIterable<Document> results = collection.aggregate(Arrays.asList(
-                new Document("$sort", new Document("date", -1)), new Document("$limit", 100)));
-                //new Document("$sort", new Document("date", -1)), new Document("$limit", 5)));
+                new Document("$match", new Document("private", new Document("$ne", true))), // exclude private quotes
+                new Document("$sort", new Document("date", -1)),
+                new Document("$limit", 100)));
+
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
 
         for(Document doc : results) {
@@ -271,6 +299,7 @@ public class MongoUtil {
         MongoCollection<Document> collection = database.getCollection("Quotes");
 
         AggregateIterable<Document> results = collection.aggregate(Arrays.asList(
+                new Document("$match", new Document("private", new Document("$ne", true))), // exclude private quotes
                 new Document("$match", new Document("flags", new Document("$gt", 2))), //get only quotes where flags >= 2
                 new Document("$sort", new Document("flags", -1)) //sort in decending order
         ));

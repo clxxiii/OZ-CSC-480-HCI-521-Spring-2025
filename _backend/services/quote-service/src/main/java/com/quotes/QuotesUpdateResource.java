@@ -68,4 +68,19 @@ public class QuotesUpdateResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("IOException: "+e).build();
         }
     }
+
+    @GET
+    @Path("/devUpdateAll")
+    @Operation(summary = "Ignore, for testing/development", description = "adds new fields to all quotes in the database")
+    public Response UpdateNewFields() {
+        try {
+            boolean success = mongo.updateAll();
+            if(success) {
+                return Response.ok("worked").build();
+            }
+            return Response.status(Response.Status.CONFLICT).entity("Not worked").build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Exception : "+e).build();
+        }
+    }
 }
