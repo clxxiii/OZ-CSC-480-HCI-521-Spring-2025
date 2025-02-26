@@ -106,8 +106,8 @@ public class AccountService {
 
     public Response retrieveUser(String accountID, Boolean includeOauth) {
         ArrayList<String> fieldsList = new ArrayList<String>(
-                List.of("Email", "Username", "admin", "Notifications", "myQuotes",
-                        "FavoriteQuote", "SharedQuotes", "MyTags", "Description"));
+                List.of("Email", "Username", "admin", "Notifications", "MyQuotes",
+                        "FavoriteQuote", "SharedQuotes", "MyTags", "Profession", "PersonalQuote"));
 
         if (includeOauth) {
             List<String> oauthList = List.of("access_token", "refresh_token", "expires_at", "scope",
@@ -214,48 +214,50 @@ public class AccountService {
     }
 
     public Account document_to_account(Document document) {
-        String email = document.getString("email");
-        String username = document.getString("username");
+        String email = document.getString("Email");
+        String username = document.getString("Username");
         int admin = document.getInteger("admin", 0);
         String accessToken = document.getString("access_token");
         String refreshToken = document.getString("refresh_token");
         Long expiresAt = document.getLong("expires_at");
         List<String> scope = document.getList("scope", String.class);
         String tokenType = document.getString("token_type");
-        List<String> notifications = document.getList("notifications", String.class);
-        List<String> myQuotes = document.getList("myQuotes", String.class);
-        Map<String, List<String>> favoriteQuotes = (Map<String, List<String>>) document.get("favoriteQuote");
-        List<String> sharedQuotes = document.getList("sharedQuotes", String.class);
-        List<String> myTags = document.getList("myTags", String.class);
-        String description = document.getString("description");
+        List<String> notifications = document.getList("Notifications", String.class);
+        List<String> myQuotes = document.getList("MyQuotes", String.class);
+        Map<String, List<String>> favoriteQuotes = (Map<String, List<String>>) document.get("FavoriteQuote");
+        List<String> sharedQuotes = document.getList("SharedQuotes", String.class);
+        List<String> myTags = document.getList("MyTags", String.class);
+        String profession = document.getString("Profession");
+        String personalQuote = document.getString("PersonalQuote");
 
         Account account = new Account(email, username, admin, accessToken, refreshToken, expiresAt, scope, tokenType,
-                notifications, myQuotes, favoriteQuotes, sharedQuotes, myTags, description);
+                notifications, myQuotes, favoriteQuotes, sharedQuotes, myTags, profession, personalQuote);
 
         return account;
     }
 
     public Document account_to_document(Account account) {
-        Document document = new Document("email", account.Email)
-                .append("username", account.Username)
+        Document document = new Document("Email", account.Email)
+                .append("Username", account.Username)
                 .append("admin", account.admin)
                 .append("access_token", account.access_token)
                 .append("refresh_token", account.refresh_token)
                 .append("expires_at", account.expires_at)
                 .append("scope", account.scope)
                 .append("token_type", account.token_type)
-                .append("notifications", account.Notifications)
-                .append("myQuotes", account.MyQuotes)
-                .append("favoriteQuote", account.FavoriteQuote)
-                .append("sharedQuotes", account.SharedQuotes)
-                .append("myTags", account.MyTags)
-                .append("description", account.Description);
+                .append("Notifications", account.Notifications)
+                .append("MyQuotes", account.MyQuotes)
+                .append("FavoriteQuote", account.FavoriteQuote)
+                .append("SharedQuotes", account.SharedQuotes)
+                .append("MyTags", account.MyTags)
+                .append("Profession", account.Profession)
+                .append("PersonalQuote", account.PersonalQuote);
 
         return document;
     }
 
     public String getAccountIdByEmail(String email) {
-        Document doc = accountCollection.find(eq("email", email))
+        Document doc = accountCollection.find(eq("Email", email))
                 .projection(Projections.include("_id"))
                 .first();
 
