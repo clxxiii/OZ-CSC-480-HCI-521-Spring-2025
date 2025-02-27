@@ -49,7 +49,7 @@ public class AccountsResource {
             + "\"Notifications\": [\"Welcome message\"], " + "\"MyQuotes\": [\"Life is beautiful\"], "
             + "\"FavoriteQuote\": {\"Motivation\": [\"Keep going!\"]}, "
             + "\"SharedQuotes\": [\"Success is a journey\"], "
-            + "\"MyTags\": [\"Inspiration\", \"Wisdom\"], " + "\"Description\": \"This is a test user.\"" + "}")))
+            + "\"MyTags\": [\"Inspiration\", \"Wisdom\"], " + "\"Profession\": \"NFL Head Coach\"," + "\"PersonalQuote\": \"67abf469b0d20a5237456444\"" + "}")))
     public Response create(String json) {
         return accountService.newUser(json);
     }
