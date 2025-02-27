@@ -13,6 +13,7 @@ const QuoteForm = () => {
   const [updateTagsInput, setUpdateTagsInput] = useState("");
 
   useEffect(() => {
+    //populate form fields with existing quote data when the component loads
     if (quote) {
       setUpdateId(quote._id);
       setUpdateText(quote.text || "");
@@ -22,13 +23,14 @@ const QuoteForm = () => {
   }, [quote]);
 
   const handleUpdateQuote = async (e) => {
+    //handle updating a quote when the form is submitted
     e.preventDefault();
     if (!updateId.trim()) return;
 
     const tagsArray = updateTagsInput
       .split(",")
       .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
+      .filter((tag) => tag.length > 0); //convert comma-separated tags into an array
 
     const payload = {
       _id: updateId.trim(),
@@ -38,28 +40,29 @@ const QuoteForm = () => {
     };
 
     try {
-      await updateQuote(payload);
+      await updateQuote(payload); //send update request to API
     } catch (error) {
       console.error("Error updating quote:", error);
     } finally {
       localStorage.setItem("alertMessage", "Quote updated successfully!");
-      navigate("/"); 
+      navigate("/"); //redirect back to home after updating
     }
   };
 
-const handleDeleteQuote = async (e) => {
-  e.preventDefault();
-  if (!updateId.trim()) return;
+  const handleDeleteQuote = async (e) => {
+    //handle deleting a quote when the delete button is clicked
+    e.preventDefault();
+    if (!updateId.trim()) return;
 
-  try {
-    await deleteQuote(updateId);
-  } catch (error) {
-    console.error("Error deleting quote:", error);
-  } finally {
-    localStorage.setItem("alertMessage", "Quote deleted successfully!");
-    navigate("/"); 
-  } 
-};
+    try {
+      await deleteQuote(updateId); //send delete request to API
+    } catch (error) {
+      console.error("Error deleting quote:", error);
+    } finally {
+      localStorage.setItem("alertMessage", "Quote deleted successfully!");
+      navigate("/"); //redirect back to home after deletion
+    } 
+  };
 
   return (
     <div className="container vh-100 d-flex flex-column justify-content-center align-items-center">
@@ -71,7 +74,7 @@ const handleDeleteQuote = async (e) => {
             id="quoteText"
             className="form-control"
             value={updateText}
-            onChange={(e) => setUpdateText(e.target.value)}
+            onChange={(e) => setUpdateText(e.target.value)} //update text state when user types
           />
         </div>
         <div className="mb-3">
@@ -81,7 +84,7 @@ const handleDeleteQuote = async (e) => {
             id="author"
             className="form-control"
             value={updateAuthor}
-            onChange={(e) => setUpdateAuthor(e.target.value)}
+            onChange={(e) => setUpdateAuthor(e.target.value)} //update author state when user types
           />
         </div>
         <div className="mb-3">
@@ -91,7 +94,7 @@ const handleDeleteQuote = async (e) => {
             id="tags"
             className="form-control"
             value={updateTagsInput}
-            onChange={(e) => setUpdateTagsInput(e.target.value)}
+            onChange={(e) => setUpdateTagsInput(e.target.value)} //update tags state when user types
             placeholder="Comma separated tags"
           />
         </div>
@@ -105,4 +108,4 @@ const handleDeleteQuote = async (e) => {
   );
 };
 
-export default QuoteForm;
+export default QuoteForm; //export the QuoteForm component for use in the app
