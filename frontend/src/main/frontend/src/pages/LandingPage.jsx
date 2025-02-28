@@ -1,45 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; 
 import "bootstrap/dist/css/bootstrap.min.css";
-import QuoteCard from "../components/QuoteCard";
 import QuoteUploadModal from "../components/QuoteUploadModal";
-import LoginBox from "../components/Login";
-import { fetchTopBookmarkedQuotes } from "../lib/api";  
-import AlertMessage from "../components/AlertMessage";
 import Splash from "../components/Splash";
+import LoginOverlay from "../components/LoginOverlay";
+import QuoteList from "../components/QuoteList";
+import AlertMessage from "../components/AlertMessage";
+import { FetchTopQuotes } from "../lib/FetchTopQuotes"
 
 const LandingPage = () => {
   const [alert, setAlert] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [quoteText, setQuoteText] = useState(""); 
   const [isLoggedIn, setIsLoggedIn] = useState(true); 
   const [showModal, setShowModal] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [topQuotes, setTopQuotes] = useState([]); 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  const { topQuotes, loading, error } = FetchTopQuotes();
 
   useEffect(() => {
-    const loadQuotes = async () => {
-      try {
-        console.log("Fetching top bookmarked quotes..."); 
-        const data = await fetchTopBookmarkedQuotes();
-        console.log("Fetched Quotes:", data);
-        if (!data || data.length === 0) {
-          setError("No quotes yet! Try adding your own");
-        } else {
-          setTopQuotes(data);
-        }
-      } catch (err) {
-        console.error("Error fetching quotes:", err);
-        setError("Failed to load quotes");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadQuotes();
-  }, []);
-
-  useEffect(() => {
+    //check if user has logged in before, if not, show login prompt after 3 seconds
     if (!localStorage.getItem("hasLoggedIn")) {
       const timer = setTimeout(() => {
         setShowLogin(true);
@@ -50,6 +28,7 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
+    //check if there's a saved alert message in local storage and display it
     const message = localStorage.getItem("alertMessage");
     if (message) {
       setAlert({ type: "success", message });
@@ -57,8 +36,8 @@ const LandingPage = () => {
     }
   }, []);
 
-
   const handleUploadQuote = () => {
+    //show the upload modal if logged in, otherwise display an alert and prompt login
     if (isLoggedIn) {
       setShowModal(true);
     } else {
@@ -68,48 +47,27 @@ const LandingPage = () => {
   };
 
   const handleCloseModal = () => {
+    //close the upload quote modal
     setShowModal(false); 
   };
 
-  const handleGoogleLogin = () => {
-    setIsLoggedIn(true);
-    window.location.href = "http://localhost:9081/users/auth/login";
-  };
-
-  const handleGuestLogin = () => {
-    setIsLoggedIn(false);
-    setShowLogin(false);
-  };
-
   const handleSubmitQuote = (quoteText) => {
+    //show an alert with the submitted quote text and close the modal
     alert(`Quote Submitted: ${quoteText}`);
     setShowModal(false); 
   };
 
-  const filteredQuotes = topQuotes.filter((quote) => {
-    return (
-      (quote.author && quote.author.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (quote.quote && quote.quote.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (quote.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
-    );
-  });
-
   return (
     <>
-      {showLogin && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1050 }}>
-          <div className="bg-white p-4">
-            <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin} />
-          </div>
-        </div>
-      )}
-
+      {showLogin && <LoginOverlay setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn} />}
+      
       {alert && (
+        //display an alert message at the top of the screen
         <div className="position-fixed top-0 start-50 translate-middle-x mt-3 px-4" style={{ zIndex: 1050 }}>
           <AlertMessage type={alert.type} message={alert.message} autoDismiss={true} />
         </div>
       )}
-
+      
       <Splash />
 
       <QuoteUploadModal
@@ -120,22 +78,7 @@ const LandingPage = () => {
         setQuoteText={setQuoteText}
       />
 
-        <div style={{padding: "40px", display: "flex", flexDirection: "column", gap: "24px", justifyContent: "center", alignItems: "center"}}>
-          <h1>Top Quotes</h1>
-          <div className="d-flex w-100" style={{gap: "40px", flexWrap: "wrap"}}>
-            {loading ? (
-              <p className="text-center w-100">Loading quotes...</p>
-            ) : error ? (
-              <p className="text-center w-100">{error}</p>
-            ) : topQuotes.length > 0 ? (
-              topQuotes.map((quote) => (
-                <QuoteCard key={quote._id} quote={quote} />
-              ))
-            ) : (
-              <p className="text-center w-100">No quotes found.</p>
-            )}
-          </div>
-        </div>
+      <QuoteList topQuotes={topQuotes} loading={loading} error={error} />
     </>
   );
 };
