@@ -34,13 +34,13 @@ public class QuoteCreateResource {
             @APIResponse(responseCode = "400", description = "Error when adding quote to database, returned quote ID was null"),
     })
     @Operation(summary = "Adds a new quote to the mongo database and will return the id of the newly created quote")
-    @RequestBody(description = "Example request body endpoint is expecting. \"_id\" field is not required, the server will generate an id. Any supplied value will be overwritten. Same with date." +
-            " bookmarks, shares, and flags are also not required as they will be automatically set to 0",
+    @RequestBody(description = "Example request body endpoint is expecting. The only fields required are \"author\", \"quote\", \"tags\", \"creator\", and \"private\"",
             required = true, content = @Content(
             mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = QuoteObject.class),
             examples = @ExampleObject(name = "Example", value = "{\"author\": \"Example Author\", " +
                     "\"quote\": \"Example quote text\"," +
-                    "\"tags\": [\"example\", \"another example\"]}")
+                    "\"tags\": [\"example\", \"another example\"]," +
+                    "\"creator\": \"Account Object ID\", \"private\": \"boolean value\"}")
     ))
     public Response createQuote(String rawJson) {
         try{

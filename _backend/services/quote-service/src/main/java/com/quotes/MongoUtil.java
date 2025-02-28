@@ -38,6 +38,7 @@ public class MongoUtil {
 
         if(result != null) {
             result.put("_id", result.getObjectId("_id").toString()); //gets rid of "$oid" subfield
+            result.put("creator", result.getObjectId("creator").toString());
             return result.toJson();
         }
         return null;
@@ -171,7 +172,7 @@ public class MongoUtil {
         try {
             MongoCollection<Document> collection = database.getCollection("Quotes");
 
-            Document newFields = new Document().append("private", false).append("creator", "Temp@test.com"); //fields to be added
+            Document newFields = new Document().append("creator", null); //fields to be added
             Document updateOperation = new Document("$set", newFields);
 
             collection.updateMany(new Document(), updateOperation);
