@@ -45,6 +45,29 @@
             <artifactId>mongodb-driver-sync</artifactId>
             <version>5.2.1</version>
         </dependency>
+
+    <!-- JUnit 5 -->
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>5.9.2</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>5.9.2</version>
+        <scope>test</scope>
+    </dependency>
+    <!-- Rest Assured for testing API endpoints -->
+    <dependency>
+        <groupId>io.rest-assured</groupId>
+        <artifactId>rest-assured</artifactId>
+        <version>5.3.0</version>
+        <scope>test</scope>
+    </dependency>
+
+   
     </dependencies>
 
     <build>
@@ -69,8 +92,7 @@
                 <artifactId>liberty-maven-plugin</artifactId>
                  <configuration>
                  <serverName>defaultServer</serverName>
-        <!-- Optionally specify the location of your server's apps or dropins folder -->
-            </configuration>
+                </configuration>
             </plugin>
         </plugins>
     </build>
