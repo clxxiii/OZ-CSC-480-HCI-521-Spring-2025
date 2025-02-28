@@ -1,6 +1,8 @@
 package com.quotes;
 
 import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.*;
@@ -44,7 +46,10 @@ public class QuoteDeleteResource {
             ObjectId objectId = new ObjectId(quoteID);
             boolean result = mongo.deleteQuote(objectId);
             if(result) {
-                return Response.ok("Quote successfully deleted").build();
+                JsonObject jsonResponse = Json.createObjectBuilder()
+                        .add("Response", "200")
+                        .build();
+                return Response.ok(jsonResponse).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity("Quote not found, could not be deleted").build();
             }

@@ -58,7 +58,7 @@ public class QuotesUpdateResource {
 
             if(updated) {
                 JsonObject jsonResponse = Json.createObjectBuilder()
-                        .add("success", "true")
+                        .add("Response", "200")
                         .build();
                 return Response.ok(jsonResponse).build();
             } else {
