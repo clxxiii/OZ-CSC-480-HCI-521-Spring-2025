@@ -11,6 +11,7 @@ const QuoteForm = () => {
   const [updateText, setUpdateText] = useState("");
   const [updateAuthor, setUpdateAuthor] = useState("");
   const [updateTagsInput, setUpdateTagsInput] = useState("");
+  const [updateOwnership, setUpdateOwnership] = useState(""); // For setting Public/Private.
 
   useEffect(() => {
     //populate form fields with existing quote data when the component loads
@@ -19,6 +20,7 @@ const QuoteForm = () => {
       setUpdateText(quote.text || "");
       setUpdateAuthor(quote.author || "Unknown");
       setUpdateTagsInput(quote.tags ? quote.tags.join(", ") : "");
+      setUpdateOwnership(quote);
     }
   }, [quote]);
 
@@ -64,6 +66,10 @@ const QuoteForm = () => {
     } 
   };
 
+  const handleSetOwnership = async (e) => {
+    e.preventDefault();
+  };
+
   return (
     <div className="container vh-100 d-flex flex-column justify-content-center align-items-center">
       <h1>Edit Quote</h1>
@@ -97,6 +103,10 @@ const QuoteForm = () => {
             onChange={(e) => setUpdateTagsInput(e.target.value)} //update tags state when user types
             placeholder="Comma separated tags"
           />
+        </div>
+        <div className="mb-3">
+            <label htmlFor="ownership" className="form-label">Set Public</label>
+            <switch/>
         </div>
         <button type="submit" className="btn btn-primary">Update Quote</button>
       </form>
