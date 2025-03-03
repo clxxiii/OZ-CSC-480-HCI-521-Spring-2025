@@ -11,7 +11,7 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
   const [customTag, setCustomTag] = useState("");
   //suggested tags for users to choose from
   const suggestedTags = ["Inspiration", "Motivation", "Life", "Success", "Wisdom"];
-  const [publicStatus, setPublicStatus] = useState(false);
+  const [privateStatus, setPrivateStatus] = useState(false);
 
   const toggleTag = (tag) => {
     //add or remove a tag when clicked
@@ -28,10 +28,6 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
     setCustomTag(""); //clear input after adding
   };
 
-  const handlePublicStatusChange = (e) => {
-    setPublicStatus(e.value);
-  }
-
   const handleSubmit = async () => {
     //handle submitting the quote to the API
     if (!quoteText.trim()) return;
@@ -40,7 +36,7 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
       quote: quoteText.trim(),
       author: author.trim() || "Unknown",
       tags,
-      publicStatus
+      privateStatus
     };
 
     try {
@@ -49,7 +45,7 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
       setQuoteText(""); //clear input fields
       setAuthor("");
       setTags([]);
-      setPublicStatus(false);
+      setPrivateStatus(false);
     } catch (err) {
       console.error("Error submitting quote:", err);
     }
@@ -118,8 +114,8 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
                 <label>Set Public</label>
                 <Switch
                   className="react-switch"
-                  onChange={handlePublicStatusChange}
-                  publicStatus={publicStatus}
+                  checked={privateStatus}
+                  onChange={(checked) => setPrivateStatus(checked)}
                 />
               </div>
 
