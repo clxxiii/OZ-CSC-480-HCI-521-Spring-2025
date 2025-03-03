@@ -104,10 +104,12 @@ const QuoteForm = () => {
             placeholder="Comma separated tags"
           />
         </div>
+
         <div className="mb-3">
             <label htmlFor="ownership" className="form-label">Set Public</label>
             <switch/>
         </div>
+        
         <button type="submit" className="btn btn-primary">Update Quote</button>
       </form>
 
