@@ -111,7 +111,7 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
               </div>
 
               <div className="mt-2">
-                <label>Set Public</label>
+                <label>Set Public </label>
                 <Switch
                   className="react-switch"
                   checked={privateStatus}

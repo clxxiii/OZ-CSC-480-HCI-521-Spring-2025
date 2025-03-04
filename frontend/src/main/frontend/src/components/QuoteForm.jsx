@@ -107,7 +107,7 @@ const QuoteForm = () => {
         </div>
 
         <div className="mb-3">
-            <label htmlFor="ownership" className="form-label">Set Public</label>
+            <label htmlFor="ownership" className="form-label">Set Public </label>
             <Switch
               id="privateStatus"
               className="react-switch"
