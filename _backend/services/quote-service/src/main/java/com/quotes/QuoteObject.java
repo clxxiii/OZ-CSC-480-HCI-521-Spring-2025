@@ -50,7 +50,7 @@ public class QuoteObject {
 
     @JsonProperty("creator")
     @BsonProperty("creator")
-    private String creator;
+    private ObjectId creator;
 
     //getters
     public ObjectId getId() {return id;}
@@ -62,7 +62,7 @@ public class QuoteObject {
     public ArrayList<String> getTags() {return tags;}
     public int getFlags() {return flags;}
     public boolean getisPrivate() {return isPrivate;}
-    public String getCreator() {return creator;}
+    public ObjectId getCreator() {return creator;}
 
     //setters
     public void setId(ObjectId id) {this.id = id;}
@@ -74,7 +74,7 @@ public class QuoteObject {
     public void setTags(ArrayList<String> tags) {this.tags = tags;}
     public void setFlags(int flags) {this.flags = flags;}
     public void setPrivate(boolean privacy) {this.isPrivate = privacy;}
-    public void setCreator(String creator) {this.creator = creator;}
+    public void setCreator(ObjectId creator) {this.creator = creator;}
 
     //printers
     public void PrintQuote(){
