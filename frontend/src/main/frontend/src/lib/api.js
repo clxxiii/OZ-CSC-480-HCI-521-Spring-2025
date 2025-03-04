@@ -3,7 +3,7 @@ const QUOTE_SERVICE_URL =
 const USER_SERVICE_URL =
   import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:9081"; //set the user service URL, using an environment variable if available
 
-export const createQuote = async ({ quote, author, tags }) => {
+export const createQuote = async ({ quote, author, tags, isPrivate }) => {
   //send a request to create a new quote, including author, text, tags, and a timestamp
   try {
     const quoteData = {
@@ -11,6 +11,7 @@ export const createQuote = async ({ quote, author, tags }) => {
       author: author || "Unknown",
       date: Math.floor(new Date().getTime() / 1000), //convert to Unix timestamp for int
       tags: tags || [],
+      isPrivate: isPrivate || false,
     };
 
     console.log("Sending API Payload:", JSON.stringify(quoteData));

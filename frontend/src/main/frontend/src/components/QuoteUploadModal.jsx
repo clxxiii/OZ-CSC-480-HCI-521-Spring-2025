@@ -11,7 +11,7 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
   const [customTag, setCustomTag] = useState("");
   //suggested tags for users to choose from
   const suggestedTags = ["Inspiration", "Motivation", "Life", "Success", "Wisdom"];
-  const [privateStatus, setPrivateStatus] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const toggleTag = (tag) => {
     //add or remove a tag when clicked
@@ -36,7 +36,7 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
       quote: quoteText.trim(),
       author: author.trim() || "Unknown",
       tags,
-      privateStatus
+      isPrivate: isPrivate || false
     };
 
     try {
@@ -45,7 +45,7 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
       setQuoteText(""); //clear input fields
       setAuthor("");
       setTags([]);
-      setPrivateStatus(false);
+      setIsPrivate(false);
     } catch (err) {
       console.error("Error submitting quote:", err);
     }
@@ -111,11 +111,11 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
               </div>
 
               <div className="mt-2">
-                <label>Set Public </label>
+                <label>Set Private</label>
                 <Switch
                   className="react-switch"
-                  checked={privateStatus}
-                  onChange={(checked) => setPrivateStatus(checked)}
+                  checked={isPrivate}
+                  onChange={(checked) => setIsPrivate(checked)}
                 />
               </div>
 

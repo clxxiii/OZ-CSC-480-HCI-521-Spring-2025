@@ -12,7 +12,7 @@ const QuoteForm = () => {
   const [updateText, setUpdateText] = useState("");
   const [updateAuthor, setUpdateAuthor] = useState("");
   const [updateTagsInput, setUpdateTagsInput] = useState("");
-  const [updatePrivateStatus, setUpdatePrivateStatus] = useState(quote?.privateStatus ?? false ); // For setting Public/Private.
+  const [updateIsPrivate, setUpdateIsPrivate] = useState(quote?.isPrivate ?? false ); // For setting Public/Private.
 
   useEffect(() => {
     //populate form fields with existing quote data when the component loads
@@ -21,7 +21,7 @@ const QuoteForm = () => {
       setUpdateText(quote.text || "");
       setUpdateAuthor(quote.author || "Unknown");
       setUpdateTagsInput(quote.tags ? quote.tags.join(", ") : "");
-      setUpdatePrivateStatus(quote.private)
+      setUpdateIsPrivate(quote.private)
     }
   }, [quote]);
 
@@ -40,7 +40,7 @@ const QuoteForm = () => {
       author: updateAuthor || "Unknown",
       quote: updateText || "",
       tags: tagsArray.length ? tagsArray : [],
-      privateStatus: updatePrivateStatus,
+      isPrivate: updateIsPrivate || false,
     };
 
     try {
@@ -107,12 +107,12 @@ const QuoteForm = () => {
         </div>
 
         <div className="mb-3">
-            <label htmlFor="ownership" className="form-label">Set Public </label>
+            <label htmlFor="ownership" className="form-label">Set Private</label>
             <Switch
               id="privateStatus"
               className="react-switch"
-              checked={updatePrivateStatus}
-              onChange={ (checked) => setUpdatePrivateStatus(checked)}
+              checked={updateIsPrivate}
+              onChange={ (checked) => setUpdateIsPrivate(checked)}
             />
         </div>
         
