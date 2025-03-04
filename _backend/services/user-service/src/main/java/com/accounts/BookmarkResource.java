@@ -7,6 +7,7 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -22,8 +23,10 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.bind.*;
-import com.accounts.AccountsResource;
+import jakarta.servlet.http.HttpServletRequest;
 
+import com.accounts.AccountsResource;
+import jakarta.servlet.http.Cookie;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -45,12 +48,29 @@ public class BookmarkResource {
     @APIResponses(value = {
             @APIResponse(responseCode = "200", description = "Quote successfully bookmarked"),
             @APIResponse(responseCode = "400", description = "Invalid request"),
+            @APIResponse(responseCode = "401", description = "Unauthorized"),
             @APIResponse(responseCode = "500", description = "Internal server error"),
     })
     @Operation(summary = "Bookmark a quote for a user", description = "This endpoint allows a user to bookmark a quote.")
-    public Response bookmarkQuote(@PathParam("userId") String userId, @PathParam("quoteId") String quoteId) {
+    public Response bookmarkQuote(@PathParam("userId") String userId, @PathParam("quoteId") String quoteId, @Context HttpServletRequest request) {
         Response res = accountService.retrieveUser(userId, false);
         String json = null;
+        String jwtCookie = null;
+        Cookie cookies[] = request.getCookies();
+        if(cookies!=null){
+           for(Cookie cookie: cookies){
+                if("jwt".equals(cookie.getName())){
+                        jwtCookie = cookie.getValue();
+                        break;
+                }
+           }     
+        }
+        if (jwtCookie == null) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity("JWT Missing")
+                        .build();
+            }
+
          if (res.getStatus() == Response.Status.OK.getStatusCode()){
             String accString = res.readEntity(String.class);
             Document doc = Document.parse(accString);
@@ -63,7 +83,8 @@ public class BookmarkResource {
             Document quoteSearchDoc = Document.parse(quoteSearchString);
             int currentBookmarks = quoteSearchDoc.getInteger("bookmarks", 0);
             quoteSearchDoc.put("bookmarks", currentBookmarks + 1);
-            Response quoteUpdateRes = quoteClient.updateQuote(quoteSearchDoc.toJson());
+            quoteSearchDoc.remove("creator");
+            Response quoteUpdateRes = quoteClient.updateQuote(jwtCookie,quoteSearchDoc.toJson());
             if(quoteUpdateRes.getStatus()!=Response.Status.OK.getStatusCode()){
             return Response
             .status(Response.Status.BAD_GATEWAY)
@@ -118,8 +139,23 @@ public class BookmarkResource {
             @APIResponse(responseCode = "500", description = "Internal server error"),
     })
     @Operation(summary = "Delete a bookmark a for a user", description = "This endpoint allows a user to delete a bookmark")
-    public Response deleteBookmark(@PathParam("userId") String userId, @PathParam("quoteId") String quoteId) {
+    public Response deleteBookmark(@PathParam("userId") String userId, @PathParam("quoteId") String quoteId,@Context HttpServletRequest request) {
         Response res = accountService.retrieveUser(userId, false);
+        String jwtCookie = null;
+        Cookie cookies[] = request.getCookies();
+        if(cookies!=null){
+           for(Cookie cookie: cookies){
+                if("jwt".equals(cookie.getName())){
+                        jwtCookie = cookie.getValue();
+                        break;
+                }
+           }     
+        }
+        if (jwtCookie == null) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity("JWT Missing")
+                        .build();
+            }
         String json = null;
          if (res.getStatus() == Response.Status.OK.getStatusCode()){
             String accString = res.readEntity(String.class);
@@ -130,9 +166,10 @@ public class BookmarkResource {
             Response quoteSearchRes = quoteClient.idSearch(quoteId);
             String quoteSearchString = quoteSearchRes.readEntity(String.class);
             Document quoteSearchDoc = Document.parse(quoteSearchString);
+            quoteSearchDoc.remove("creator");
             int currentBookmarks = quoteSearchDoc.getInteger("bookmarks", 0);
             quoteSearchDoc.put("bookmarks", currentBookmarks - 1);
-            Response quoteUpdateRes = quoteClient.updateQuote(quoteSearchDoc.toJson());
+            Response quoteUpdateRes = quoteClient.updateQuote(jwtCookie,quoteSearchDoc.toJson());
             if(quoteUpdateRes.getStatus()!=Response.Status.OK.getStatusCode()){
             return Response
             .status(Response.Status.BAD_GATEWAY)

@@ -11,7 +11,7 @@ public interface QuoteClient{
     @PUT
     @Path("/quotes/update")
     @Consumes(MediaType.APPLICATION_JSON)
-    Response updateQuote(String rawJson);
+    Response updateQuote( @HeaderParam("X-JWT-Token") String jwtToken, String rawJson);
 
     @GET
     @Path("/quotes/search/id/{quoteID}")
