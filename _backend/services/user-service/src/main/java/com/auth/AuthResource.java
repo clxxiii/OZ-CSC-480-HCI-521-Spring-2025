@@ -10,6 +10,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -49,7 +50,7 @@ public class AuthResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/callback")
-    public Response exchangeCode(@QueryParam("code") String code,@Context HttpServletRequest request) throws IOException {
+    public Response exchangeCode(@QueryParam("code") String code) throws IOException {
         String clientId = System.getenv("CLIENT_ID");
         String clientSecret = System.getenv("CLIENT_SECRET");
         String redirectUri = System.getenv("REDIRECT_URI");
