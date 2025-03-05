@@ -1,37 +1,20 @@
 package com.accounts;
-
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.client.Invocation;
-import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.mongodb.client.MongoCollection;
-
 import org.bson.Document;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import jakarta.json.bind.*;
 import jakarta.servlet.http.HttpServletRequest;
-
-import com.accounts.AccountsResource;
 import jakarta.servlet.http.Cookie;
-
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 @Path("/bookmarks")
 public class BookmarkResource {
       
@@ -43,7 +26,7 @@ public class BookmarkResource {
     public static AccountService accountService = new AccountService();
 
     @POST
-    @Path("/{userId}/{quoteId}")
+    @Path("/{quoteId}")
     @Produces(MediaType.APPLICATION_JSON)
     @APIResponses(value = {
             @APIResponse(responseCode = "200", description = "Quote successfully bookmarked"),
@@ -52,8 +35,10 @@ public class BookmarkResource {
             @APIResponse(responseCode = "500", description = "Internal server error"),
     })
     @Operation(summary = "Bookmark a quote for a user", description = "This endpoint allows a user to bookmark a quote.")
-    public Response bookmarkQuote(@PathParam("userId") String userId, @PathParam("quoteId") String quoteId, @Context HttpServletRequest request) {
-        Response res = accountService.retrieveUser(userId, false);
+    public Response bookmarkQuote(
+    @PathParam("quoteId") String quoteId,
+    @Context HttpServletRequest request) {
+        
         String json = null;
         String jwtCookie = null;
         Cookie cookies[] = request.getCookies();
@@ -71,14 +56,23 @@ public class BookmarkResource {
                         .build();
             }
 
-         if (res.getStatus() == Response.Status.OK.getStatusCode()){
-            String accString = res.readEntity(String.class);
-            Document doc = Document.parse(accString);
+         
+        
+            Document doc = accountService.retrieveUserFromCookie(request);
+            doc.remove("expires_at");
             Account acc = accountService.document_to_account(doc);
+            if(acc.MyQuotes.contains(quoteId)){
+                return Response
+            .status(Response.Status.BAD_REQUEST)
+            .entity("That's your quote")
+            .build();
+            }
+            String userId = accountService.getAccountIdByEmail(acc.Email);
             List<String> personalTags = new ArrayList<>();
             acc.FavoriteQuote.put(quoteId, personalTags);
             json = acc.toJson();
             Response quoteSearchRes = quoteClient.idSearch(quoteId);
+            if(quoteSearchRes.getStatus()==Response.Status.OK.getStatusCode()){
             String quoteSearchString = quoteSearchRes.readEntity(String.class);
             Document quoteSearchDoc = Document.parse(quoteSearchString);
             int currentBookmarks = quoteSearchDoc.getInteger("bookmarks", 0);
@@ -86,20 +80,17 @@ public class BookmarkResource {
             quoteSearchDoc.remove("creator");
             Response quoteUpdateRes = quoteClient.updateQuote(jwtCookie,quoteSearchDoc.toJson());
             if(quoteUpdateRes.getStatus()!=Response.Status.OK.getStatusCode()){
-            return Response
-            .status(Response.Status.BAD_GATEWAY)
-            .entity("Failed to update quote")
-            .build();
-            }
-           
-
+            return quoteUpdateRes;
          }
+        }
+        else{
+                return quoteSearchRes;
+        }
          return accountService.updateUser(json, userId);
     }
 
 
     @GET
-    @Path("/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     @APIResponses(value = {
             @APIResponse(responseCode = "200", description = "Quotes successfully retrieved"),
@@ -107,31 +98,32 @@ public class BookmarkResource {
             @APIResponse(responseCode = "500", description = "Internal server error"),
     })
     @Operation(summary = "Grab bookmarked quotes for a user", description = "This endpoint allows a user to get all bookmarks for a user")
-    public Response getBookmarks(@PathParam("userId") String userId) {
-        Response res = accountService.retrieveUser(userId, false);
-        String json = null;
-         if (res.getStatus() == Response.Status.OK.getStatusCode()){
-            String accString = res.readEntity(String.class);
-            Document doc = Document.parse(accString);
+    public Response getBookmarks(@Context HttpServletRequest request) {
+              
+            Document doc = accountService.retrieveUserFromCookie(request);
+            if(doc != null){
+            doc.remove("expires_at");
             Account acc = accountService.document_to_account(doc);
             List<JsonObject> jsonList = new ArrayList<>();
             for(String objectId: acc.FavoriteQuote.keySet()){
             Response quoteSearchRes = quoteClient.idSearch(objectId);
+            if(quoteSearchRes.getStatus()==Response.Status.OK.getStatusCode()){
             JsonObject quoteSearchJson = quoteSearchRes.readEntity(JsonObject.class);
             
             jsonList.add(quoteSearchJson);
             }
+            }
             return Response
             .ok(jsonList).build();
-     }
+        }
      return Response
      .status(Response.Status.BAD_REQUEST)
-     .entity("Failed to update quote")
+     .entity("Failed to retrieve account")
      .build();
     }
 
     @DELETE
-    @Path("/delete/{userId}/{quoteId}")
+    @Path("/delete/{quoteId}")
     @Produces(MediaType.APPLICATION_JSON)
     @APIResponses(value = {
             @APIResponse(responseCode = "200", description = "Bookmark successfully deleted"),
@@ -139,8 +131,10 @@ public class BookmarkResource {
             @APIResponse(responseCode = "500", description = "Internal server error"),
     })
     @Operation(summary = "Delete a bookmark a for a user", description = "This endpoint allows a user to delete a bookmark")
-    public Response deleteBookmark(@PathParam("userId") String userId, @PathParam("quoteId") String quoteId,@Context HttpServletRequest request) {
-        Response res = accountService.retrieveUser(userId, false);
+    public Response deleteBookmark(
+    @PathParam("quoteId") String quoteId,
+    @Context HttpServletRequest request) {
+       
         String jwtCookie = null;
         Cookie cookies[] = request.getCookies();
         if(cookies!=null){
@@ -157,13 +151,30 @@ public class BookmarkResource {
                         .build();
             }
         String json = null;
-         if (res.getStatus() == Response.Status.OK.getStatusCode()){
-            String accString = res.readEntity(String.class);
-            Document doc = Document.parse(accString);
+         
+        
+            Document doc = accountService.retrieveUserFromCookie(request);
+            if(doc==null){
+                return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity("Failed to retrieve account")
+                .build();
+                }
+            doc.remove("expires_at");
             Account acc = accountService.document_to_account(doc);
+            String userId = accountService.getAccountIdByEmail(acc.Email);        
+            if(!acc.FavoriteQuote.containsKey(quoteId)){
+                return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity("You don't have this bookmarked")
+                .build();
+            }
             acc.FavoriteQuote.remove(quoteId);
             json = acc.toJson();
             Response quoteSearchRes = quoteClient.idSearch(quoteId);
+            if(quoteSearchRes.getStatus()!=Response.Status.OK.getStatusCode()){
+                return quoteSearchRes;
+                }
             String quoteSearchString = quoteSearchRes.readEntity(String.class);
             Document quoteSearchDoc = Document.parse(quoteSearchString);
             quoteSearchDoc.remove("creator");
@@ -178,12 +189,12 @@ public class BookmarkResource {
             }
            
 
-         }
+         
          return accountService.updateUser(json, userId);
     }
 
     @POST
-    @Path("/tag/{userId}/{quoteId}/{bookmarkTag}")
+    @Path("/tag/{quoteId}/{bookmarkTag}")
     @Produces(MediaType.APPLICATION_JSON)
     @APIResponses(value = {
             @APIResponse(responseCode = "200", description = "Bookmark tag added"),
@@ -191,21 +202,33 @@ public class BookmarkResource {
             @APIResponse(responseCode = "500", description = "Internal server error"),
     })
     @Operation(summary = "Allow users to add a custom tag to a bookmarked quote", description = "This endpoint allows to add a custom tag to a boomarked tag.")
-    public Response addBookmarkTag(@PathParam("userId") String userId, @PathParam("quoteId") String quoteId,@PathParam("bookmarkTag") String bookmarkTag) {
-        Response res = accountService.retrieveUser(userId, false);
+    public Response addBookmarkTag(
+        @PathParam("quoteId") String quoteId,
+        @PathParam("bookmarkTag") String bookmarkTag,
+        @Context HttpServletRequest request) {
+       
         String json = null;
-         if (res.getStatus() == Response.Status.OK.getStatusCode()){
-            String accString = res.readEntity(String.class);
-            Document doc = Document.parse(accString);
+         
+        String userId = null;
+            Document doc = accountService.retrieveUserFromCookie(request);
+            if(doc!=null){
+            doc.remove("expires_at");
             Account acc = accountService.document_to_account(doc);
+            if(!acc.FavoriteQuote.containsKey(quoteId)){
+                return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity("You don't have this bookmarked")
+                .build();
+            }
+            userId = accountService.getAccountIdByEmail(acc.Email);
             acc.FavoriteQuote.get(quoteId).add(bookmarkTag);
             json = acc.toJson();
-         }
+            }
          return accountService.updateUser(json, userId);
     }
 
     @DELETE
-    @Path("/tag/{userId}/{quoteId}/{tagIndex}")
+    @Path("/tag/{quoteId}/{tagIndex}")
     @Produces(MediaType.APPLICATION_JSON)
     @APIResponses(value = {
             @APIResponse(responseCode = "200", description = "Bookmark tag deleted"),
@@ -213,16 +236,22 @@ public class BookmarkResource {
             @APIResponse(responseCode = "500", description = "Internal server error"),
     })
     @Operation(summary = "Allow users to delete a custom tag of a bookmarked quote", description = "This endpoint allows delete their custom tag from a quote.")
-    public Response deleteBookmarkTag(@PathParam("userId") String userId, @PathParam("quoteId") String quoteId,@PathParam("tagIndex") int tagIndex) {
-        Response res = accountService.retrieveUser(userId, false);
+    public Response deleteBookmarkTag(
+        @PathParam("quoteId") String quoteId,
+        @PathParam("bookmarkTag") int tagIndex,
+        @Context HttpServletRequest request) {
+
         String json = null;
-         if (res.getStatus() == Response.Status.OK.getStatusCode()){
-            String accString = res.readEntity(String.class);
-            Document doc = Document.parse(accString);
+            String userId = null;
+            Document doc = accountService.retrieveUserFromCookie(request);
+            doc.remove("expires_at");
+            if(doc!=null){
+             
             Account acc = accountService.document_to_account(doc);
+            userId = accountService.getAccountIdByEmail(acc.Email);
             acc.FavoriteQuote.get(quoteId).remove(tagIndex);
             json = acc.toJson();
-         }
+            }
          return accountService.updateUser(json, userId);
     }
 
