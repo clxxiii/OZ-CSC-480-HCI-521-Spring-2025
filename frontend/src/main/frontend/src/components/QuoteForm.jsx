@@ -12,7 +12,7 @@ const QuoteForm = () => {
   const [updateText, setUpdateText] = useState("");
   const [updateAuthor, setUpdateAuthor] = useState("");
   const [updateTagsInput, setUpdateTagsInput] = useState("");
-  const [updateIsPrivate, setUpdateIsPrivate] = useState(quote?.isPrivate ?? false ); // For setting Public/Private.
+  const [updateIsPrivate, setUpdateIsPrivate] = useState(quote?.["private"] ?? false ); // For setting Public/Private.
 
   useEffect(() => {
     //populate form fields with existing quote data when the component loads
