@@ -8,11 +8,10 @@ import SavedQuotes from "./pages/SavedQuotes";
 import QuoteForm from "./components/QuoteForm";
 import DebugPage from "./pages/DebugPage";
 import { userQuotes, bookmarkedQuotes } from "./placeholderdata";
+import SearchPage from './pages/SearchPage';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-
 
   return (
     <Router>
@@ -31,6 +30,7 @@ const App = () => {
           <Route path="/edit-quote/:id" element={<QuoteForm />} />
           <Route path="/debug" element={<DebugPage />} />
           <Route path="/" element={<LandingPage />} />
+          <Route path="/search" element={<SearchPage />} />
         </Route>
       </Routes>
     </Router>
