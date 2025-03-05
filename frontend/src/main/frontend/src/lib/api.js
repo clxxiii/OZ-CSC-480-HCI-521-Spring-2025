@@ -182,9 +182,42 @@ export const fetchMe = async () => {
     if (!response.ok) throw new Error("Failed to fetch user");
 
     const data = await response.json();
+    console.log("Fetched user:", data); // Debugging
     return data;
   } catch (error) {
     console.error("Error fetching user data:", error);
     return null;
+  }
+};
+
+export const updateMe = async (updatedData) => {
+  try {
+    // Fetch user to get their ID
+    const user = await fetchMe();
+    console.log("User fetched for update:", user); // Debugging
+
+    // Extract correct `_id`
+    const userId = user._id?.$oid;  // Fix: Extract `$oid` from `_id` object
+    if (!userId) {
+      throw new Error("User ID not found or invalid");
+    }
+
+    // Send update request using user ID
+    const response = await fetch(`${USER_SERVICE_URL}/users/accounts/update/${userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedData),
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(`Failed to update user: ${errorMessage}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating user:", error);
+    throw error;
   }
 };
