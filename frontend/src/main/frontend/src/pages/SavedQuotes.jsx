@@ -1,22 +1,21 @@
-import React, { useState, useEffect } from "react"; 
-import QuoteCard from "../components/QuoteCard"; 
-import Input from "../components/Input"; 
-import { fetchMe, fetchTopBookmarkedQuotes, fetchUserQuotes } from "../lib/api"; 
+import React, { useState, useEffect } from "react";
+import QuoteCard from "../components/QuoteCard";
+import Input from "../components/Input";
+import { fetchMe, fetchUserQuotes } from "../lib/api";
 
-const SavedQuotes = ({ userQuotes, bookmarkedQuotes }) => {
+const SavedQuotes = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [quotes, setQuotes] = useState([...userQuotes, ...bookmarkedQuotes]); //combine user and bookmarked quotes into a single list
-  const [userId, setUserId] = useState(null);
+  const [quotes, setQuotes] = useState([]); //store all quotes for saved (uploaded and bookmarked)
+  const [userId, setUserId] = useState(null); //store the current user's ID
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const user = await fetchMe();
-        const userIdString = user._id.$oid || user._id; 
-        setUserId(userIdString); 
-        const userQuotes = await fetchUserQuotes(userIdString); 
-        const topBookmarkedQuotes = await fetchTopBookmarkedQuotes();
-        setQuotes([...userQuotes, ...topBookmarkedQuotes]);
+        const userIdString = user._id.$oid || user._id;
+        setUserId(userIdString);
+        const userQuotes = await fetchUserQuotes(userIdString);
+        setQuotes(userQuotes); 
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -42,15 +41,6 @@ const SavedQuotes = ({ userQuotes, bookmarkedQuotes }) => {
     });
   };
 
-  const filteredQuotes = quotes.filter(({ author, quote, tags, uploadedBy }) => {
-    //filter quotes based on search term matching author, text, or tags
-    return (
-      uploadedBy === userId &&
-      (author.toLowerCase().includes(searchTerm) ||
-        quote.toLowerCase().includes(searchTerm) ||
-        tags.some((tag) => tag.toLowerCase().includes(searchTerm)))
-    );
-  });
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -62,9 +52,9 @@ const SavedQuotes = ({ userQuotes, bookmarkedQuotes }) => {
         className="mb-4"
       />
       <div className="row w-100">
-        {filteredQuotes.length > 0 ? (
-          //display filtered quotes if available, otherwise show a 'No quotes found' message
-          filteredQuotes.map((quote) => (
+        {quotes.length > 0 ? (
+          //display quotes if available, otherwise show a 'No quotes found' message
+          quotes.map((quote) => (
             <QuoteCard key={quote._id} quote={quote} onBookmarkToggle={handleBookmarkToggle} />
           ))
         ) : (
@@ -75,4 +65,4 @@ const SavedQuotes = ({ userQuotes, bookmarkedQuotes }) => {
   );
 };
 
-export default SavedQuotes; //export the component for use in other parts of the app
+export default SavedQuotes; 
