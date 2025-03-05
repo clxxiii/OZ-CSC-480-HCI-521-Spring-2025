@@ -179,3 +179,69 @@ export const fetchMe = async () => {
     return null;
   }
 };
+
+export const bookmarkQuote = async (quoteId) => {
+  //send a request to bookmark a quote by its ID
+  try {
+    console.log("Sending bookmark request for quote ID:", quoteId);
+
+    const response = await fetch(`${USER_SERVICE_URL}/users/bookmarks/${quoteId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      console.error("Backend returned an error:", errorMessage);
+      throw new Error(`Failed to bookmark quote: ${errorMessage}`);
+    }
+
+    const responseData = await response.json();
+    console.log("Raw API Response:", responseData);
+    return responseData;
+  } catch (error) {
+    console.error("Error bookmarking quote:", error);
+    throw error;
+  }
+};
+
+export const deleteBookmark = async (quoteId) => {
+  //send a request to delete a bookmark by its ID
+  try {
+    console.log("Sending delete bookmark request for quote ID:", quoteId);
+
+    const response = await fetch(`${USER_SERVICE_URL}/users/bookmarks/delete/${quoteId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      console.error("Backend returned an error:", errorMessage);
+      throw new Error(`Failed to delete bookmark: ${errorMessage}`);
+    }
+
+    const responseData = await response.json();
+    console.log("Raw API Response:", responseData);
+    return responseData;
+  } catch (error) {
+    console.error("Error deleting bookmark:", error);
+    throw error;
+  }
+};
+
+export const fetchUserQuotes = async (userId) => {
+  //fetch quotes created by a specific user
+  try {
+    const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/search/user/${userId}`);
+    if (!response.ok) throw new Error("Failed to fetch user quotes");
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching user quotes:", error);
+    return [];
+  }
+};
