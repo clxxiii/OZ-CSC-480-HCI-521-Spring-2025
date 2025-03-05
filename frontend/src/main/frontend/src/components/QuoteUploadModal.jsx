@@ -36,7 +36,7 @@ const QuoteUploadModal = ({ isVisible, onClose, onSubmit, quoteText, setQuoteTex
       quote: quoteText.trim(),
       author: author.trim() || "Unknown",
       tags,
-      isPrivate: isPrivate || false
+      ["private"]: isPrivate || false
     };
 
     try {
