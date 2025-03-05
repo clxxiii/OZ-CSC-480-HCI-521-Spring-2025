@@ -54,6 +54,10 @@ public class QuotesUpdateResource {
             ObjectMapper objectMapper = new ObjectMapper();
             QuoteObject quote = objectMapper.readValue(rawJson, QuoteObject.class);
 
+            ObjectId objectId = new ObjectId(quote.getId().toString());
+            String jsonQuote = mongo.getQuote(objectId);
+            QuoteObject oldQuote = objectMapper.readValue(jsonQuote, QuoteObject.class);
+
             Map<String, String> jwtMap= QuotesRetrieveAccount.retrieveJWTData(request);
 
             if (jwtMap == null) {
@@ -72,18 +76,10 @@ public class QuotesUpdateResource {
             }
 
             // string to ObjectId
-            ObjectId accountObjectID;
-            try {
-                accountObjectID = new ObjectId(accountID);
-            } catch (Exception e) {
-                return Response
-                        .status(Response.Status.NOT_FOUND)
-                        .entity(new Document("error", "Invalid object id!").toJson())
-                        .build();
-            }
+            ObjectId accountObjectID = new ObjectId(accountID);
 
             // user is not owner of quote
-            if (accountObjectID != quote.getId() && !group.equals("admin")) {
+            if (!accountObjectID.equals(oldQuote.getCreator()) && !group.equals("admin")) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to update quotes").toJson()).build();
             }
 
