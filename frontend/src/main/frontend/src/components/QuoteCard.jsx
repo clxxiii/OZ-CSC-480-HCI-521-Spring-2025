@@ -10,6 +10,12 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
 
   const handleBookmarkClick = async (e) => {
     e.stopPropagation();
+
+    if (isBookmarked) {
+      console.log("Quote is already bookmarked by the user.");
+      return; // Prevent bookmarking the quote twice
+    }
+
     const newBookmarkState = !isBookmarked;
     setIsBookmarked(newBookmarkState);
     setBookmarkCount((prevCount) => newBookmarkState ? prevCount + 1 : prevCount - 1);
