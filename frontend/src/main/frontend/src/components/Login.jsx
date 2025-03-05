@@ -1,7 +1,6 @@
 import React from 'react';
 import { FaTimes } from 'react-icons/fa'; // Close icon
 import { FaUser } from 'react-icons/fa'; // User icon
-import { MdOutlineStar } from 'react-icons/md'; // Asterisk icon
 
 const LoginBox = ({ handleGoogleLogin, handleGuestLogin }) => {
   return (
@@ -98,8 +97,7 @@ const LoginBox = ({ handleGoogleLogin, handleGuestLogin }) => {
           }}
         >
           <FaUser size={20} className="me-1" />
-          <MdOutlineStar size={14} className="me-2" />
-          Continue as Guest
+         <div style={{paddingLeft: '14px'}}>Continue as Guest</div>
         </button>
 
       </div>
