@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import QuoteCard from "../components/QuoteCard"; //import QuoteCard component for displaying individual quotes
-import Input from "../components/Input"; //Input component for search functionality
-import { fetchMe, fetchTopBookmarkedQuotes, fetchUserQuotes } from "../lib/api"; //import API functions to fetch user data and top bookmarked quotes
+import React, { useState, useEffect } from "react"; 
+import QuoteCard from "../components/QuoteCard"; 
+import Input from "../components/Input"; 
+import { fetchMe, fetchTopBookmarkedQuotes, fetchUserQuotes } from "../lib/api"; 
 
-const SavedQuotes = () => {
-  const [searchTerm, setSearchTerm] = useState(""); //store the search term entered by the user
-  const [quotes, setQuotes] = useState([]); //store all quotes
-  const [userId, setUserId] = useState(null); //store the current user's ID
+const SavedQuotes = ({ userQuotes, bookmarkedQuotes }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [quotes, setQuotes] = useState([...userQuotes, ...bookmarkedQuotes]); //combine user and bookmarked quotes into a single list
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,10 +22,13 @@ const SavedQuotes = () => {
       }
     };
 
-    fetchData();
-  }, []);
+    if (!userId) {
+      fetchData();
+    }
+  }, [userId]);
 
   const handleSearch = (event) => {
+    //update search term when user types in the input field
     setSearchTerm(event.target.value.toLowerCase());
   };
 
@@ -40,7 +43,7 @@ const SavedQuotes = () => {
   };
 
   const filteredQuotes = quotes.filter(({ author, quote, tags, uploadedBy }) => {
-    //filter quotes based on search term matching author, text, or tags, and uploaded by the current user
+    //filter quotes based on search term matching author, text, or tags
     return (
       uploadedBy === userId &&
       (author.toLowerCase().includes(searchTerm) ||
@@ -72,4 +75,4 @@ const SavedQuotes = () => {
   );
 };
 
-export default SavedQuotes;
+export default SavedQuotes; //export the component for use in other parts of the app
