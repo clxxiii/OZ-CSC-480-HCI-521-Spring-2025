@@ -119,6 +119,24 @@ const AccountPage = () => {
             </p>
 
           </div>
+          {/* Preferences and Settings Card */}
+          <div className="card mb-4">
+            <div className="card-body">
+              <h5 className="card-title">Preferences and Settings</h5>
+              <button className="btn btn-link">Privacy Settings</button>
+              <button className="btn btn-link">Quote Visibility Settings</button>
+              <button className="btn btn-link">Theme Preferences</button>
+            </div>
+          </div>
+
+          {/* Quotes & Collection Card */}
+          <div className="card mb-4">
+            <div className="card-body">
+              <h5 className="card-title">Quotes & Collection</h5>
+              <button className="btn btn-link">Saved Quotes</button>
+              <button className="btn btn-link">Uploaded Quotes (PR/PB)</button>
+            </div>
+          </div>
         </div>
       ) : (
         <div>No user information available.</div>
