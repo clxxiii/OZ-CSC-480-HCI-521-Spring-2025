@@ -21,17 +21,10 @@ public class AccountsUnitTest {
     // Setup Method
     @BeforeAll
     public static void setUp() {
-//        String port = "9081";
-//        String contextPath = "/";
-//        rootUrl = "http://localhost:" + port + contextPath;
 //        Dotenv dotenv = Dotenv.configure()
 //                .load();
 
-//        String connectionString = dotenv.get("CONNECTION_STRING");
-//
-//        if (connectionString == null || connectionString.isEmpty()) {
-            String connectionString = "mongodb://user:password@quotes_database:27017";
-//        }
+        String connectionString = "mongodb://user:password@quotes-database:27017/?authSource=admin";
 
         accountService = new AccountService(connectionString, "Test", "Users");
     }

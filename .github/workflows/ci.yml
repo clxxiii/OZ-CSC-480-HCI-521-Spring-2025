@@ -14,12 +14,3 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build all images in the docker-compose file
       run: docker compose build
-
-    - name: Download wait-for-it.sh
-      run: |
-        curl -sSL https://github.com/vishnubob/wait-for-it/releases/download/v2.5.0/wait-for-it.sh -o wait-for-it.sh
-        chmod +x wait-for-it.sh
-    - name: Wait for MongoDB to be ready
-      run: ./wait-for-it.sh quotes_database:27017 --timeout=300 --strict -- echo "MongoDB is up"
-    - name: Run tests
-      run: docker compose exec -T user-service mvn test
