@@ -1,7 +1,6 @@
 package quotes;
 
 import com.quotes.QuoteObject;
-import com.quotes.QuoteSearchResource;
 import com.quotes.SanitizerClass;
 import jakarta.json.*;
 import jakarta.ws.rs.client.Client;
@@ -10,7 +9,6 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.Assertions;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
