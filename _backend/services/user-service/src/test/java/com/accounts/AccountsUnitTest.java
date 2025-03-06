@@ -26,9 +26,8 @@ public class AccountsUnitTest {
 //        rootUrl = "http://localhost:" + port + contextPath;
 //        Dotenv dotenv = Dotenv.configure()
 //                .load();
-        String connectionString = System.getenv("CONNECTION_STRING");
 
-        accountService = new AccountService(connectionString, "Test", "Users");
+        accountService = new AccountService("Test", "Users");
     }
 
     @BeforeEach
