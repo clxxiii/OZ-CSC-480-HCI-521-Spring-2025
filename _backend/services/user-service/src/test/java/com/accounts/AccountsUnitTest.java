@@ -24,9 +24,14 @@ public class AccountsUnitTest {
 //        String port = "9081";
 //        String contextPath = "/";
 //        rootUrl = "http://localhost:" + port + contextPath;
-        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+        Dotenv dotenv = Dotenv.configure()
+                .load();
 
-        String connectionString = dotenv.get("CONNECTION_STRING", System.getenv("CONNECTION_STRING"));
+        String connectionString = dotenv.get("CONNECTION_STRING");
+        
+        if (connectionString == null || connectionString.isEmpty()) {
+            connectionString = "mongodb://user:password@localhost:27017";
+        }
 
         accountService = new AccountService(connectionString, "Test", "Users");
     }

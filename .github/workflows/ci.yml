@@ -9,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    env:
-      CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
     
     steps:
     - uses: actions/checkout@v4
