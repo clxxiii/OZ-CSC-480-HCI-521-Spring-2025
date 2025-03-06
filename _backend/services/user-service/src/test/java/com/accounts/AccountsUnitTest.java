@@ -30,7 +30,7 @@ public class AccountsUnitTest {
 //        String connectionString = dotenv.get("CONNECTION_STRING");
 //
 //        if (connectionString == null || connectionString.isEmpty()) {
-            String connectionString = "mongodb://user:password@users_database:27017";
+            String connectionString = "mongodb://user:password@quotes_database:27017";
 //        }
 
         accountService = new AccountService(connectionString, "Test", "Users");
