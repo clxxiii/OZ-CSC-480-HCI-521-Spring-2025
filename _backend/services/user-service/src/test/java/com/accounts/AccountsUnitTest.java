@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import io.github.cdimascio.dotenv.Dotenv;
+//import io.github.cdimascio.dotenv.Dotenv;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -24,16 +24,13 @@ public class AccountsUnitTest {
 //        String port = "9081";
 //        String contextPath = "/";
 //        rootUrl = "http://localhost:" + port + contextPath;
-        Dotenv dotenv = Dotenv.configure().ignoreIfMissing()
-                .load();
-
-        String connectionString = dotenv.get("CONNECTION_STRING", System.getenv("CONNECTION_STRING"));
-
+//        Dotenv dotenv = Dotenv.configure()
+//                .load();
 
 //        String connectionString = dotenv.get("CONNECTION_STRING");
 //
 //        if (connectionString == null || connectionString.isEmpty()) {
-//            connectionString = "mongodb://user:password@localhost:27017";
+            String connectionString = "mongodb://user:password@users_database:27017";
 //        }
 
         accountService = new AccountService(connectionString, "Test", "Users");
