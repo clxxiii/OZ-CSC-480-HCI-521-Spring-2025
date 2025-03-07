@@ -42,9 +42,6 @@ const TopNavigation = ({ user }) => {
                 <button className="btn btn-dark" onClick={() => navigate("/login")}>Sign in</button>
               </li>
             ) : (
-
-            <></>
-
               <></>
 
             )}
