@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaBookmark, FaRegBookmark, FaShareAlt, FaFlag, FaClipboard } from 'react-icons/fa';
 import { bookmarkQuote, deleteBookmark } from "../lib/api";
+import Tag from "./Tag";
 
 const QuoteCard = ({ quote, onBookmarkToggle }) => {
   const navigate = useNavigate();
@@ -72,47 +73,27 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
     });
   };
 
+    const quoteTextStyle = {
+      color: "#1E1E1E",
+      fontFamily: "Inter",
+      textAlign: "left",
+      fontSize: "24px",
+      fontStyle: "normal",
+      fontWeight: "500",
+      lineHeight: "normal",
+    }
+
   return (
-    // <div className="col-md-4 mb-4" onClick={handleClick}>
-    //   <div className="card shadow p-3">
-    //     <div className="card-body">
-    //       <p className="card-text">"{quote.quote || "No quote text provided"}"</p>
-    //       <h6 className="text-muted">- {quote.author || "Unknown"}</h6>
-    //
-    //       {quote.tags && quote.tags.length > 0 && (
-    //         <div className="mb-2">
-    //           <strong>Tags: </strong>
-    //           {quote.tags.map((tag, index) => (
-    //             <span key={index} className="badge bg-primary me-1">{tag}</span>
-    //           ))}
-    //         </div>
-    //       )}
-    //
-    //       <button className="btn btn-link me-2" onClick={handleBookmarkClick}>
-    //         {isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
-    //       </button>
-    //       <span className="me-2">{bookmarkCount}</span>
-    //       <button className="btn btn-link me-2" onClick={handleClipboardClick}>
-    //         <FaClipboard />
-    //       </button>
-    //       <button className="btn btn-link me-2" onClick={handleShareClick}>
-    //         <FaShareAlt />
-    //       </button>
-    //       <button className="btn btn-link text-danger" onClick={handleFlagClick}>
-    //         <FaFlag />
-    //       </button>
-    //     </div>
-    //   </div>
-    // </div>
       <div
           onClick={handleClick}
           style={{
-            background: "#EAF7DA",
-            borderRadius: "16px",
+            background: "#D6F0C2",
+            borderRadius: "23px",
+            border: "1px solid rgba(0, 0, 0, 0.10)",
             padding: "20px",
-            width: "320px",
+            width: "100%",
+            maxWidth: "378px",
             cursor: "pointer",
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
             display: "flex",
             flexDirection: "column",
             gap: "10px",
@@ -121,48 +102,32 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
           }}
       >
         {/* Tags */}
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          {quote.tags?.map((tag, index) => (
-              <span
-                  key={index}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#F8FDF4",
-                    border: "2px solid #14AE5C",
-                    color: "black",
-                    borderRadius: "999px",
-                    padding: "6px 14px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    fontFamily: "Arial, sans-serif",
-                  }}
-              >
-                    #{tag}
-                </span>
-          ))}
+        <div style={{ display: "flex", gap: "2px", flexWrap: "wrap" }}>
+          {quote.tags?.map((tag, index) => <Tag text={tag} key={index} />)}
         </div>
 
-        {/* Quote Text */}
-        <p style={{ fontSize: "16px", fontWeight: "500", lineHeight: "1.5" }}>
-          "{quote.quote}"
-        </p>
 
-        {/* Author */}
         <div style={{
           display: "flex",
+          flexDirection: "column",
+          alignItems: "start",
           justifyContent: "flex-start",
           width: "100%"
         }}>
-            <span style={{
-              color: "#5A5A5A",
-              fontWeight: "bold",
-              marginTop: "10px",
-              fontSize: "14px"
-            }}>
-                — {quote.author}
-            </span>
+          {/* Quote Text */}
+          <span style={quoteTextStyle}>
+            {'"' +quote.quote + '"'}
+          </span>
+
+          {/* Author */}
+          <span style={{
+            color: "#5A5A5A",
+            fontWeight: "bold",
+            marginTop: "10px",
+            fontSize: "14px"
+          }}>
+              — {quote.author}
+          </span>
         </div>
 
         {/* Icons */}
@@ -207,26 +172,7 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
             </svg>
           </button>
         </div>
-
-        {/*{copySuccess && (*/}
-        {/*    <div*/}
-        {/*        style={{*/}
-        {/*          position: "absolute",*/}
-        {/*          top: "-20px",*/}
-        {/*          left: "50%",*/}
-        {/*          transform: "translateX(-50%)",*/}
-        {/*          background: "#2E7D32",*/}
-        {/*          color: "white",*/}
-        {/*          padding: "4px 8px",*/}
-        {/*          borderRadius: "4px",*/}
-        {/*          fontSize: "12px",*/}
-        {/*        }}*/}
-        {/*    >*/}
-        {/*      Quote copied!*/}
-        {/*    </div>*/}
-        {/*)}*/}
       </div>
-
   );
 };
 
