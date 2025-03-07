@@ -37,24 +37,16 @@ const TopNavigation = ({ user }) => {
             <li className={`nav-item ${isActive("/saved-quotes") ? "active" : ""}`}>
               <Link className="nav-link" to="/saved-quotes">My Collection</Link>
             </li>
-            <li>
-              <span 
-                className="nav-link" 
-                style={{ cursor: "pointer" }} 
-                onClick={() => setIsModalOpen(true)}
-              >
-                Add Quote
-              </span>
-            </li>
-            <li className={`nav-item ${isActive("/saved-quotes") ? "active" : ""}`}>
-              <Link className="nav-link" to="/saved-quotes">My Collection</Link>
-            </li>
             {!user ? (
               <li className="nav-item">
                 <button className="btn btn-dark" onClick={() => navigate("/login")}>Sign in</button>
               </li>
             ) : (
+
             <></>
+
+              <></>
+
             )}
             <li className="nav-item ml-3 mr-3" title={user?.Username || "Click sign in to sign in"}>
               <Link to="/account">
