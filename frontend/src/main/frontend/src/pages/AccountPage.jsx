@@ -146,21 +146,6 @@ const AccountPage = () => {
             </div>
           </div>
 
-          <hr />
-
-          {/* Preferences & Settings Section */}
-          <div className="mt-4">
-            <h6 className="fw-bold mb-3 text-start">Preferences and Settings:</h6>
-            <button className="btn w-100 text-start text-black fw-normal" style={{ background: "none", border: "none" }}>
-              Privacy Settings
-            </button>
-            <button className="btn w-100 text-start text-black fw-normal" style={{ background: "none", border: "none" }}>
-              Quote Visibility Settings
-            </button>
-            <button className="btn w-100 text-start text-black fw-normal" style={{ background: "none", border: "none" }}>
-              Theme Preferences
-            </button>
-          </div>
 
           <hr />
 
