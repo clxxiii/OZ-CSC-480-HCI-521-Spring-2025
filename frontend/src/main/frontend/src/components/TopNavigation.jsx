@@ -43,6 +43,7 @@ const TopNavigation = ({ user }) => {
               </li>
             ) : (
               <></>
+
             )}
             <li className="nav-item ml-3 mr-3" title={user?.Username || "Click sign in to sign in"}>
               <Link to="/account">
