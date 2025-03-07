@@ -77,8 +77,9 @@ const LandingPage = () => {
         quoteText={quoteText}
         setQuoteText={setQuoteText}
       />
-
+    <div style={{margin: "left", width: "900px"}}>
       <QuoteList topQuotes={topQuotes} loading={loading} error={error} />
+    </div>
     </>
   );
 };
