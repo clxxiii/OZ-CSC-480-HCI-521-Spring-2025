@@ -94,7 +94,8 @@ const AccountPage = () => {
                       type="text"
                       value={updatedProfession}
                       onChange={(e) => setUpdatedProfession(e.target.value)}
-                      className="form-control d-inline-block w-auto"
+                      className="form-control d-inline-block"
+                      style={{ width: "400px" }}
                     />
                     <BsCheckSquare
                       onClick={handleSaveProfession}
@@ -122,7 +123,8 @@ const AccountPage = () => {
                       type="text"
                       value={updatedPersonalQuote}
                       onChange={(e) => setUpdatedPersonalQuote(e.target.value)}
-                      className="form-control d-inline-block w-auto"
+                      className="form-control d-inline-block"
+                      style={{ width: "400px" }}
                     />
                     <BsCheckSquare
                       onClick={handleSavePersonalQuote}
