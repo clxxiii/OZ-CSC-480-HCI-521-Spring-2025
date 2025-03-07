@@ -93,9 +93,7 @@ export default function Splash() {
                         lineHeight: "20px",
                         width: "708px",
                         padding: "12px 20px 12px 40px",
-                        backgroundImage: url(searchSvg),
-                        backgroundPosition: "10px 10px",
-                        backgroundRepeat: no-repeat,
+
                     }}
                     placeholder="Search quotes, authors, or themes..."
                     onChange={handleSearchChange} //update the searchQuery state when input changes
