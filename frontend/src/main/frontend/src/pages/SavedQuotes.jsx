@@ -64,7 +64,7 @@ const SavedQuotes = () => {
         onChange={handleSearch}
         className="mb-4"
       />
-      <div className="row w-100">
+      <div className="row w-100 gap-4">
         {quotes.length > 0 ? (
           //display quotes if available, otherwise show a 'No quotes found' message
           quotes.map((quote) => (
