@@ -26,12 +26,12 @@ public class AccountsUnitTest {
 
     @Mock
     private static MongoClient mockClient;
-//
-//    @Mock
-//    private static MongoDatabase mockDatabase;
-//
-//    @Mock
-//    private static MongoCollection<Document> mockCollection;
+
+    @Mock
+    private static MongoDatabase mockDatabase;
+
+    @Mock
+    private static MongoCollection<Document> mockCollection;
 
     // Setup Method
     @BeforeAll
@@ -39,11 +39,11 @@ public class AccountsUnitTest {
         MockitoAnnotations.openMocks(AccountsUnitTest.class);
 
         mockClient = Mockito.mock(MongoClient.class);
-//        mockDatabase = Mockito.mock(MongoDatabase.class);
-//        mockCollection = Mockito.mock(MongoCollection.class);
-//
-//        when(mockClient.getDatabase("Test")).thenReturn(mockDatabase);
-//        when(mockDatabase.getCollection("Users")).thenReturn(mockCollection);
+        mockDatabase = Mockito.mock(MongoDatabase.class);
+        mockCollection = Mockito.mock(MongoCollection.class);
+
+        when(mockClient.getDatabase("Test")).thenReturn(mockDatabase);
+        when(mockDatabase.getCollection("Users")).thenReturn(mockCollection);
 
         accountService = new AccountService(mockClient, "Test", "Users");
     }
