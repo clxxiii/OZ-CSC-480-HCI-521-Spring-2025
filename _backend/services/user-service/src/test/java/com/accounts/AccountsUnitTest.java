@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,20 +26,24 @@ public class AccountsUnitTest {
 
     @Mock
     private static MongoClient mockClient;
-
-    @Mock
-    private static MongoDatabase mockDatabase;
-
-    @Mock
-    private static MongoCollection<Document> mockCollection;
+//
+//    @Mock
+//    private static MongoDatabase mockDatabase;
+//
+//    @Mock
+//    private static MongoCollection<Document> mockCollection;
 
     // Setup Method
     @BeforeAll
     public static void setUp() {
         MockitoAnnotations.openMocks(AccountsUnitTest.class);
 
-        when(mockClient.getDatabase("Test")).thenReturn(mockDatabase);
-        when(mockDatabase.getCollection("Users")).thenReturn(mockCollection);
+        mockClient = Mockito.mock(MongoClient.class);
+//        mockDatabase = Mockito.mock(MongoDatabase.class);
+//        mockCollection = Mockito.mock(MongoCollection.class);
+//
+//        when(mockClient.getDatabase("Test")).thenReturn(mockDatabase);
+//        when(mockDatabase.getCollection("Users")).thenReturn(mockCollection);
 
         accountService = new AccountService(mockClient, "Test", "Users");
     }
