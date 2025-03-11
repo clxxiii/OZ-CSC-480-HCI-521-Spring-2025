@@ -1,32 +1,46 @@
 package com.accounts;
 
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import jakarta.json.*;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
-
+import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-//import io.github.cdimascio.dotenv.Dotenv;
+import io.github.cdimascio.dotenv.Dotenv;
+import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 public class AccountsUnitTest {
     // Initialize mock account details
     static AccountService accountService;
     static Account account;
 
+    @Mock
+    private static MongoClient mockClient;
+
+    @Mock
+    private static MongoDatabase mockDatabase;
+
+    @Mock
+    private static MongoCollection<Document> mockCollection;
+
     // Setup Method
     @BeforeAll
     public static void setUp() {
-//        Dotenv dotenv = Dotenv.configure()
-//                .load();
+        MockitoAnnotations.openMocks(AccountsUnitTest.class);
 
-        String connectionString = "mongodb://user:password@quotes-database:27017/?authSource=admin";
+        when(mockClient.getDatabase("Test")).thenReturn(mockDatabase);
+        when(mockDatabase.getCollection("Users")).thenReturn(mockCollection);
 
-        accountService = new AccountService(connectionString, "Test", "Users");
+        accountService = new AccountService(mockClient, "Test", "Users");
     }
 
     @BeforeEach

@@ -44,8 +44,8 @@ public class AccountService {
 
     }
 
-    public AccountService(String connectionString, String dbName, String collectionName) {
-        client = MongoClients.create(connectionString);
+    public AccountService(MongoClient mongoClient, String dbName, String collectionName) {
+        client = mongoClient;
         accountDB = client.getDatabase(dbName);
         accountCollection = accountDB.getCollection(collectionName);
     }
