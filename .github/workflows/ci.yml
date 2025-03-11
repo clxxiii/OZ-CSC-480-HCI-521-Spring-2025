@@ -12,5 +12,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+
+    - name: Create database
+      run: docker volume create --name quotes_db
     - name: Build all images in the docker-compose file
       run: docker compose build
