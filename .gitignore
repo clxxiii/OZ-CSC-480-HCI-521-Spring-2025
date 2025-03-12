@@ -18,3 +18,5 @@ _backend/services/quote-service/src/main/liberty/config/server.env
 _backend/services/user-service/src/main/liberty/config/resources/security/defaultKeyStore.jks
 .env
 docker-compose.yml
+/_backend/services/user-service/src/test/
+/_backend/services/user-service/src/test

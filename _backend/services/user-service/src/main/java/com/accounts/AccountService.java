@@ -6,10 +6,7 @@ import com.ibm.websphere.security.jwt.InvalidConsumerException;
 import com.ibm.websphere.security.jwt.InvalidTokenException;
 import com.ibm.websphere.security.jwt.JwtConsumer;
 import com.ibm.websphere.security.jwt.JwtToken;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.UpdateResult;
 import jakarta.servlet.http.Cookie;
@@ -44,8 +41,8 @@ public class AccountService {
 
     }
 
-    public AccountService(MongoClient mongoClient, String dbName, String collectionName) {
-        client = mongoClient;
+    public AccountService(String connectionString, String dbName, String collectionName) {
+        client = MongoClients.create(connectionString);
         accountDB = client.getDatabase(dbName);
         accountCollection = accountDB.getCollection(collectionName);
     }
@@ -61,7 +58,9 @@ public class AccountService {
                     .build();
         }
 
-        if (accountCollection.find(eq("email", accountDocument.getString("email"))).first() != null) {
+        FindIterable<Document> result = accountCollection.find(eq("email", accountDocument.getString("email")));
+
+        if (result != null && result.first() != null) {
             return Response
                     .status(Response.Status.CONFLICT)
                     .entity(new Document("error", "Email already exists!").toJson())
