@@ -1,5 +1,4 @@
 import "./App.css";
-import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -14,13 +13,12 @@ import AccountSetup from './pages/AccountSetup';
 import { UserProvider } from "./lib/Contexts";
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
     <UserProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Layout isLoggedIn={isLoggedIn} />}>
+          <Route path="/" element={<Layout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route
               path="/saved-quotes"
