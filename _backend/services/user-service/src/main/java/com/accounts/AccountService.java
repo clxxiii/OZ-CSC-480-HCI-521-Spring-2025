@@ -304,7 +304,7 @@ public class AccountService {
         String tokenType = document.getString("token_type");
         List<String> notifications = document.getList("Notifications", String.class);
         List<String> myQuotes = document.getList("MyQuotes", String.class);
-        Map<String, List<String>> bookmarkedQuotes = (Map<String, List<String>>) document.get("BookmarkedQuotes");
+        List<String> bookmarkedQuotes = document.getList("MyQuotes", String.class);
         List<String> sharedQuotes = document.getList("SharedQuotes", String.class);
         List<String> myTags = document.getList("MyTags", String.class);
         String profession = document.getString("Profession");
