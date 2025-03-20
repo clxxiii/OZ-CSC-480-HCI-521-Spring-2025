@@ -67,6 +67,12 @@ public class BookmarkResource {
             .entity("That's your quote")
             .build();
             }
+            if(acc.BookmarkedQuotes.contains(quoteId)){
+                return Response
+            .status(Response.Status.BAD_REQUEST)
+            .entity("You already bookmarked that")
+            .build();
+            }
             String userId = accountService.getAccountIdByEmail(acc.Email);
             acc.BookmarkedQuotes.add(quoteId);
             json = acc.toJson();

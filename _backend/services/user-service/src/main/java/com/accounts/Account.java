@@ -38,6 +38,8 @@ public class Account {
 
     public String PersonalQuote;
 
+    public Map<String, String> UsedQuotes;
+
 
     public Account(String email, String username, int ad, String at, String rt, Long ea,
                    List<String> sc, String tt) {
@@ -56,12 +58,13 @@ public class Account {
         MyTags = new ArrayList<>();
         Profession = "";
         PersonalQuote = "";
+        UsedQuotes = new HashMap<>();
     }
 
     public Account(String email, String username, int ad, String at, String rt, Long ea,
                    List<String> sc, String tt, List<String> notifications, List<String>myQuotes,
                    List<String> bookmarkedQuotes, List<String> sharedQuotes,
-                   List<String> myTags, String profession, String personalQuote) {
+                   List<String> myTags, String profession, String personalQuote,Map<String, String> usedQuotes) {
         Email = email;
         Username = username;
         admin = ad;
@@ -77,6 +80,7 @@ public class Account {
         MyTags = myTags;
         Profession = profession;
         PersonalQuote = personalQuote;
+        UsedQuotes = usedQuotes;
     }
 
     public Account updateOauthProperties(GoogleTokenResponse tokenResponse) {
