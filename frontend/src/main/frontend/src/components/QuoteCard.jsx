@@ -1,20 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaBookmark, FaRegBookmark, FaShareAlt, FaFlag, FaClipboard } from 'react-icons/fa';
 import { bookmarkQuote, deleteBookmark } from "../lib/api";
 import Tag from "./Tag";
+import { UserContext } from "../lib/Contexts";
 
 const QuoteCard = ({ quote, onBookmarkToggle }) => {
   const navigate = useNavigate();
   const [isBookmarked, setIsBookmarked] = useState(quote.isBookmarked || false);
   const [bookmarkCount, setBookmarkCount] = useState(quote.bookmarks || 0);
+  const [user, setUser] = useContext(UserContext);
 
   const handleBookmarkClick = async (e) => {
     e.stopPropagation();
 
-    if (isBookmarked) {
+    if (user === null ) { // Go to login page. 
+      navigate("/login");
+      return;
+    } else if (isBookmarked){ // Prevent bookmarking the quote twice. 
       console.log("Quote is already bookmarked by the user.");
-      return; // Prevent bookmarking the quote twice
+      return;
     }
 
     const newBookmarkState = !isBookmarked;
@@ -44,10 +49,10 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
 
   const handleShareClick = (e) => {
     e.stopPropagation();
-    const user = prompt("Enter the email to share this quote with:");
-    if (user) {
-      setShareUser(user);
-      alert(`Quote shared with ${user}!`);
+    const otherUser = prompt("Enter the email to share this quote with:");
+    if (otherUser) {
+      setShareUser(otherUser);
+      alert(`Quote shared with ${otherUser}!`);
     }
   };
 
@@ -57,6 +62,12 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
   };
 
   const handleClick = () => {
+
+    if (user === null ){
+      navigate('/login');
+      return;
+    }
+
     navigate(`/edit-quote/${quote._id}`, {
       state: {
         quote: {
@@ -73,15 +84,15 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
     });
   };
 
-    const quoteTextStyle = {
-      color: "#1E1E1E",
-      fontFamily: "Inter",
-      textAlign: "left",
-      fontSize: "24px",
-      fontStyle: "normal",
-      fontWeight: "500",
-      lineHeight: "normal",
-    }
+  const quoteTextStyle = {
+    color: "#1E1E1E",
+    fontFamily: "Inter",
+    textAlign: "left",
+    fontSize: "24px",
+    fontStyle: "normal",
+    fontWeight: "500",
+    lineHeight: "normal",
+  }
 
   return (
       <div
