@@ -46,11 +46,19 @@ const QuoteForm = () => {
 
     try {
       await updateQuote(payload); //send update request to API
+      localStorage.setItem("alertMessage", "Quote updated successfully!");
+      localStorage.setItem("alertType", "success");
+      navigate("/"); //redirect back to home after updating
     } catch (error) {
       console.error("Error updating quote:", error);
-    } finally {
-      localStorage.setItem("alertMessage", "Quote updated successfully!");
-      navigate("/"); //redirect back to home after updating
+      if (error.message.includes("authorized")) {
+        localStorage.setItem("alertMessage", "You need to be logged in to update a quote.");
+        localStorage.setItem("alertType", "danger");
+        navigate("/");
+      } else {
+        localStorage.setItem("alertMessage", "Error updating quote.");
+        localStorage.setItem("alertType", "danger");
+      }
     }
   };
 
@@ -61,11 +69,19 @@ const QuoteForm = () => {
 
     try {
       await deleteQuote(updateId); //send delete request to API
+      localStorage.setItem("alertMessage", "Quote deleted successfully!");
+      localStorage.setItem("alertType", "success");
+      navigate("/"); //redirect back to home after deletion
     } catch (error) {
       console.error("Error deleting quote:", error);
-    } finally {
-      localStorage.setItem("alertMessage", "Quote deleted successfully!");
-      navigate("/"); //redirect back to home after deletion
+      if (error.message.includes("authorized")) {
+        localStorage.setItem("alertMessage", "You need to be logged in to delete a quote.");
+        localStorage.setItem("alertType", "danger");
+        navigate("/");
+      } else {
+        localStorage.setItem("alertMessage", "Error deleting quote.");
+        localStorage.setItem("alertType", "danger");
+      }
     }
   };
 
