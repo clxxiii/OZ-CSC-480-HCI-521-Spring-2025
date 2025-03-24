@@ -1,5 +1,6 @@
 package com.accounts;
 
+import com.mongodb.client.model.Updates;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.Json;
 import jakarta.json.JsonObjectBuilder;
@@ -49,7 +50,7 @@ public class AccountsResource {
             + "\"refresh_token\": \"sample_refresh_token\", " + "\"expires_at\": 1700000000, "
             + "\"scope\": [\"read\", \"write\"], " + "\"token_type\": \"Bearer\", "
             + "\"Notifications\": [\"Welcome message\"], " + "\"MyQuotes\": [\"Life is beautiful\"], "
-            + "\"FavoriteQuote\": {\"Motivation\": [\"Keep going!\"]}, "
+            + "\"BookmarkedQuotes\": {\"Motivation\": [\"Keep going!\"]}, "
             + "\"SharedQuotes\": [\"Success is a journey\"], "
             + "\"MyTags\": [\"Inspiration\", \"Wisdom\"], " + "\"Profession\": \"NFL Head Coach\"," + "\"PersonalQuote\": \"67abf469b0d20a5237456444\"" + "}")))
     public Response create(String json) {
@@ -142,6 +143,31 @@ public class AccountsResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to update account").toJson()).build();
         }
 
+        return accountService.updateUser(accountJson, id);
+    }
+
+    @PUT
+    @Path("/update/MyQuotes/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "User Successfully updated in the database. Will return updated account document.", content = @Content(mediaType = "application/json")),
+            @APIResponse(responseCode = "400", description = "Invalid JSON format."),
+            @APIResponse(responseCode = "404", description = "Account was not found or the ID was invalid."),
+    })
+    @Operation(summary = "Updates a user account. Ensure the request header is `application/json` and provide a JSON body in the specified format.")
+    @RequestBody(description = "Example request body endpoint is expecting.", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON, examples = @ExampleObject(name = "Example", value = "{ " + "\"SharedQuotes\": [\"Success is a journey\"]" + " }")))
+    public Response updateMyQuotes(@PathParam("id") String id, String accountJson, @Context HttpServletRequest request) {
+
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(id);
+        } catch (Exception e) {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(new Document("error", "Invalid object id!").toJson())
+                    .build();
+        }
         return accountService.updateUser(accountJson, id);
     }
 
