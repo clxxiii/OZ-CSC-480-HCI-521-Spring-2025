@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { bookmarkQuote, deleteBookmark } from "../lib/api";
 import Tag from "./Tag";
+import { UserContext } from "../lib/Contexts";
 import { BookmarkFill, Bookmark, Clipboard, Share, Flag } from 'react-bootstrap-icons';
 
 const QuoteCard = ({ quote, onBookmarkToggle }) => {
   const navigate = useNavigate();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkCount, setBookmarkCount] = useState(quote.bookmarks || 0);
+  const [user, setUser] = useContext(UserContext);
 
   useEffect(() => {
     const bookmarkedQuotes = JSON.parse(localStorage.getItem('bookmarkedQuotes')) || [];
@@ -18,6 +20,14 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
 
   const handleBookmarkClick = async (e) => {
     e.stopPropagation();
+
+    if (user === null ) { // Go to login page. 
+      navigate("/login");
+      return;
+    } else if (isBookmarked){ // Prevent bookmarking the quote twice. 
+      console.log("Quote is already bookmarked by the user.");
+      return;
+    }
 
     const newBookmarkState = !isBookmarked;
     setIsBookmarked(newBookmarkState);
@@ -48,10 +58,10 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
 
   const handleShareClick = (e) => {
     e.stopPropagation();
-    const user = prompt("Enter the email to share this quote with:");
-    if (user) {
-      setShareUser(user);
-      alert(`Quote shared with ${user}!`);
+    const otherUser = prompt("Enter the email to share this quote with:");
+    if (otherUser) {
+      setShareUser(otherUser);
+      alert(`Quote shared with ${otherUser}!`);
     }
   };
 
@@ -61,6 +71,12 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
   };
 
   const handleClick = () => {
+
+    if (user === null ){
+      navigate('/login');
+      return;
+    }
+
     navigate(`/edit-quote/${quote._id}`, {
       state: {
         quote: {
