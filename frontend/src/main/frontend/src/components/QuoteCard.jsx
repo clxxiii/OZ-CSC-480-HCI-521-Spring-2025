@@ -1,23 +1,39 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { bookmarkQuote, deleteBookmark } from "../lib/api";
 import Tag from "./Tag";
-import { BookmarkFill, Bookmark, Clipboard, Share, Flag } from 'react-bootstrap-icons';
+import { UserContext } from "../lib/Contexts";
+import { BookmarkFill, Bookmark, Share, Flag } from 'react-bootstrap-icons';
 
-const QuoteCard = ({ quote, onBookmarkToggle }) => {
+const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
   const navigate = useNavigate();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkCount, setBookmarkCount] = useState(quote.bookmarks || 0);
+  const [editable, setEditable] = useState(false);
+  const [user] = useContext(UserContext);
 
   useEffect(() => {
-    const bookmarkedQuotes = JSON.parse(localStorage.getItem('bookmarkedQuotes')) || [];
-    if (bookmarkedQuotes.includes(quote._id)) {
+    if (!user) {
+      setEditable(false);
+      return;
+    }
+
+    if (user.MyQuotes.includes(quote._id) ?? user.admin) {
+      setEditable(true);
+    }
+
+    if (user.BookmarkedQuotes.includes(quote._id)) {
       setIsBookmarked(true);
     }
-  }, [quote._id]);
+  }, [user, quote]);
 
   const handleBookmarkClick = async (e) => {
     e.stopPropagation();
+
+    if (user === null ) { // Go to login page. 
+      navigate("/login");
+      return;
+    } 
 
     const newBookmarkState = !isBookmarked;
     setIsBookmarked(newBookmarkState);
@@ -25,13 +41,10 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
 
     try {
       let updatedQuote;
-      const bookmarkedQuotes = JSON.parse(localStorage.getItem('bookmarkedQuotes')) || [];
       if (newBookmarkState) {
         updatedQuote = await bookmarkQuote(quote._id);
-        localStorage.setItem('bookmarkedQuotes', JSON.stringify([...bookmarkedQuotes, quote._id]));
       } else {
         await deleteBookmark(quote._id);
-        localStorage.setItem('bookmarkedQuotes', JSON.stringify(bookmarkedQuotes.filter(id => id !== quote._id)));
       }
       onBookmarkToggle(updatedQuote || quote, newBookmarkState);
     } catch (error) {
@@ -61,6 +74,11 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
   };
 
   const handleClick = () => {
+    if (!editable) {
+      showViewModal(quote);
+      return;
+    }
+
     navigate(`/edit-quote/${quote._id}`, {
       state: {
         quote: {
@@ -148,7 +166,7 @@ const QuoteCard = ({ quote, onBookmarkToggle }) => {
         </button>
 
         <button onClick={handleBookmarkClick} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", color: isBookmarked ? "green" : "inherit" }}>
-          <BookmarkFill size={22} />
+          {isBookmarked ? <BookmarkFill size={22} /> : <Bookmark size={22} />}
           <span style={{ fontSize: "14px", fontWeight: "500", color: "#5A5A5A" }}>{bookmarkCount}</span>
         </button>
 
