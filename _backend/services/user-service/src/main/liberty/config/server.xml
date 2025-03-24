@@ -43,7 +43,7 @@
     <jwtBuilder
             id="defaultJwtBuilder"
             issuer="quotable"
-            expiresInSeconds="300"
+            expiry="24h"
             signatureAlgorithm="HS256"
             sharedKey="${JWT_SECRET}"
             />

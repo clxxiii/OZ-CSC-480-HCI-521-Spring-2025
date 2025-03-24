@@ -80,7 +80,6 @@ public class AccountService {
 
         String id;
 
-        String url;
         if (oldAccountDocument != null) {
             Document updateFields = new Document();
             updateFields.append("access_token", account.access_token);
@@ -91,17 +90,25 @@ public class AccountService {
             id = oldAccountDocument.getObjectId("_id").toString();
             accountCollection.updateOne(oldAccountDocument,
                     new Document("$set", updateFields));
-            url = AuthResource.HOME_URL;
         } else {
             id = accountCollection.insertOne(accountDocument).getInsertedId().asObjectId().getValue().toString();
-            url = AuthResource.HOME_URL + "/setup";
         }
 
-        String jwt = JwtService.buildJwt(id).toString();
+        System.out.println(id);
+
+        NewCookie cookie = new NewCookie.Builder("jwt")
+                .value(JwtService.buildJwt(id))
+                .path("/")
+                .comment("JWT Token")
+                .maxAge(3600)
+                .secure(true)
+                .sameSite(NewCookie.SameSite.NONE)
+                .build();
 
         return Response
                 .status(Response.Status.FOUND)
-                .location(URI.create("http://localhost:9081/users/auth/checkJWT/" + jwt + "?redirectURL=" + url))
+                .cookie(cookie)
+                .location(URI.create(AuthResource.HOME_URL))
                 .build();
     }
 
@@ -296,13 +303,14 @@ public class AccountService {
         List<String> myQuotes = document.getList("MyQuotes", String.class);
         List<String> bookmarkedQuotes = document.getList("BookmarkedQuotes", String.class);
         List<String> sharedQuotes = document.getList("SharedQuotes", String.class);
+        List<String> myTags = document.getList("MyTags", String.class);
         String profession = document.getString("Profession");
         String personalQuote = document.getString("PersonalQuote");
         Map<String, String> usedQuotes = (Map<String, String>) document.get("UsedQuotes"); 
 
       
         Account account = new Account(email, username, admin, accessToken, refreshToken, expiresAt, scope, tokenType,
-                notifications, myQuotes, bookmarkedQuotes, sharedQuotes, profession, personalQuote, usedQuotes);
+                notifications, myQuotes, bookmarkedQuotes, sharedQuotes, myTags, profession, personalQuote,usedQuotes);
 
         return account;
     }
@@ -320,6 +328,7 @@ public class AccountService {
                 .append("MyQuotes", account.MyQuotes)
                 .append("BookmarkedQuotes", account.BookmarkedQuotes)
                 .append("SharedQuotes", account.SharedQuotes)
+                .append("MyTags", account.MyTags)
                 .append("Profession", account.Profession)
                 .append("PersonalQuote", account.PersonalQuote)
                 .append("UsedQuotes", account.UsedQuotes);

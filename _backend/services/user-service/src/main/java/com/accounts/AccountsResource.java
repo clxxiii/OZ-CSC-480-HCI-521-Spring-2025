@@ -1,7 +1,5 @@
 package com.accounts;
 
-import com.auth.Session;
-import com.auth.SessionService;
 import com.mongodb.client.model.Updates;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.Json;
@@ -36,7 +34,6 @@ import java.util.Arrays;
 public class AccountsResource {
 
     public static AccountService accountService = new AccountService();
-    public static SessionService sessionService = new SessionService();
 
     @POST
     @Path("/create")
@@ -178,21 +175,37 @@ public class AccountsResource {
     @Path("/whoami")
     @Produces(MediaType.APPLICATION_JSON)
     public Response whoAmI(@Context HttpServletRequest request) {
-        System.out.println("request cookies: " + request.getCookies());
-        Cookie sessionCookie = Arrays.stream(request.getCookies())
-                .filter(c -> "SessionId".equals(c.getName()))
+        System.out.println(request.getCookies());
+        Cookie jwtCookie = Arrays.stream(request.getCookies())
+                .filter(c -> "jwt".equals(c.getName()))
                 .findFirst()
                 .orElse(null);
 
-        if (sessionCookie == null) {
+        if (jwtCookie == null) {
             return Response
                     .status(Status.UNAUTHORIZED)
                     .entity("{\"error\": \"This endpoint requires authentication\" }")
                     .build();
         }
-        Session session = sessionService.getSession(sessionCookie.getValue());
+        try {
+            JwtConsumer consumer = JwtConsumer.create("defaultJwtConsumer");
+            JwtToken jwt = consumer.createJwt(jwtCookie.getValue());
 
-        return accountService.retrieveUser(session.UserId, false);
+            String id = jwt.getClaims().getSubject();
+            return accountService.retrieveUser(id, false);
+        } catch (InvalidConsumerException e) {
+            System.out.println(e);
+            return Response
+                    .status(Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"JwtConsumer is incorrectly configured\" }")
+                    .build();
+        } catch (InvalidTokenException e) {
+            System.out.println(e);
+            return Response
+                    .status(Status.UNAUTHORIZED)
+                    .entity("{\"error\": \"Invalid JWT\" }")
+                    .build();
+        }
     }
 
 }
