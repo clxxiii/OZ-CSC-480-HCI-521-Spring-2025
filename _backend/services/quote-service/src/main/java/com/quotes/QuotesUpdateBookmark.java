@@ -6,6 +6,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.*;
@@ -48,7 +49,7 @@ public class QuotesUpdateBookmark {
             @ExampleObject(name = "Example: update bookmarks", value = "{\"_id\": \"67abf3b6b0d20a5237456441\", \"bookmarks\": 6}")
             }
     ))
-    public Response updateQuote(String rawJson, @Context HttpServletRequest request) {
+    public Response updateQuote(String rawJson) {
         try{
             //Map json to Java Object
             ObjectMapper objectMapper = new ObjectMapper();
