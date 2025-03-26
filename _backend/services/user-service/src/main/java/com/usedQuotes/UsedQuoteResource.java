@@ -3,6 +3,7 @@ package com.usedQuotes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
@@ -28,9 +29,19 @@ public class UsedQuoteResource {
             @APIResponse(responseCode = "404", description = "That quote is not in your collection"),
     })
     @Operation(summary = "Uses a quote.")
-    public Response useQuote(@PathParam("id") String id, @Context HttpServletRequest request) {
-        
-        Document userDoc = accountService.retrieveUserFromCookie(request);
+    public Response useQuote(@PathParam("id") String id, @Context HttpHeaders headers) {
+
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Document userDoc = accountService.retrieveUserFromJWT(jwtString);
         
         if (userDoc == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to delete account").toJson()).build();
