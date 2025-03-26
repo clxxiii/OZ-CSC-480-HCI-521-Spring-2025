@@ -1,8 +1,23 @@
 import React from 'react';
-import { FaTimes } from 'react-icons/fa'; // Close icon
-import { FaUser } from 'react-icons/fa'; // User icon
+import { FaTimes, FaUser } from 'react-icons/fa'; 
+import { useNavigate } from 'react-router-dom';
 
-const LoginBox = ({ handleGoogleLogin, handleGuestLogin }) => {
+const LoginBox = ({ setShowLogin }) => {
+  const navigate = useNavigate(); 
+
+  const handleClose = () => {
+    setShowLogin(false);
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:9081/users/auth/login';
+  };
+
+  const handleGuestLogin = () => {
+    setShowLogin(false);
+    navigate('/'); 
+  };
+
   return (
     <div 
       className="d-flex flex-column align-items-center justify-content-center shadow position-relative"
@@ -34,7 +49,7 @@ const LoginBox = ({ handleGoogleLogin, handleGuestLogin }) => {
           Welcome!
         </h2>
         <button 
-          onClick={handleGuestLogin} 
+          onClick={handleClose} 
           className="btn"
           style={{ 
             width: '25px',
