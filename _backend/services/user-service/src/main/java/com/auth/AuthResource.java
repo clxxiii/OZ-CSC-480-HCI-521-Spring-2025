@@ -170,6 +170,8 @@ public class AuthResource {
     @GET
     @Path("/jwt")
     public Response getJWT(@CookieParam("SessionId") String sessionId) {
+        System.out.println("seess: " + sessionId);
+
         if (sessionId == null) {
             return Response.status(Response.Status.UNAUTHORIZED)
                     .entity("{\"error\": \"Session expired. Please log in again.\" }")
@@ -177,6 +179,7 @@ public class AuthResource {
         }
 
         Session session = sessionService.getSession(sessionId);
+        System.out.println("uid " + session.UserId);
         if (session == null || session.Expires.before(new Date())) {
             return Response.status(Response.Status.UNAUTHORIZED)
                     .entity("{\"error\": \"Session expired. Please log in again.\" }")
@@ -192,16 +195,12 @@ public class AuthResource {
         if (success) {
             String jwt = JwtService.buildJwt(session.UserId).toString();
 
-            NewCookie jwtCookie = new NewCookie.Builder("JWT")
-                    .value(jwt)
-                    .path("/")
-                    .maxAge(300)
-                    .secure(true)
-                    .sameSite(NewCookie.SameSite.LAX)
-                    .httpOnly(true)
-                    .build();
+            System.out.println("jwt "+jwt);
 
-            return Response.ok().cookie(jwtCookie).build();
+            return Response.ok()
+                    .header("Authorization", "Bearer " + jwt)
+                    .header("Access-Control-Expose-Headers", "Authorization")
+                    .build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }

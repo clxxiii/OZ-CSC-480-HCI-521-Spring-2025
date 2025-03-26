@@ -6,6 +6,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.*;
@@ -48,7 +49,7 @@ public class QuotesUpdateResource {
             @ExampleObject(name = "Example: update bookmarks", value = "{\"_id\": \"67abf3b6b0d20a5237456441\", \"bookmarks\": 6}")
             }
     ))
-    public Response updateQuote(String rawJson, @Context HttpServletRequest request) {
+    public Response updateQuote(String rawJson, @Context HttpHeaders headers) {
         try{
             //Map json to Java Object
             ObjectMapper objectMapper = new ObjectMapper();
@@ -58,7 +59,18 @@ public class QuotesUpdateResource {
             String jsonQuote = mongo.getQuote(objectId);
             QuoteObject oldQuote = objectMapper.readValue(jsonQuote, QuoteObject.class);
 
-            Map<String, String> jwtMap= QuotesRetrieveAccount.retrieveJWTData(request);
+            String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+            if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                        .build();
+            }
+
+            String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+            Map<String, String> jwtMap= QuotesRetrieveAccount.retrieveJWTData(jwtString);
+
 
             if (jwtMap == null) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to update quotes").toJson()).build();

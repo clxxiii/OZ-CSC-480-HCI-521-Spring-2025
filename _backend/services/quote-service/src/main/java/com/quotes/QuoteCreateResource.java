@@ -7,6 +7,7 @@ import jakarta.json.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
@@ -50,10 +51,19 @@ public class QuoteCreateResource {
                     "\"tags\": [\"example\", \"another example\"]," +
                     "\"creator\": \"Account Object ID\", \"private\": \"boolean value\"}")
     ))
-    public Response createQuote(String rawJson, @Context HttpServletRequest request) {
+    public Response createQuote(String rawJson, @Context HttpHeaders headers) {
         try{
+            String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
 
-            Map<String, String> jwtMap= QuotesRetrieveAccount.retrieveJWTData(request);
+            if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                        .build();
+            }
+
+            String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+            Map<String, String> jwtMap= QuotesRetrieveAccount.retrieveJWTData(jwtString);
 
             if (jwtMap == null) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to create quotes").toJson()).build();

@@ -24,25 +24,10 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class QuotesRetrieveAccount {
 
-    public static Map<String, String> retrieveJWTData(HttpServletRequest request) {
-        System.out.println(request.getCookies());
-
-        Cookie jwtCookie = null;
-
-        if (request.getCookies() != null) {
-            jwtCookie = Arrays.stream(request.getCookies())
-                    .filter(c -> "jwt".equals(c.getName()))
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        if (jwtCookie == null) {
-            return null;
-        }
-
+    public static Map<String, String> retrieveJWTData(String jwtString) {
         try {
             JwtConsumer consumer = JwtConsumer.create("defaultJwtConsumer");
-            JwtToken jwt = consumer.createJwt(jwtCookie.getValue());
+            JwtToken jwt = consumer.createJwt(jwtString);
 
             ArrayList<String> groups = (ArrayList<String>) jwt.getClaims().get("groups");
 

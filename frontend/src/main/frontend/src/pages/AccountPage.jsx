@@ -27,24 +27,41 @@ const AccountPage = () => {
 
   const handleSaveProfession = () => {
     if (!user) return;
-
+  
+    if (updatedProfession === user.Profession) {
+      // No change, but still exit edit mode
+      setIsEditingProfession(false);
+      return;
+    }
+  
     updateMe({ Profession: updatedProfession })
       .then((updatedUser) => {
         setUser(updatedUser);
         setIsEditingProfession(false);
       })
-      .catch((error) => console.error("Failed to update profession:", error));
+      .catch((error) => {
+        console.error("Failed to update profession:", error);
+        setIsEditingProfession(false); // Still exit edit mode on failure
+      });
   };
 
   const handleSavePersonalQuote = () => {
     if (!user) return;
-
+  
+    if (updatedPersonalQuote === user.PersonalQuote) {
+      setIsEditingPersonalQuote(false);
+      return;
+    }
+  
     updateMe({ PersonalQuote: updatedPersonalQuote })
       .then((updatedUser) => {
         setUser(updatedUser);
         setIsEditingPersonalQuote(false);
       })
-      .catch((error) => console.error("Failed to update personal quote:", error));
+      .catch((error) => {
+        console.error("Failed to update personal quote:", error);
+        setIsEditingPersonalQuote(false);
+      });
   };
 
   if (error) return <div>Error: {error}</div>;

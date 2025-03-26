@@ -150,6 +150,22 @@
         allowedHeaders="Content-Type, Authorization, Accept"
         allowCredentials="true"/>
 
+    <cors domain="/users/notifications"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/notifications/delete"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/notifications/send"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+
     <!-- Enable static content serving -->
     <httpDispatcher enableWelcomePage="true"/>
 
