@@ -67,4 +67,28 @@ public class UsedQuoteResource {
 
     }   
 
+    @GET
+    @Path("/use/search/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Successfully retrieved used quote.", content = @Content(mediaType = "application/json")),
+            @APIResponse(responseCode = "404", description = "That UsedQuote does not exist"),
+    })
+    @Operation(summary = "Retrieves a UsedQuote.")
+    public Response searchUsedQuote(@PathParam("id") String id, @Context HttpServletRequest request) {
+        Document usedQuoteDoc = usedQuoteService.retrieveUsedQuote(id);
+        if(usedQuoteDoc != null){
+        return Response
+        .status(Response.Status.OK)
+        .entity(usedQuoteDoc.toJson())
+        .build();  
+        }
+        else{
+            return Response
+            .status(Response.Status.NOT_FOUND)
+            .entity(new Document("error", "UsedQuote Not found!").toJson())
+            .build();
+        }
+    }
+
 }
