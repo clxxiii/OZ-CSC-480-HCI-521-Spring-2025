@@ -15,7 +15,7 @@ const AlertMessage = ({ type = "success", message, autoDismiss = false, dismissT
   const alertClass = type === "success" ? "alert-success" : "alert-danger";
 
   return (
-    <div className={`alert ${alertClass} alert-dismissible fade show`} role="alert">
+    <div className={`alert ${alertClass} alert-dismissible fade show`} role="alert" onClick={(e) => e.stopPropagation()}>
       {message}
       <button type="button" className="btn-close" onClick={() => setVisible(false)} aria-label="Close"></button>
     </div>

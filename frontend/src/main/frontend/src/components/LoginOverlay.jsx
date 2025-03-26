@@ -11,10 +11,20 @@ const LoginOverlay = ({ setShowLogin, setIsLoggedIn }) => {
     setShowLogin(false);
   };
 
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setShowLogin(false);
+    }
+  };
+
   return (
-    <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1050 }}>
-      <div>
-        <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin} />
+    <div
+      className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1050 }}
+      onClick={handleOverlayClick}
+    >
+      <div onClick={(e) => e.stopPropagation()}>
+        <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin} setShowLogin={setShowLogin} />
       </div>
     </div>
   );
