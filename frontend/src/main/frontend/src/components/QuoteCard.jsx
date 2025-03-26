@@ -10,6 +10,9 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkCount, setBookmarkCount] = useState(quote.bookmarks || 0);
   const [editable, setEditable] = useState(false);
+  const [isUsed, setIsUsed] = useState(quote || false);
+  const [hover, setHover] = useState(false);
+  const [useButtonText, setUseButtonText] = useState(false);
   const [user] = useContext(UserContext);
 
   useEffect(() => {
@@ -86,6 +89,16 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
     alert("Quote has been reported. Our team will review it shortly.");
   };
 
+  const handleUsedClick = (e) => {
+    e.stopPropagation();
+    if (user === null ){
+      // Do something for guests?
+      return;
+    }
+    // Add quote to UsedQuotes and change the button.
+    setUseButtonText(prev => !prev);
+  }
+
   const handleClick = () => {
     if (!editable) {
       showViewModal(quote);
@@ -116,6 +129,8 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
     fontStyle: "normal",
     fontWeight: "500",
     lineHeight: "normal",
+    marginTop: "10px",
+    
   };
 
   return (
@@ -173,7 +188,7 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
         style={{
           position: "absolute",
           bottom: "10px",
-          right: "10px",
+          left: "10px",
           display: "flex",
           gap: "12px",
         }}
@@ -234,6 +249,31 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
           }}
         >
           <Flag size={22} />
+        </button>
+      </div>
+
+      {/*Use Button*/}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "12px",
+          right: "12px",
+          display: "flex"
+        }}
+      >
+        <button
+          style={{
+            background: hover ? "#28A745" : "#146C43",
+            borderRadius: "8px",
+            width: "100px",
+            fontSize: "24px",
+            color: "#FFFFFF",
+            fontWeight: "bold",
+          }}
+          onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)} // Hacky but works
+          onClick={handleUsedClick}
+        >
+          {useButtonText ? '✔Used' : 'Use'}
         </button>
       </div>
     </div>
