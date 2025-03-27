@@ -17,11 +17,10 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: 'adoptopenjdk'
 
       - name: Set environment variable for CONNECTION_URI
-        run: |
-          echo "CONNECTION_URI=${{ secrets.CONNECTION_URI }}" >> $GITHUB_ENV
+        run: echo "CONNECTION_URI=${{ secrets.CONNECTION_URI }}" >> $GITHUB_ENV
 
       - name: Build all images in the docker-compose file
         run: docker compose build

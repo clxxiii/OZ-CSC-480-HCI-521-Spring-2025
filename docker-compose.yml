@@ -29,7 +29,7 @@ services:
     ports:
       - 9081:9081
     environment:
-      CONNECTION_STRING: mongodb://user:password@quotes-database:27017
+      - CONNECTION_URI=${CONNECTION_URI}
 
   quotes-database:
     image: mongo
