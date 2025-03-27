@@ -96,11 +96,13 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
   const handleUsedClick = (e) => {
     e.stopPropagation();
     if (user === null ){
-      // Do something for guests?
+      setAlert({type:"danger",message:"You must be signed in to used a quote!"});
+      setShowLogin(true);
       return;
     }
     // Add quote to UsedQuotes and change the button.
-    setUseButtonText(prev => !prev);
+    
+    setUseButtonText(true);
   }
 
   const handleClick = () => {
