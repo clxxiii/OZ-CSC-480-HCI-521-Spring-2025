@@ -59,6 +59,8 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
       if (typeof onBookmarkToggle === "function") {
         onBookmarkToggle(updatedQuote || quote, newBookmarkState);
       }
+      setUseButtonText(true);
+      setIsUsed(true);
     } catch (error) {
       console.error("Error updating bookmark:", error);
     }
@@ -68,6 +70,8 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
     e.stopPropagation();
     const textToCopy = `"${quote.quote}" - ${quote.author}`;
     navigator.clipboard.writeText(textToCopy).then(() => {});
+    setUseButtonText(true);
+    setIsUsed(true);
   };
 
   const handleShareClick = (e) => {
@@ -81,6 +85,8 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
     if (otherUser) {
       alert(`Quote shared with ${otherUser}!`);
     }
+    setUseButtonText(true);
+    setIsUsed(true);
   };
 
   const handleFlagClick = (e) => {
@@ -101,8 +107,9 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
       return;
     }
     // Add quote to UsedQuotes and change the button.
-    
+
     setUseButtonText(true);
+    setIsUsed(true);
   }
 
   const handleClick = () => {
