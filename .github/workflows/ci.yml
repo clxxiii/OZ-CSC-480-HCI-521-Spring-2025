@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '17'
-          distribution: 'adoptopenjdk'
+          distribution: 'temurin'
 
       - name: Set environment variable for CONNECTION_URI
         run: echo "CONNECTION_URI=${{ secrets.CONNECTION_URI }}" >> $GITHUB_ENV
