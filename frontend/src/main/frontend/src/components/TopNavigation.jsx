@@ -17,7 +17,7 @@ const TopNavigation = () => {
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-light sticky-top custom-nav">
+      <nav className="navbar navbar-expand-lg navbar-light bg-white sticky-top custom-nav">
         <Link className="navbar-brand pl-2" to="/">Logo</Link>
         <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
