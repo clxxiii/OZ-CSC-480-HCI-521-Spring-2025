@@ -9,8 +9,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Build all images in the docker-compose file
-      run: docker compose build
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set environment variable for CONNECTION_URI
+        run: |
+          echo "CONNECTION_URI=${{ secrets.CONNECTION_URI }}" >> $GITHUB_ENV
+
+      - name: Build all images in the docker-compose file
+        run: docker compose build
+
+      - name: Run Maven tests
+        run: mvn test
