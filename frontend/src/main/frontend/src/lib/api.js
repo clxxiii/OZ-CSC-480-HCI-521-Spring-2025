@@ -1,11 +1,10 @@
-const QUOTE_SERVICE_URL =
-  import.meta.env.VITE_QUOTE_SERVICE_URL || "http://localhost:9082"; //set the quote service URL, using an environment variable if available
-const USER_SERVICE_URL =
-  import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:9081"; //set the user service URL, using an environment variable if available
+const PROXY_URL = import.meta.env.VITE_PROXY_URL || "http://localhost:9083";
 
 export const createQuote = async ({ quote, author, tags, private: isPrivate }) => {
   //send a request to create a new quote, including author, text, tags, and a timestamp
   try {
+    const jwt = await getJWT();
+
     const quoteData = {
       quote,
       author: author || "Unknown",
@@ -16,9 +15,12 @@ export const createQuote = async ({ quote, author, tags, private: isPrivate }) =
 
     console.log("Sending API Payload:", JSON.stringify(quoteData));
 
-    const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/create`, {
+    const response = await fetch(`${PROXY_URL}/quotes/create`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${jwt}`,
+      },
       body: JSON.stringify(quoteData),
       credentials: "include",
     });
@@ -38,12 +40,17 @@ export const createQuote = async ({ quote, author, tags, private: isPrivate }) =
 export const deleteQuote = async (quoteId) => {
   //send a request to delete a quote by its ID
   try {
+    const jwt = await getJWT();
+
     const response = await fetch(
-      `${QUOTE_SERVICE_URL}/quotes/delete/${quoteId}`,
-      {
-        method: "DELETE",
-        credentials: "include",
-      }
+        `${PROXY_URL}/quotes/delete/${quoteId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${jwt}`,
+          },
+          credentials: "include",
+        }
     );
 
     const contentType = response.headers.get("Content-Type");
@@ -60,7 +67,7 @@ export const deleteQuote = async (quoteId) => {
 export const reportQuote = async (reportData) => {
   //send a request to report a quote by ID
   try {
-    const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/report/id`, {
+    const response = await fetch(`${PROXY_URL}/quotes/report/id`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ quoteID: reportData.quoteID }),
@@ -76,8 +83,8 @@ export const searchQuotes = async (query, isQuoteID = false) => {
   //search for quotes by text or by a specific quote ID
   try {
     const endpoint = isQuoteID
-      ? `${QUOTE_SERVICE_URL}/quotes/search/id/${query}`
-      : `${QUOTE_SERVICE_URL}/quotes/search/query/${query}`; //search by text
+        ? `${PROXY_URL}/quotes/search/id/${query}`
+        : `${PROXY_URL}/quotes/search/query/${query}`; //search by text
 
     const response = await fetch(endpoint);
     if (!response.ok) throw new Error("Failed to search quotes");
@@ -92,15 +99,20 @@ export const updateQuote = async (quoteData) => {
   try {
     console.log("Sending update request:", JSON.stringify(quoteData));
 
-    const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/update`, {
+    const jwt = await getJWT();
+
+    const response = await fetch(`${PROXY_URL}/quotes/update`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${jwt}`,
+      },
       body: JSON.stringify(quoteData),
       credentials: "include",
     });
 
-    const text = await response.text(); 
-    console.log("Raw API Response:", text); 
+    const text = await response.text();
+    console.log("Raw API Response:", text);
 
     if (!response.ok) {
       console.error("Backend returned an error:", text);
@@ -123,7 +135,7 @@ export const fetchTopBookmarkedQuotes = async () => {
   //retrieve the most bookmarked quotes from the API
   try {
     const response = await fetch(
-      `${QUOTE_SERVICE_URL}/quotes/search/topBookmarked`
+        `${PROXY_URL}/quotes/search/topBookmarked`
     );
 
     if (!response.ok) throw new Error("Failed to fetch top bookmarked quotes");
@@ -145,7 +157,7 @@ export const fetchUserProfile = async (userId) => {
   //fetch user profile data using the user ID
   try {
     const response = await fetch(
-      `${USER_SERVICE_URL}/users/search/id/${userId}`
+        `${PROXY_URL}/users/search/id/${userId}`
     );
     if (!response.ok) throw new Error("Failed to fetch user profile");
     return await response.json();
@@ -158,7 +170,7 @@ export const fetchTopSharedQuotes = async () => {
   //retrieve the most shared quotes from the API
   try {
     const response = await fetch(
-      `${QUOTE_SERVICE_URL}/quotes/search/topShared`
+        `${PROXY_URL}/quotes/search/topShared`
     );
     if (!response.ok) throw new Error("Failed to fetch top shared quotes");
 
@@ -174,10 +186,10 @@ export const fetchMe = async () => {
   //fetch the currently logged-in user's data
   try {
     const response = await fetch(
-      `${USER_SERVICE_URL}/users/accounts/whoami`,
-      {
-        credentials: "include"
-      }
+        `${PROXY_URL}/users/accounts/whoami`,
+        {
+          credentials: "include"
+        }
     );
 
     if (!response.ok) return null;
@@ -195,9 +207,14 @@ export const bookmarkQuote = async (quoteId) => {
   try {
     console.log("Sending bookmark request for quote ID:", quoteId);
 
-    const response = await fetch(`${USER_SERVICE_URL}/users/bookmarks/${quoteId}`, {
+    const jwt = await getJWT();
+
+    const response = await fetch(`${PROXY_URL}/users/bookmarks/${quoteId}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${jwt}`,
+      },
       credentials: "include",
     });
 
@@ -221,9 +238,14 @@ export const deleteBookmark = async (quoteId) => {
   try {
     console.log("Sending delete bookmark request for quote ID:", quoteId);
 
-    const response = await fetch(`${USER_SERVICE_URL}/users/bookmarks/delete/${quoteId}`, {
+    const jwt = await getJWT();
+
+    const response = await fetch(`${PROXY_URL}/users/bookmarks/delete/${quoteId}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${jwt}`,
+      },
       credentials: "include",
     });
 
@@ -244,17 +266,22 @@ export const deleteBookmark = async (quoteId) => {
 
 export const updateMe = async (updatedData) => {
   try {
+    const jwt = await getJWT();
+
     const user = await fetchMe();
     console.log("User fetched for update:", user);
 
-    const userId = user._id?.$oid; 
+    const userId = user._id?.$oid;
     if (!userId) {
       throw new Error("User ID not found or invalid");
     }
 
-    const response = await fetch(`${USER_SERVICE_URL}/users/accounts/update/${userId}`, {
+    const response = await fetch(`${PROXY_URL}/users/accounts/update/${userId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${jwt}`,
+      },
       body: JSON.stringify(updatedData),
       credentials: "include",
     });
@@ -275,7 +302,7 @@ export const updateMe = async (updatedData) => {
 export const fetchUserQuotes = async (userId) => {
   //fetch quotes created by a specific user
   try {
-    const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/search/user/${userId}`);
+    const response = await fetch(`${PROXY_URL}/quotes/search/user/${userId}`);
     if (!response.ok) throw new Error("Failed to fetch user quotes");
 
     const data = await response.json();
@@ -289,7 +316,7 @@ export const fetchUserQuotes = async (userId) => {
 export const fetchQuoteById = async (quoteId) => {
   //fetch a quote by its ID
   try {
-    const response = await fetch(`${QUOTE_SERVICE_URL}/quotes/search/id/${quoteId}`);
+    const response = await fetch(`${PROXY_URL}/quotes/search/id/${quoteId}`);
     if (!response.ok) throw new Error("Failed to fetch quote");
 
     const data = await response.json();
@@ -297,5 +324,32 @@ export const fetchQuoteById = async (quoteId) => {
   } catch (error) {
     console.error("Error fetching quote:", error);
     return null;
+  }
+};
+
+const getJWT = async () => {
+  try {
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    console.log([...response.headers.entries()]);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Backend returned an error:", errorText);
+      throw new Error(`Failed to fetch JWT: ${errorText}`);
+    }
+
+    const jwt = response.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!jwt) {
+      throw new Error("JWT not found in response headers.");
+    }
+
+    return jwt;
+  } catch (error) {
+    console.error("Error fetching JWT:", error);
+    throw error;
   }
 };

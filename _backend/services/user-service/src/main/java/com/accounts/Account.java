@@ -24,15 +24,13 @@ public class Account {
     public List<String> scope;
     public String token_type;
 
-    public List<String> Notifications;  //???
+    public List<String> Notifications;
 
     public List<String> MyQuotes;
 
     public List<String> BookmarkedQuotes;
 
     public List<String> SharedQuotes;
-
-    public List<String> MyTags;
 
     public String Profession;
 
@@ -55,7 +53,6 @@ public class Account {
         MyQuotes = new ArrayList<>();
         BookmarkedQuotes = new ArrayList<>();
         SharedQuotes = new ArrayList<>();
-        MyTags = new ArrayList<>();
         Profession = "";
         PersonalQuote = "";
         UsedQuotes = new HashMap<>();
@@ -64,7 +61,7 @@ public class Account {
     public Account(String email, String username, int ad, String at, String rt, Long ea,
                    List<String> sc, String tt, List<String> notifications, List<String>myQuotes,
                    List<String> bookmarkedQuotes, List<String> sharedQuotes,
-                   List<String> myTags, String profession, String personalQuote,Map<String, String> usedQuotes) {
+                   String profession, String personalQuote,Map<String, String> usedQuotes) {
         Email = email;
         Username = username;
         admin = ad;
@@ -77,7 +74,6 @@ public class Account {
         MyQuotes = myQuotes;
         BookmarkedQuotes = bookmarkedQuotes;
         SharedQuotes = sharedQuotes;
-        MyTags = myTags;
         Profession = profession;
         PersonalQuote = personalQuote;
         UsedQuotes = usedQuotes;

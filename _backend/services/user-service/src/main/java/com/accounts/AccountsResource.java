@@ -1,5 +1,7 @@
 package com.accounts;
 
+import com.auth.Session;
+import com.auth.SessionService;
 import com.mongodb.client.model.Updates;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.Json;
@@ -7,10 +9,7 @@ import jakarta.json.JsonObjectBuilder;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.*;
 import jakarta.ws.rs.core.Response.Status;
 
 import org.bson.Document;
@@ -34,6 +33,7 @@ import java.util.Arrays;
 public class AccountsResource {
 
     public static AccountService accountService = new AccountService();
+    public static SessionService sessionService = new SessionService();
 
     @POST
     @Path("/create")
@@ -86,9 +86,18 @@ public class AccountsResource {
             @APIResponse(responseCode = "404", description = "Account has not been found in the database.")
     })
     @Operation(summary = "Delete a user account by ID.")
-    public Response delete(@PathParam("id") String id, @Context HttpServletRequest request) {
+    public Response delete(@PathParam("id") String id, @Context HttpHeaders headers) {
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
 
-        Document userDoc = accountService.retrieveUserFromCookie(request);
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Document userDoc = accountService.retrieveUserFromJWT(jwtString);
 
         if (userDoc == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to delete account").toJson()).build();
@@ -122,8 +131,18 @@ public class AccountsResource {
     })
     @Operation(summary = "Updates a user account. Ensure the request header is `application/json` and provide a JSON body in the specified format.")
     @RequestBody(description = "Example request body endpoint is expecting.", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON, examples = @ExampleObject(name = "Example", value = "{ " + "\"SharedQuotes\": [\"Success is a journey\"]" + " }")))
-    public Response update(@PathParam("id") String id, String accountJson, @Context HttpServletRequest request) {
-        Document userDoc = accountService.retrieveUserFromCookie(request);
+    public Response update(@PathParam("id") String id, String accountJson, @Context HttpHeaders headers) {
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Document userDoc = accountService.retrieveUserFromJWT(jwtString);
 
         if (userDoc == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to update account").toJson()).build();
@@ -175,37 +194,21 @@ public class AccountsResource {
     @Path("/whoami")
     @Produces(MediaType.APPLICATION_JSON)
     public Response whoAmI(@Context HttpServletRequest request) {
-        System.out.println(request.getCookies());
-        Cookie jwtCookie = Arrays.stream(request.getCookies())
-                .filter(c -> "jwt".equals(c.getName()))
+        System.out.println("request cookies: " + request.getCookies());
+        Cookie sessionCookie = Arrays.stream(request.getCookies())
+                .filter(c -> "SessionId".equals(c.getName()))
                 .findFirst()
                 .orElse(null);
 
-        if (jwtCookie == null) {
+        if (sessionCookie == null) {
             return Response
                     .status(Status.UNAUTHORIZED)
                     .entity("{\"error\": \"This endpoint requires authentication\" }")
                     .build();
         }
-        try {
-            JwtConsumer consumer = JwtConsumer.create("defaultJwtConsumer");
-            JwtToken jwt = consumer.createJwt(jwtCookie.getValue());
+        Session session = sessionService.getSession(sessionCookie.getValue());
 
-            String id = jwt.getClaims().getSubject();
-            return accountService.retrieveUser(id, false);
-        } catch (InvalidConsumerException e) {
-            System.out.println(e);
-            return Response
-                    .status(Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"JwtConsumer is incorrectly configured\" }")
-                    .build();
-        } catch (InvalidTokenException e) {
-            System.out.println(e);
-            return Response
-                    .status(Status.UNAUTHORIZED)
-                    .entity("{\"error\": \"Invalid JWT\" }")
-                    .build();
-        }
+        return accountService.retrieveUser(session.UserId, false);
     }
 
 }
