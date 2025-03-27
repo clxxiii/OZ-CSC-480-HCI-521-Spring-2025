@@ -4,6 +4,8 @@ import { bookmarkQuote, deleteBookmark } from "../lib/api";
 import Tag from "./Tag";
 import { UserContext } from "../lib/Contexts";
 import { BookmarkFill, Bookmark, Share, Flag } from "react-bootstrap-icons";
+import AlertMessage from "./AlertMessage";
+import LoginOverlay from "./LoginOverlay";
 
 const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
   const navigate = useNavigate();
@@ -14,6 +16,8 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
   const [hover, setHover] = useState(false);
   const [useButtonText, setUseButtonText] = useState(false);
   const [user] = useContext(UserContext);
+  const [alert, setAlert] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -34,8 +38,8 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
     e.stopPropagation();
 
     if (user === null) {
-      // Go to login page.
-      navigate("/login");
+      setAlert({ type: "danger", message: "You must be signed in to bookmark" });
+      setShowLogin(true);
       return;
     }
 
@@ -69,8 +73,8 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
   const handleShareClick = (e) => {
     e.stopPropagation();
     if (user === null) {
-      // Go to login page.
-      navigate("/login");
+      setAlert({ type: "danger", message: "You must be signed in to share" });
+      setShowLogin(true);
       return;
     }
     const otherUser = prompt("Enter the email to share this quote with:");
@@ -82,8 +86,8 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
   const handleFlagClick = (e) => {
     e.stopPropagation();
     if (user === null) {
-      // Go to login page.
-      navigate("/login");
+      setAlert({ type: "danger", message: "You must be signed in to report" });
+      setShowLogin(true);
       return;
     }
     alert("Quote has been reported. Our team will review it shortly.");
@@ -151,6 +155,14 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal }) => {
         minHeight: "200px",
       }}
     >
+      {alert && (
+        <div className="position-fixed top-0 start-50 translate-middle-x mt-3 px-4" style={{ zIndex: 9999 }}>
+          <AlertMessage type={alert.type} message={alert.message} />
+        </div>
+      )}
+
+      {showLogin && <LoginOverlay setShowLogin={setShowLogin} />}
+
       {/* Tags */}
       <div style={{ display: "flex", gap: "2px", flexWrap: "wrap" }}>
         {quote.tags?.map((tag, index) => (

@@ -2,6 +2,7 @@ package com.accounts;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
@@ -37,28 +38,20 @@ public class BookmarkResource {
     @Operation(summary = "Bookmark a quote for a user", description = "This endpoint allows a user to bookmark a quote.")
     public Response bookmarkQuote(
     @PathParam("quoteId") String quoteId,
-    @Context HttpServletRequest request) {
-        
-        String json = null;
-        String jwtCookie = null;
-        Cookie cookies[] = request.getCookies();
-        if(cookies!=null){
-           for(Cookie cookie: cookies){
-                if("jwt".equals(cookie.getName())){
-                        jwtCookie = cookie.getValue();
-                        break;
-                }
-           }     
-        }
-        if (jwtCookie == null) {
-                return Response.status(Response.Status.UNAUTHORIZED)
-                        .entity("JWT Missing")
-                        .build();
-            }
+    @Context HttpHeaders headers) {
 
-         
-        
-            Document doc = accountService.retrieveUserFromCookie(request);
+        String json = null;
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Document doc = accountService.retrieveUserFromJWT(jwtString);
             doc.remove("expires_at");
             Account acc = accountService.document_to_account(doc);
             if(acc.MyQuotes.contains(quoteId)){
@@ -103,9 +96,20 @@ public class BookmarkResource {
             @APIResponse(responseCode = "500", description = "Internal server error"),
     })
     @Operation(summary = "Grab bookmarked quotes for a user", description = "This endpoint allows a user to get all bookmarks for a user")
-    public Response getBookmarks(@Context HttpServletRequest request) {
-              
-            Document doc = accountService.retrieveUserFromCookie(request);
+    public Response getBookmarks(@Context HttpHeaders headers) {
+
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Document doc = accountService.retrieveUserFromJWT(jwtString);
+
             if(doc != null){
             doc.remove("expires_at");
             Account acc = accountService.document_to_account(doc);
@@ -138,27 +142,22 @@ public class BookmarkResource {
     @Operation(summary = "Delete a bookmark a for a user", description = "This endpoint allows a user to delete a bookmark")
     public Response deleteBookmark(
     @PathParam("quoteId") String quoteId,
-    @Context HttpServletRequest request) {
-       
-        String jwtCookie = null;
-        Cookie cookies[] = request.getCookies();
-        if(cookies!=null){
-           for(Cookie cookie: cookies){
-                if("jwt".equals(cookie.getName())){
-                        jwtCookie = cookie.getValue();
-                        break;
-                }
-           }     
-        }
-        if (jwtCookie == null) {
-                return Response.status(Response.Status.UNAUTHORIZED)
-                        .entity("JWT Missing")
-                        .build();
-            }
+    @Context HttpHeaders headers) {
+
         String json = null;
-         
-        
-            Document doc = accountService.retrieveUserFromCookie(request);
+
+
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Document doc = accountService.retrieveUserFromJWT(jwtString);
             if(doc==null){
                 return Response
                 .status(Response.Status.BAD_REQUEST)
