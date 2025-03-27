@@ -23,4 +23,4 @@ jobs:
         run: echo "CONNECTION_URI=${{ secrets.CONNECTION_URI }}" >> $GITHUB_ENV
 
       - name: Build all images in the docker-compose file
-        run: docker compose build
+        run: docker compose build --build-arg CONNECTION_URI=${{ secrets.CONNECTION_URI }}

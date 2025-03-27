@@ -25,7 +25,10 @@ services:
       CONNECTION_STRING: mongodb://user:password@quotes-database:27017
 
   user-service:
-    build: ./_backend/services/user-service
+    build:
+      context: ./_backend/services/user-service
+      args:
+        CONNECTION_URI: ${CONNECTION_URI}
     ports:
       - 9081:9081
     environment:
