@@ -22,6 +22,9 @@ jobs:
       - name: Set environment variable for CONNECTION_URI
         run: echo "CONNECTION_URI=${{ secrets.CONNECTION_URI }}" >> $GITHUB_ENV
 
+      - name: Check CONNECTION_URI value
+        run: echo $CONNECTION_URI
+
       - name: Build all images in the docker-compose file
         run: docker compose build
 
