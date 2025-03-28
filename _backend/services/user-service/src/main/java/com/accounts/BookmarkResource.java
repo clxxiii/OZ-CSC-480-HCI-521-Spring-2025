@@ -115,7 +115,7 @@ public class BookmarkResource {
             List<JsonObject> jsonList = new ArrayList<>();
 
             for(String objectId: acc.BookmarkedQuotes){ //for all bookmarked quotes
-                if(!acc.UsedQuotes.containsValue(objectId)){ //if quote id is not in used quotes map
+                if(!acc.UsedQuotes.containsKey(objectId)){ //if quote id is not in used quotes map
                     Response quoteSearchRes = quoteClient.idSearch(objectId); //get quote
                     if(quoteSearchRes.getStatus()==Response.Status.OK.getStatusCode()){
                         JsonObject quoteSearchJson = quoteSearchRes.readEntity(JsonObject.class);
@@ -190,7 +190,7 @@ public class BookmarkResource {
             Account account = accountService.document_to_account(doc);
 
             List<JsonObject> jsonList = new ArrayList<>();
-            for(String oid: account.UsedQuotes.values()) {
+            for(String oid: account.UsedQuotes.keySet()) {
                 Response getQuote = quoteClient.idSearch(oid);
                 if(getQuote.getStatus() == Response.Status.OK.getStatusCode()) {
                     JsonObject quoteObject = getQuote.readEntity(JsonObject.class);
@@ -221,7 +221,7 @@ public class BookmarkResource {
             doc.remove("expires_at");
             Account account = accountService.document_to_account(doc);
 
-            List<String> jsonList = new ArrayList<>(account.UsedQuotes.values());
+            List<String> jsonList = new ArrayList<>(account.UsedQuotes.keySet());
             return Response.ok(jsonList).build();
         }
         return Response.status(Response.Status.BAD_REQUEST).entity("Failed to retrieve account").build();
