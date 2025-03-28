@@ -3,10 +3,13 @@ package com.quotes;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mongodb.client.*;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.json.*;
+import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -15,6 +18,10 @@ import java.util.List;
 
 @ApplicationScoped
 public class MongoUtil {
+
+    @Inject
+    @RestClient
+    private UserClient userClient;
 
     private static final String DATABASE_NAME = "Data";
     private static MongoClient mongoClient;
@@ -46,9 +53,20 @@ public class MongoUtil {
         return null;
     }
 
-    public String searchQuote(String searchQuery) { // fuzzy search for quote
+    public String searchQuote(String searchQuery, boolean filterUsed) { // fuzzy search for quote
         MongoCollection<Document> collection = database.getCollection("Quotes");
 
+        List<String> quoteids = new ArrayList<>();
+        if(filterUsed) {
+            Response usedQuotesResult = userClient.getUsedQuotes();
+            ObjectMapper objMapper = new ObjectMapper();
+            try{
+                quoteids = objMapper.readValue(usedQuotesResult.toString(), List.class);
+            } catch (JsonProcessingException e) {
+                return null;
+            }
+
+        }
         // create query document
         AggregateIterable<Document> results = collection.aggregate(Arrays.asList(
                 new Document("$search", new Document("index", "QuotesAtlasSearch") //set to search atlas index
@@ -58,6 +76,7 @@ public class MongoUtil {
                         )
                 ),
                 new Document("$match", new Document("private", new Document("$ne", true))), //Exclude private quotes
+                new Document("$match", new Document("_id.oid", new Document("$nin", quoteids))), //Ignore used quotes
                 new Document("$sort", new Document("score", -1)), //sort by relevance
                 new Document("$limit", 50) //limit to 50 results
         ));

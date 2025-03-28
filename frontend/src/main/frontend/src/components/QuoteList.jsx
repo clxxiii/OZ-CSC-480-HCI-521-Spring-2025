@@ -43,7 +43,7 @@ const QuoteList = ({ topQuotes, loading, error }) => {
         ) : topQuotes.length > 0 ? (
           topQuotes.map((quote) => <QuoteCard key={quote._id} quote={quote} showViewModal={viewQuote} />)
         ) : (
-          <p className="text-center w-100">No quotes found.</p>
+          <p className="text-center w-100">No quotes found...</p>
         )}
       </div>
     </div>
