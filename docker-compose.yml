@@ -3,7 +3,7 @@
 # commands in this directory
 #
 # `docker volume create --name quotes_db`
-# `docker compose up -d` 
+# `docker compose up -d`
 
 name: 480-entire-stack
 
@@ -21,14 +21,14 @@ services:
     ports:
       - 9082:9082
     environment:
-     CONNECTION_STRING: mongodb://user:password@quotes-database:27017
+      CONNECTION_STRING: mongodb://user:password@quotes-database:27017
 
   user-service:
     build: ./_backend/services/user-service
     ports:
       - 9081:9081
     environment:
-     CONNECTION_STRING: mongodb://user:password@quotes-database:27017
+      CONNECTION_STRING: mongodb://user:password@quotes-database:27017
 
   quotes-database:
     image: mongo
@@ -49,6 +49,7 @@ services:
       - frontend
       - user-service
       - quotes-service
+
 
 volumes:
   quotes_db:
