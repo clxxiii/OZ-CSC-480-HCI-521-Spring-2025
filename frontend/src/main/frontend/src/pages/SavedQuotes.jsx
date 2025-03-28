@@ -6,7 +6,9 @@ import { UserContext } from "../lib/Contexts";
 
 const SavedQuotes = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [quotes, setQuotes] = useState([]); //store all quotes for saved (uploaded and bookmarked)
+  const [uploadedQuotes, setUploadedQuotes] = useState([]);
+  const [bookmarkedQuotes, setBookmarkedQuotes] = useState([]);
+  const [viewUploaded, setViewUploaded] = useState(false); // false = bookmarked, true = uploaded
   const [user] = useContext(UserContext);
 
   useEffect(() => {
@@ -15,11 +17,12 @@ const SavedQuotes = () => {
         if (!user) return;
 
         const userQuotes = await fetchUserQuotes(user._id.$oid);
-        const bookmarkedQuotes = await Promise.all(
+        const bookmarked = await Promise.all(
           user.BookmarkedQuotes.map((id) => fetchQuoteById(id))
         );
 
-        setQuotes([...bookmarkedQuotes, ...userQuotes]);
+        setUploadedQuotes(userQuotes);
+        setBookmarkedQuotes(bookmarked);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -29,28 +32,27 @@ const SavedQuotes = () => {
   }, [user]);
 
   const handleSearch = (event) => {
-    //update search term when user types in the input field
     setSearchTerm(event.target.value.toLowerCase());
   };
 
   const handleBookmarkToggle = (updatedQuote, isBookmarked) => {
-    setQuotes((prevQuotes) => {
-      if (isBookmarked) {
-        return [...prevQuotes, updatedQuote];
-      } else {
-        return prevQuotes.filter((quote) => quote._id !== updatedQuote._id);
-      }
-    });
+    if (isBookmarked) {
+      setBookmarkedQuotes((prev) => [...prev, updatedQuote]);
+    } else {
+      setBookmarkedQuotes((prev) =>
+        prev.filter((q) => q._id !== updatedQuote._id)
+      );
+    }
   };
 
-  const filteredQuotes = quotes.filter(({ author, quote, tags, uploadedBy }) => {
-    //filter quotes based on search term matching author, text, or tags
-    return (
+  const activeQuotes = viewUploaded ? uploadedQuotes : bookmarkedQuotes;
+
+  const filteredQuotes = activeQuotes.filter(
+    ({ author, quote, tags }) =>
       author.toLowerCase().includes(searchTerm) ||
       quote.toLowerCase().includes(searchTerm) ||
       tags.some((tag) => tag.toLowerCase().includes(searchTerm))
-    );
-  });
+  );
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -61,11 +63,45 @@ const SavedQuotes = () => {
         onChange={handleSearch}
         className="mb-4"
       />
+
+      {/* Toggle Switch */}
+      <div className="d-flex justify-content-center align-items-center gap-3 mb-4">
+        <span className={viewUploaded ? "text-muted" : "fw-bold"}>Bookmarked</span>
+        <div
+          onClick={() => setViewUploaded(!viewUploaded)}
+          style={{
+            width: "50px",
+            height: "26px",
+            borderRadius: "13px",
+            backgroundColor: viewUploaded ? "#5AD478" : "#ccc",
+            position: "relative",
+            cursor: "pointer",
+          }}
+        >
+          <div
+            style={{
+              width: "22px",
+              height: "22px",
+              backgroundColor: "white",
+              borderRadius: "50%",
+              position: "absolute",
+              top: "2px",
+              left: viewUploaded ? "26px" : "2px",
+              transition: "left 0.3s",
+            }}
+          />
+        </div>
+        <span className={viewUploaded ? "fw-bold" : "text-muted"}>Uploaded</span>
+      </div>
+
       <div className="row w-100 gap-4">
-        {quotes.length > 0 ? (
-          //display quotes if available, otherwise show a 'No quotes found' message
-          quotes.map((quote) => (
-            <QuoteCard key={quote._id} quote={quote} onBookmarkToggle={handleBookmarkToggle} />
+        {filteredQuotes.length > 0 ? (
+          filteredQuotes.map((quote) => (
+            <QuoteCard
+              key={quote._id}
+              quote={quote}
+              onBookmarkToggle={handleBookmarkToggle}
+            />
           ))
         ) : (
           <p className="text-center w-100">No quotes found.</p>
