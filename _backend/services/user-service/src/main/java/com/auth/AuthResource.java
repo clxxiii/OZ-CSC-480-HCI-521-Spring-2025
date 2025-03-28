@@ -34,7 +34,7 @@ public class AuthResource {
 
 
     public static AccountService accountService = new AccountService();
-    public static String HOME_URL = "http://localhost:9080/setup";
+    public static String HOME_URL = "http://localhost:9080/";
 
 
     @GET
