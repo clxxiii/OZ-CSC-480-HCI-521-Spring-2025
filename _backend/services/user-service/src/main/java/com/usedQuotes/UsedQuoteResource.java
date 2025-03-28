@@ -85,7 +85,7 @@ public class UsedQuoteResource {
          else{
             return Response
             .status(Response.Status.BAD_REQUEST)
-            .entity(new Document("error", "Failed to update user!").toJson())
+            .entity(new Document("error", "Failed to update used quote!").toJson())
             .build();
          }
         }
