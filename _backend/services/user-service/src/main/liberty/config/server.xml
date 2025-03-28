@@ -43,7 +43,7 @@
     <jwtBuilder
             id="defaultJwtBuilder"
             issuer="quotable"
-            expiry="24h"
+            expiresInSeconds="300"
             signatureAlgorithm="HS256"
             sharedKey="${JWT_SECRET}"
             />
@@ -145,6 +145,22 @@
         allowCredentials="true"/>
 
     <cors domain="/users/bookmarks/delete"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+
+    <cors domain="/users/notifications"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/notifications/delete"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/notifications/send"
         allowedOrigins="${ORIGIN}"
         allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
         allowedHeaders="Content-Type, Authorization, Accept"

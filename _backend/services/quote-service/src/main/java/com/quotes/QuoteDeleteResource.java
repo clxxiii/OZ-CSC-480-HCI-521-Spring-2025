@@ -6,6 +6,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.*;
@@ -43,9 +44,19 @@ public class QuoteDeleteResource {
             required = true,
             example = "67b61f18daa68e25fbd151e9",
             schema = @Schema(type = SchemaType.STRING)
-    )@PathParam("quoteId") String quoteID, @Context HttpServletRequest request) {
+    )@PathParam("quoteId") String quoteID, @Context HttpHeaders headers) {
         try{
-            Map<String, String> jwtMap= QuotesRetrieveAccount.retrieveJWTData(request);
+            String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+            if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                        .build();
+            }
+
+            String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+            Map<String, String> jwtMap= QuotesRetrieveAccount.retrieveJWTData(jwtString);
 
             if (jwtMap == null) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to delete quotes").toJson()).build();
