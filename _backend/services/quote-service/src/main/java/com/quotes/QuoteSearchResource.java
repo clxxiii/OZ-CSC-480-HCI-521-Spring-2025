@@ -1,5 +1,9 @@
 package com.quotes;
 
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -9,10 +13,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -58,7 +58,7 @@ public class QuoteSearchResource {
     }
 
     @GET
-    @Path("/query/{filter}/{query}")
+    @Path("/query")
     @Produces(MediaType.APPLICATION_JSON)
     @APIResponses(value = {
             @APIResponse(responseCode = "200", description = "Successfully found quotes relevant to query"),
@@ -69,25 +69,27 @@ public class QuoteSearchResource {
     description = "Searches for quotes similar to the users input and returns json of quotes determined to be most similar." +
             " They are sorted in descending order so the first json object is the closest to users input")
     public Response advancedSearch(@Parameter(
-            description = "Query string",
+            description = "Should filter used quotes",
             required = true,
-            example = "I am famous test quote",
-            schema = @Schema(type = SchemaType.STRING)
-    )@PathParam("filter") String filter, @PathParam("query") String query) {
+            schema = @Schema(type = SchemaType.BOOLEAN)
+    )@QueryParam("filter") boolean filter, @QueryParam("query") String query, @Context HttpHeaders header) {
         try{
-            boolean filterUsed;
-            if(filter.equals("true")) {
-                filterUsed = true;
-            } else if(filter.equals("false")) {
-                filterUsed = false;
-            } else { filterUsed = false; }
+            //get user jwt from header
+            String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
+            if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                        .build();
+            }
+            String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
 
+            //handle query string
             query = SanitizerClass.sanitize(query); //removes special characters
             if(query == null) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Error cleaning string, returned null").build();
             }
-
-            String result = mongo.searchQuote(query, filterUsed);
+            //search database using Atlas Search
+            String result = mongo.searchQuote(query, filter, jwtString);
             return Response.ok(result).build();
         } catch (Exception e) {
             return Response.status(Response.Status.CONFLICT).entity("Exception Occured: "+e).build();

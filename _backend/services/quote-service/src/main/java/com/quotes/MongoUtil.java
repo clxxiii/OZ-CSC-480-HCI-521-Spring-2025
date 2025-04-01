@@ -1,6 +1,10 @@
 package com.quotes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ibm.websphere.security.jwt.InvalidConsumerException;
+import com.ibm.websphere.security.jwt.InvalidTokenException;
+import com.ibm.websphere.security.jwt.JwtConsumer;
+import com.ibm.websphere.security.jwt.JwtToken;
 import com.mongodb.client.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -12,9 +16,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+
+import static com.mongodb.client.model.Filters.eq;
 
 @ApplicationScoped
 public class MongoUtil {
@@ -40,6 +44,29 @@ public class MongoUtil {
         return database;
     }
 
+    public Document retrieveUserFromJWT(String jwtString) {
+        try {
+            MongoDatabase UserDatabase = mongoClient.getDatabase("Accounts");
+            MongoCollection<Document> userCollection = UserDatabase.getCollection("Users");
+            JwtConsumer consumer = JwtConsumer.create("defaultJwtConsumer");
+            JwtToken jwt = consumer.createJwt(jwtString);
+
+            String id = jwt.getClaims().getSubject();
+
+            ObjectId objectId;
+            try {
+                objectId = new ObjectId(id);
+            } catch (Exception e) {
+                return null;
+            }
+
+            return userCollection.find(eq("_id", objectId)).first();
+        } catch (InvalidConsumerException | InvalidTokenException e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+
     public String getQuote(ObjectId quoteID) {
         MongoCollection<Document> collection = database.getCollection("Quotes");
         Document query = new Document("_id", quoteID);
@@ -53,20 +80,36 @@ public class MongoUtil {
         return null;
     }
 
-    public String searchQuote(String searchQuery, boolean filterUsed) { // fuzzy search for quote
-        MongoCollection<Document> collection = database.getCollection("Quotes");
-
-        List<String> quoteids = new ArrayList<>();
-        if(filterUsed) {
-            Response usedQuotesResult = userClient.getUsedQuotes();
-            ObjectMapper objMapper = new ObjectMapper();
-            try{
-                quoteids = objMapper.readValue(usedQuotesResult.toString(), List.class);
-            } catch (JsonProcessingException e) {
-                return null;
+    private List<String> fetchUserUsedQuoteIds(Document account) {
+        try{
+            //extract list from account
+            List<?> rawList = (List<?>) account.get("UsedQuotes");
+            if(rawList == null) {
+                System.out.println("UsedQuotes list retrieved is null");
+                return Collections.emptyList();
             }
 
+            return rawList.stream()
+                    .filter(obj -> obj instanceof Map) //ensure object in list is a Map
+                    .flatMap(obj -> ((Map<?, ?>) obj).keySet().stream()) //extract keys from Map
+                    .filter(key -> key instanceof String) //ensure all keys are strings
+                    .map(key -> (String) key) // cast to string
+                    .toList(); //Convert to list to return as
+
+        } catch(ClassCastException e) {
+            return Collections.emptyList();
         }
+    }
+
+    public String searchQuote(String searchQuery, boolean filterUsed, String jwtString) { // fuzzy search for quote
+        MongoCollection<Document> collection = database.getCollection("Quotes");
+        //get user used quotes IF filter is True
+        List<String> quoteids = new ArrayList<>();
+        if(filterUsed) {
+            Document userDoc = retrieveUserFromJWT(jwtString); //Get User Document
+            quoteids = fetchUserUsedQuoteIds(userDoc);
+        }
+
         // create query document
         AggregateIterable<Document> results = collection.aggregate(Arrays.asList(
                 new Document("$search", new Document("index", "QuotesAtlasSearch") //set to search atlas index
