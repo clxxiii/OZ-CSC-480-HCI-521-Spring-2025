@@ -4,6 +4,7 @@ import QuoteUploadModal from "./QuoteUploadModal";
 import { BsPersonCircle } from "react-icons/bs";
 import '../TopNav.css';
 import { UserContext } from "../lib/Contexts";
+import logo from "../assets/logo.png"; 
 
 const TopNavigation = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -12,13 +13,14 @@ const TopNavigation = () => {
   const location = useLocation();
   const [user] = useContext(UserContext);
 
-  // Helper function to determine if the path is active
   const isActive = (path) => location.pathname === path;
 
   return (
     <>
-      <nav  style={{ backgroundColor: "var(--background-color)"}} className="navbar navbar-expand-lg navbar-light sticky-top custom-nav">
-        <Link className="navbar-brand pl-2" to="/">Logo</Link>
+      <nav className="navbar navbar-expand-lg navbar-light sticky-top custom-nav">
+        <Link className="navbar-brand pl-2" to="/">
+          <img src={logo} alt="Logo" style={{ height: "40px" }} /> 
+        </Link>
         <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
         </button>
@@ -56,7 +58,6 @@ const TopNavigation = () => {
         </div>
       </nav>
 
-      {/* Quote Upload Modal */}
       <QuoteUploadModal
         isVisible={isModalOpen}
         onClose={() => setIsModalOpen(false)}

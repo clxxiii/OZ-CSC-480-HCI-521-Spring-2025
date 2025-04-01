@@ -166,6 +166,23 @@
         allowedHeaders="Content-Type, Authorization, Accept"
         allowCredentials="true"/>
 
+    <cors domain="/useQuote/*"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+
+    <cors domain="/useQuote/use/*"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="POST, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/useQuote/use/search/*"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+
     <!-- Enable static content serving -->
     <httpDispatcher enableWelcomePage="true"/>
 
