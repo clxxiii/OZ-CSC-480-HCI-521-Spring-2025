@@ -209,7 +209,7 @@ export const bookmarkQuote = async (quoteId) => {
 
     const jwt = await getJWT();
 
-    const response = await fetch(`${PROXY_URL}/users/bookmarks/${quoteId}`, {
+    const response = await fetch(`${PROXY_URL}/users/bookmarks/add/${quoteId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -317,13 +317,43 @@ export const fetchQuoteById = async (quoteId) => {
   //fetch a quote by its ID
   try {
     const response = await fetch(`${PROXY_URL}/quotes/search/id/${quoteId}`);
+    if (response.status === 404) {
+      console.warn(`Quote with ID ${quoteId} not found.`);
+      return null; 
+    }
     if (!response.ok) throw new Error("Failed to fetch quote");
 
     const data = await response.json();
     return data;
   } catch (error) {
     console.error("Error fetching quote:", error);
-    return null;
+    return null; 
+  }
+};
+
+export const useQuote = async (quoteId) => {
+  try {
+    const jwt = await getJWT();
+
+    const response = await fetch(`${PROXY_URL}/useQuote/use/${quoteId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${jwt}`,
+      },
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      console.error("Error using quote:", errorMessage);
+      throw new Error(`Failed to use quote: ${errorMessage}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error using quote:", error);
+    throw error;
   }
 };
 
