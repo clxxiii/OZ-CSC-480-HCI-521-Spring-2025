@@ -106,7 +106,15 @@ public class QuoteSearchResource {
     @Operation(summary = "get quotes with the most bookmarks", description = "No input required. Searches for quotes" +
             " with the most bookmarks and returns json of all the quotes. It is sorted in descending order. Currently it" +
             " is limited to 100 results")
-    public Response getTopBookmarks() {
+    public Response getTopBookmarks(@Context HttpHeaders header) {
+        String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
         try{
             String result = mongo.getTopBookmarked();
             return Response.ok(result).build();
@@ -125,7 +133,15 @@ public class QuoteSearchResource {
             " with the most shares and returns json of all the quotes. It is sorted in descending order. Currently it" +
             " is limited to 100 results")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getSharedBookmarked() {
+    public Response getSharedBookmarked(@Context HttpHeaders header) {
+        String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
         try{
             String result = mongo.getTopShared();
             return Response.ok(result).build();
@@ -143,7 +159,15 @@ public class QuoteSearchResource {
     })
     @Operation(summary = "get quotes that are over flag threshold", description = "No input required. Searches for quotes" +
             " where the \"flag\" value is over a threshold, currently 2. It is sorted in descending order.")
-    public Response getTopFlagged() {
+    public Response getTopFlagged(@Context HttpHeaders header) {
+        String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
         try {
             String result = mongo.getTopFlagged();
             return Response.ok(result).build();
@@ -161,7 +185,15 @@ public class QuoteSearchResource {
     })
     @Operation(summary = "get quotes with the most bookmarks", description = "No input required. Returns quotes posted most recently" +
             ". It is sorted in descending order. Currently it is limited to 100 results")
-    public Response getMostRecent() {
+    public Response getMostRecent(@Context HttpHeaders header) {
+        String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
         try{
             String result = mongo.getMostRecent();
             return Response.ok(result).build();
@@ -169,7 +201,8 @@ public class QuoteSearchResource {
             return Response.status(Response.Status.CONFLICT).entity("Exception Occurred: "+e).build();
         }
     }
-     @GET
+
+    @GET
     @Path("/user/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     @APIResponses(value = {
@@ -183,7 +216,15 @@ public class QuoteSearchResource {
             required = true,
             example = "67b61f18daa68e25fbd151e9",
             schema = @Schema(type = SchemaType.STRING)
-    ) @PathParam("userId") String userId) {
+    ) @PathParam("userId") String userId, @Context HttpHeaders header) {
+        String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
         try {
             // Check if ID is valid form
             if (!SanitizerClass.validObjectId(userId)) {

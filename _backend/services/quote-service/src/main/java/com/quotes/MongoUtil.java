@@ -231,23 +231,6 @@ public class MongoUtil {
         }
     }
 
-    public boolean updateAll() { //Adding new privacy and creator fields to all existing documents
-        // not for actual production use
-        try {
-            MongoCollection<Document> collection = database.getCollection("Quotes");
-
-            Document newFields = new Document().append("creator", null); //fields to be added
-            Document updateOperation = new Document("$set", newFields);
-
-            collection.updateMany(new Document(), updateOperation);
-
-            return true;
-        } catch (Exception e) {
-            System.out.print(e);
-            return false;
-        }
-    }
-
     public boolean deleteQuote(ObjectId quoteId) {
         MongoCollection<Document> collection = database.getCollection("Quotes");
         try {
