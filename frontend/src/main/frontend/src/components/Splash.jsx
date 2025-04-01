@@ -27,7 +27,7 @@ export default function Splash() {
     gap: "60px",
     alignSelf: "stretch",
     borderRadius: "22px",
-    background: "linear-gradient(276deg, rgba(253, 247, 205, 0.90) 11.16%, rgba(90, 212, 120, 0.90) 148.05%)",
+    background: "linear-gradient( rgba(214, 240, 194, 1), rgba(253, 247, 205, 1))",
   }
 
   const splashContainerStyle = {

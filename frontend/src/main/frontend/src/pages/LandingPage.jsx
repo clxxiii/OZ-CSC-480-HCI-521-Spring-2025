@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react"; 
+import { useState, useEffect, useContext } from "react"; 
 import "bootstrap/dist/css/bootstrap.min.css";
 import QuoteUploadModal from "../components/QuoteUploadModal";
 import Splash from "../components/Splash";
 import LoginOverlay from "../components/LoginOverlay";
 import QuoteList from "../components/QuoteList";
 import AlertMessage from "../components/AlertMessage";
-import { FetchTopQuotes } from "../lib/FetchTopQuotes"
+import { FetchTopQuotes } from "../lib/FetchTopQuotes";
+import { UserContext } from "../lib/Contexts";
+import AccountSetup from "../pages/AccountSetup"; // adjust path if it's in pages
 
 const LandingPage = () => {
   const [alert, setAlert] = useState(null);
@@ -13,11 +15,12 @@ const LandingPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [showAccountSetup, setShowAccountSetup] = useState(false);
+  const [user] = useContext(UserContext);
 
   const { topQuotes, loading, error } = FetchTopQuotes();
 
   useEffect(() => {
-    //check if user has logged in before, if not, show login prompt after 3 seconds
     if (!localStorage.getItem("hasLoggedIn")) {
       const timer = setTimeout(() => {
         setShowLogin(true);
@@ -28,7 +31,6 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    //check if there's a saved alert message in local storage and display it
     const message = localStorage.getItem("alertMessage");
     const messageType = localStorage.getItem("alertType") || "success";
     if (message) {
@@ -38,8 +40,13 @@ const LandingPage = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (user && (!user.Profession || !user.PersonalQuote)) {
+      setShowAccountSetup(true);
+    }
+  }, [user]);
+
   const handleUploadQuote = () => {
-    //show the upload modal if logged in, otherwise display an alert and prompt login
     if (isLoggedIn) {
       setShowModal(true);
     } else {
@@ -49,12 +56,10 @@ const LandingPage = () => {
   };
 
   const handleCloseModal = () => {
-    //close the upload quote modal
     setShowModal(false); 
   };
 
   const handleSubmitQuote = (quoteText) => {
-    //show an alert with the submitted quote text and close the modal
     alert(`Quote Submitted: ${quoteText}`);
     setShowModal(false); 
   };
@@ -64,7 +69,6 @@ const LandingPage = () => {
       {showLogin && <LoginOverlay setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn} />}
       
       {alert && (
-        //display an alert message at the top of the screen
         <div className="position-fixed top-0 start-50 translate-middle-x mt-3 px-4" style={{ zIndex: 1050 }}>
           <AlertMessage type={alert.type} message={alert.message} autoDismiss={true} />
         </div>
@@ -79,6 +83,8 @@ const LandingPage = () => {
         quoteText={quoteText}
         setQuoteText={setQuoteText}
       />
+
+{showAccountSetup && <AccountSetup user={user} onClose={() => setShowAccountSetup(false)} />}
 
       <QuoteList topQuotes={topQuotes} loading={loading} error={error} />
     </>
