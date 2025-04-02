@@ -3,8 +3,6 @@ const PROXY_URL = import.meta.env.VITE_PROXY_URL || "http://localhost:9083";
 export const createQuote = async ({ quote, author, tags, private: isPrivate }) => {
   //send a request to create a new quote, including author, text, tags, and a timestamp
   try {
-    const jwt = await getJWT();
-
     const quoteData = {
       quote,
       author: author || "Unknown",
@@ -15,14 +13,26 @@ export const createQuote = async ({ quote, author, tags, private: isPrivate }) =
 
     console.log("Sending API Payload:", JSON.stringify(quoteData));
 
-    const response = await fetch(`${PROXY_URL}/quotes/create`, {
+    // const response = await fetch(`${PROXY_URL}/quotes/create`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Authorization": `Bearer ${jwt}`,
+    //   },
+    //   body: JSON.stringify(quoteData),
+    //   credentials: "include",
+    // });
+
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/create`)}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwt}`,
       },
-      body: JSON.stringify(quoteData),
       credentials: "include",
+      body: JSON.stringify({
+        method: "POST",
+        body: quoteData,
+      }),
     });
 
     if (!response.ok) {
@@ -40,18 +50,27 @@ export const createQuote = async ({ quote, author, tags, private: isPrivate }) =
 export const deleteQuote = async (quoteId) => {
   //send a request to delete a quote by its ID
   try {
-    const jwt = await getJWT();
+    // const response = await fetch(
+    //     `${PROXY_URL}/quotes/delete/${quoteId}`,
+    //     {
+    //       method: "DELETE",
+    //       headers: {
+    //         "Authorization": `Bearer ${jwt}`,
+    //       },
+    //       credentials: "include",
+    //     }
+    // );
 
-    const response = await fetch(
-        `${PROXY_URL}/quotes/delete/${quoteId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Authorization": `Bearer ${jwt}`,
-          },
-          credentials: "include",
-        }
-    );
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/delete/${quoteId}`)}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        method: "DELETE",
+      }),
+    });
 
     const contentType = response.headers.get("Content-Type");
     if (contentType && contentType.includes("application/json")) {
@@ -99,16 +118,26 @@ export const updateQuote = async (quoteData) => {
   try {
     console.log("Sending update request:", JSON.stringify(quoteData));
 
-    const jwt = await getJWT();
+    // const response = await fetch(`${PROXY_URL}/quotes/update`, {
+    //   method: "PUT",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Authorization": `Bearer ${jwt}`,
+    //   },
+    //   body: JSON.stringify(quoteData),
+    //   credentials: "include",
+    // });
 
-    const response = await fetch(`${PROXY_URL}/quotes/update`, {
-      method: "PUT",
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/update`)}`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwt}`,
       },
-      body: JSON.stringify(quoteData),
       credentials: "include",
+      body: JSON.stringify({
+        method: "PUT",
+        body: quoteData,
+      }),
     });
 
     const text = await response.text();
@@ -207,15 +236,24 @@ export const bookmarkQuote = async (quoteId) => {
   try {
     console.log("Sending bookmark request for quote ID:", quoteId);
 
-    const jwt = await getJWT();
+    // const response = await fetch(`${PROXY_URL}/users/bookmarks/add/${quoteId}`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Authorization": `Bearer ${jwt}`,
+    //   },
+    //   credentials: "include",
+    // });
 
-    const response = await fetch(`${PROXY_URL}/users/bookmarks/add/${quoteId}`, {
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/bookmarks/add/${quoteId}`)}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwt}`,
       },
       credentials: "include",
+      body: JSON.stringify({
+        method: "POST",
+      }),
     });
 
     if (!response.ok) {
@@ -238,15 +276,24 @@ export const deleteBookmark = async (quoteId) => {
   try {
     console.log("Sending delete bookmark request for quote ID:", quoteId);
 
-    const jwt = await getJWT();
+    // const response = await fetch(`${PROXY_URL}/users/bookmarks/delete/${quoteId}`, {
+    //   method: "DELETE",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Authorization": `Bearer ${jwt}`,
+    //   },
+    //   credentials: "include",
+    // });
 
-    const response = await fetch(`${PROXY_URL}/users/bookmarks/delete/${quoteId}`, {
-      method: "DELETE",
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/bookmarks/delete/${quoteId}`)}`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwt}`,
       },
       credentials: "include",
+      body: JSON.stringify({
+        method: "DELETE",
+      }),
     });
 
     if (!response.ok) {
@@ -266,8 +313,6 @@ export const deleteBookmark = async (quoteId) => {
 
 export const updateMe = async (updatedData) => {
   try {
-    const jwt = await getJWT();
-
     const user = await fetchMe();
     console.log("User fetched for update:", user);
 
@@ -276,14 +321,16 @@ export const updateMe = async (updatedData) => {
       throw new Error("User ID not found or invalid");
     }
 
-    const response = await fetch(`${PROXY_URL}/users/accounts/update/${userId}`, {
-      method: "PUT",
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/accounts/update/${userId}`)}`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwt}`,
       },
-      body: JSON.stringify(updatedData),
       credentials: "include",
+      body: JSON.stringify({
+        method: "PUT",
+        body: updatedData,
+      }),
     });
 
     if (!response.ok) {
@@ -319,7 +366,7 @@ export const fetchQuoteById = async (quoteId) => {
     const response = await fetch(`${PROXY_URL}/quotes/search/id/${quoteId}`);
     if (response.status === 404) {
       console.warn(`Quote with ID ${quoteId} not found.`);
-      return null; 
+      return null;
     }
     if (!response.ok) throw new Error("Failed to fetch quote");
 
@@ -327,21 +374,30 @@ export const fetchQuoteById = async (quoteId) => {
     return data;
   } catch (error) {
     console.error("Error fetching quote:", error);
-    return null; 
+    return null;
   }
 };
 
 export const useQuote = async (quoteId) => {
   try {
-    const jwt = await getJWT();
+    // const response = await fetch(`${PROXY_URL}/users/useQuote/use/${quoteId}`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Authorization": `Bearer ${jwt}`,
+    //   },
+    //   credentials: "include",
+    // });
 
-    const response = await fetch(`${PROXY_URL}/useQuote/use/${quoteId}`, {
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/useQuote/use/${quoteId}`)}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwt}`,
       },
       credentials: "include",
+      body: JSON.stringify({
+        method: "POST",
+      }),
     });
 
     if (!response.ok) {
@@ -357,29 +413,29 @@ export const useQuote = async (quoteId) => {
   }
 };
 
-const getJWT = async () => {
-  try {
-    const response = await fetch(`${PROXY_URL}/users/auth/jwt`, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    console.log([...response.headers.entries()]);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Backend returned an error:", errorText);
-      throw new Error(`Failed to fetch JWT: ${errorText}`);
-    }
-
-    const jwt = response.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!jwt) {
-      throw new Error("JWT not found in response headers.");
-    }
-
-    return jwt;
-  } catch (error) {
-    console.error("Error fetching JWT:", error);
-    throw error;
-  }
-};
+// const getJWT = async () => {
+//   try {
+//     const response = await fetch(`${PROXY_URL}/users/auth/jwt`, {
+//       method: "GET",
+//       credentials: "include",
+//     });
+//
+//     console.log([...response.headers.entries()]);
+//
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error("Backend returned an error:", errorText);
+//       throw new Error(`Failed to fetch JWT: ${errorText}`);
+//     }
+//
+//     const jwt = response.headers.get("Authorization")?.replace("Bearer ", "");
+//     if (!jwt) {
+//       throw new Error("JWT not found in response headers.");
+//     }
+//
+//     return jwt;
+//   } catch (error) {
+//     console.error("Error fetching JWT:", error);
+//     throw error;
+//   }
+// };
