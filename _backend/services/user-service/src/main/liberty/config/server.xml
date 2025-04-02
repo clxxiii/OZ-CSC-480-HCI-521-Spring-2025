@@ -5,6 +5,9 @@
     <featureManager>
         <feature>jakartaee-10.0</feature>
         <feature>microProfile-6.0</feature>
+        <feature>mongodb-2.0</feature>
+        <feature>mpConfig-3.0</feature>
+        <feature>servlet-6.0</feature>
         <feature>mpJwt-2.1</feature>
         <feature>appSecurity-5.0</feature>
     </featureManager>
@@ -76,14 +79,6 @@
             <property name="CONNECTION_STRING" value="${CONNECTION_STRING}"/>
             <property name="ORIGIN" value="${ORIGIN}"></property>
         </appProperties>
-        <application-bnd>
-            <security-role name="admin">
-                <group name="admin"/>
-            </security-role>
-            <security-role name="user">
-                <group name="user"/>
-            </security-role>
-        </application-bnd>
     </webApplication>
 
     <!-- CORs configuration -->
