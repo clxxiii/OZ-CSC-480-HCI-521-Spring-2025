@@ -95,7 +95,7 @@ public class AccountService {
             url = AuthResource.HOME_URL;
         } else {
             id = accountCollection.insertOne(accountDocument).getInsertedId().asObjectId().getValue().toString();
-            url = AuthResource.HOME_URL + "/setup";
+            url = AuthResource.HOME_URL;
         }
 
         String jwt = JwtService.buildJwt(id).toString();

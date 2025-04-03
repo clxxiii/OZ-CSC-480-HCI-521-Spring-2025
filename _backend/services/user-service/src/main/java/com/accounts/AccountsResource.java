@@ -194,7 +194,6 @@ public class AccountsResource {
     @Path("/whoami")
     @Produces(MediaType.APPLICATION_JSON)
     public Response whoAmI(@Context HttpServletRequest request) {
-        System.out.println("request cookies: " + request.getCookies());
         Cookie sessionCookie = Arrays.stream(request.getCookies())
                 .filter(c -> "SessionId".equals(c.getName()))
                 .findFirst()
@@ -207,6 +206,13 @@ public class AccountsResource {
                     .build();
         }
         Session session = sessionService.getSession(sessionCookie.getValue());
+
+        if (session == null) {
+            return Response
+                    .status(Status.UNAUTHORIZED)
+                    .entity("{\"error\": \"This endpoint requires authentication\" }")
+                    .build();
+        }
 
         return accountService.retrieveUser(session.UserId, false);
     }
