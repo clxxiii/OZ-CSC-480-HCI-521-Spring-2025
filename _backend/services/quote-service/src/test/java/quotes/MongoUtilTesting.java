@@ -178,6 +178,15 @@ public class MongoUtilTesting {
 
 
 
+    //Failed if id is null then getObject gives you null
+    @Test
+    public void testUpdateQuotesWithNullId(){
+        quoteObject.setId(null);
+        assertFalse(mongoUtil.updateQuote(quoteObject));
+    }
+
+
+
 
 
 }
