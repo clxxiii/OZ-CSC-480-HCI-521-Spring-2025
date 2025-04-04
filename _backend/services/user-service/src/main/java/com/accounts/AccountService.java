@@ -11,6 +11,7 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.UpdateResult;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.NewCookie;
 import org.bson.Document;
@@ -80,6 +81,7 @@ public class AccountService {
 
         String id;
 
+        String url;
         if (oldAccountDocument != null) {
             Document updateFields = new Document();
             updateFields.append("access_token", account.access_token);
@@ -90,25 +92,17 @@ public class AccountService {
             id = oldAccountDocument.getObjectId("_id").toString();
             accountCollection.updateOne(oldAccountDocument,
                     new Document("$set", updateFields));
+            url = AuthResource.HOME_URL;
         } else {
             id = accountCollection.insertOne(accountDocument).getInsertedId().asObjectId().getValue().toString();
+            url = AuthResource.HOME_URL;
         }
 
-        System.out.println(id);
-
-        NewCookie cookie = new NewCookie.Builder("jwt")
-                .value(JwtService.buildJwt(id))
-                .path("/")
-                .comment("JWT Token")
-                .maxAge(3600)
-                .secure(true)
-                .sameSite(NewCookie.SameSite.NONE)
-                .build();
+        String jwt = JwtService.buildJwt(id).toString();
 
         return Response
                 .status(Response.Status.FOUND)
-                .cookie(cookie)
-                .location(URI.create(AuthResource.HOME_URL))
+                .location(URI.create("http://localhost:9081/users/auth/checkJWT/" + jwt + "?redirectURL=" + url))
                 .build();
     }
 
@@ -156,13 +150,13 @@ public class AccountService {
     public Response retrieveUserByEmail(String email, boolean includePrivateData) {
         try {
             Document user = accountCollection.find(eq("Email", email)).first();
-           
+
             if (user == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity(new Document("error", "User with email " + email + " not found").toJson())
                         .build();
             }
-           
+
             if (!includePrivateData) {
                 user.remove("access_token");
                 user.remove("refresh_token");
@@ -170,7 +164,7 @@ public class AccountService {
                 user.remove("scope");
                 user.remove("token_type");
             }
-           
+
             return Response.status(Response.Status.OK).entity(user.toJson()).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -179,22 +173,10 @@ public class AccountService {
         }
     }
 
-    public Document retrieveUserFromCookie(HttpServletRequest request) {
-        Cookie jwtCookie = null;
-
-        if (request.getCookies() != null) {
-            jwtCookie = Arrays.stream(request.getCookies())
-                    .filter(c -> "jwt".equals(c.getName()))
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        if (jwtCookie == null) {
-            return null;
-        }
+    public Document retrieveUserFromJWT(String jwtString) {
         try {
             JwtConsumer consumer = JwtConsumer.create("defaultJwtConsumer");
-            JwtToken jwt = consumer.createJwt(jwtCookie.getValue());
+            JwtToken jwt = consumer.createJwt(jwtString);
 
             String id = jwt.getClaims().getSubject();
 
@@ -272,9 +254,16 @@ public class AccountService {
 
         if (updateResult.getModifiedCount() == 1) {
             try {
+                ArrayList<String> fieldsList = new ArrayList<String>(
+                        List.of("Email", "Username", "admin", "Notifications", "MyQuotes",
+                                "BookmarkedQuotes", "SharedQuotes", "MyTags", "Profession", "PersonalQuote","UsedQuotes"));
+
+                Bson projectionFields = Projections.fields(
+                        Projections.include(fieldsList));
+
                 return Response
                         .status(Response.Status.OK)
-                        .entity(accountCollection.find(eq("_id", objectId)).first().toJson())
+                        .entity(accountCollection.find(eq("_id", objectId)).projection(projectionFields).first().toJson())
                         .build();
             } catch (NullPointerException e) {
                 return Response
@@ -303,14 +292,13 @@ public class AccountService {
         List<String> myQuotes = document.getList("MyQuotes", String.class);
         List<String> bookmarkedQuotes = document.getList("BookmarkedQuotes", String.class);
         List<String> sharedQuotes = document.getList("SharedQuotes", String.class);
-        List<String> myTags = document.getList("MyTags", String.class);
         String profession = document.getString("Profession");
         String personalQuote = document.getString("PersonalQuote");
-        Map<String, String> usedQuotes = (Map<String, String>) document.get("UsedQuotes"); 
+        Map<String, String> usedQuotes = (Map<String, String>) document.get("UsedQuotes");
 
-      
+
         Account account = new Account(email, username, admin, accessToken, refreshToken, expiresAt, scope, tokenType,
-                notifications, myQuotes, bookmarkedQuotes, sharedQuotes, myTags, profession, personalQuote,usedQuotes);
+                notifications, myQuotes, bookmarkedQuotes, sharedQuotes, profession, personalQuote, usedQuotes);
 
         return account;
     }
@@ -328,7 +316,6 @@ public class AccountService {
                 .append("MyQuotes", account.MyQuotes)
                 .append("BookmarkedQuotes", account.BookmarkedQuotes)
                 .append("SharedQuotes", account.SharedQuotes)
-                .append("MyTags", account.MyTags)
                 .append("Profession", account.Profession)
                 .append("PersonalQuote", account.PersonalQuote)
                 .append("UsedQuotes", account.UsedQuotes);

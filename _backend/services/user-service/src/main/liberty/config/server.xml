@@ -5,6 +5,9 @@
     <featureManager>
         <feature>jakartaee-10.0</feature>
         <feature>microProfile-6.0</feature>
+        <feature>mongodb-2.0</feature>
+        <feature>mpConfig-3.0</feature>
+        <feature>servlet-6.0</feature>
         <feature>mpJwt-2.1</feature>
         <feature>appSecurity-5.0</feature>
     </featureManager>
@@ -43,7 +46,7 @@
     <jwtBuilder
             id="defaultJwtBuilder"
             issuer="quotable"
-            expiry="24h"
+            expiresInSeconds="300"
             signatureAlgorithm="HS256"
             sharedKey="${JWT_SECRET}"
             />
@@ -76,14 +79,6 @@
             <property name="CONNECTION_STRING" value="${CONNECTION_STRING}"/>
             <property name="ORIGIN" value="${ORIGIN}"></property>
         </appProperties>
-        <application-bnd>
-            <security-role name="admin">
-                <group name="admin"/>
-            </security-role>
-            <security-role name="user">
-                <group name="user"/>
-            </security-role>
-        </application-bnd>
     </webApplication>
 
     <!-- CORs configuration -->
@@ -147,6 +142,39 @@
     <cors domain="/users/bookmarks/delete"
         allowedOrigins="${ORIGIN}"
         allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+
+    <cors domain="/users/notifications"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/notifications/delete"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/users/notifications/send"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+
+    <cors domain="/useQuote/*"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+
+    <cors domain="/useQuote/use/*"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="POST, OPTIONS"
+        allowedHeaders="Content-Type, Authorization, Accept"
+        allowCredentials="true"/>
+    <cors domain="/useQuote/use/search/*"
+        allowedOrigins="${ORIGIN}"
+        allowedMethods="GET, OPTIONS"
         allowedHeaders="Content-Type, Authorization, Accept"
         allowCredentials="true"/>
 
