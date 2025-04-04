@@ -158,6 +158,25 @@ public class MongoUtilTesting {
     }
 
 
+    //failed cause when getting quote object with null quoteObject
+    @Test
+    public void testUpdateQuotesWithNull(){
+        quoteObject = null;
+        assertFalse(mongoUtil.updateQuote(quoteObject));
+    }
+
+
+
+    //Failed because if getQuotes is null then parse method returns exception
+    @Test
+    public void testUpdateQuotesWithRandomId(){
+        QuoteObject newQuoteObject = new QuoteObject();
+        newQuoteObject.setId(new ObjectId());
+        newQuoteObject.setAuthor("author3");
+        assertFalse(mongoUtil.updateQuote(newQuoteObject));
+    }
+
+
 
 
 
