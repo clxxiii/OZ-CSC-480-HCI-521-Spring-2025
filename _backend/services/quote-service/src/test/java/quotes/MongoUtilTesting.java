@@ -146,6 +146,17 @@ public class MongoUtilTesting {
         assertNotNull(mongoUtil.searchQuote(searchQuery));
     }
 
+    //Testing parseQuote methods
+    //method is private
+
+     //test when we update quotes
+    @Test
+    public void testUpdateQuotes(){
+        quoteObject.setText("this is a test");
+        quoteObject.setAuthor("author2");
+        assertTrue(mongoUtil.updateQuote(quoteObject));
+    }
+
 
 
 
