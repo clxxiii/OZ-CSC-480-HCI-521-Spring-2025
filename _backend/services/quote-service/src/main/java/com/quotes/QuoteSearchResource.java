@@ -68,11 +68,9 @@ public class QuoteSearchResource {
     @Operation(summary = "Fuzzy search for quotes relevant to supplied query",
     description = "Searches for quotes similar to the users input and returns json of quotes determined to be most similar." +
             " They are sorted in descending order so the first json object is the closest to users input")
-    public Response advancedSearch(@Parameter(
-            description = "Should filter used quotes",
-            required = true,
-            schema = @Schema(type = SchemaType.BOOLEAN)
-    )@QueryParam("filter") boolean filter, @QueryParam("query") String query, @Context HttpHeaders header) {
+    public Response advancedSearch(@QueryParam("filterUsed") boolean filterUsed, @QueryParam("filterBookmarked") boolean filterBookmarked,
+                                   @QueryParam("filterUploaded") boolean filterUploaded, @QueryParam("include") String Included,
+                                   @QueryParam("exclude") String Excluded, @QueryParam("query") String query, @Context HttpHeaders header) {
         try{
             //get user jwt from header
             String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
@@ -84,12 +82,12 @@ public class QuoteSearchResource {
             String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
 
             //handle query string
-            query = SanitizerClass.sanitize(query); //removes special characters
             if(query == null) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Error cleaning string, returned null").build();
+                return Response.status(Response.Status.BAD_REQUEST).entity("Query string is null").build();
             }
+            query = SanitizerClass.sanitize(query); //removes special characters
             //search database using Atlas Search
-            String result = mongo.searchQuote(query, filter, jwtString);
+            String result = mongo.searchQuote(query, filterUsed, filterBookmarked, filterUploaded, Included, Excluded, jwtString);
             return Response.ok(result).build();
         } catch (Exception e) {
             return Response.status(Response.Status.CONFLICT).entity("Exception Occured: "+e).build();
