@@ -18,7 +18,7 @@ const QuoteForm = () => {
     useEffect(() => {
         if (quote) {
             setUpdateId(quote._id);
-            setUpdateText(quote.text || "");
+            setUpdateText(quote.quote || "No Quote!");
             setUpdateAuthor(quote.author || "Unknown");
             setTags(quote.tags || []);
             setUpdateIsPrivate(quote.private);
@@ -45,7 +45,7 @@ const QuoteForm = () => {
         const payload = {
             _id: updateId.trim(),
             author: updateAuthor || "Unknown",
-            quote: updateText || "",
+            text: updateText || "No Quote!",
             tags,
             private: updateIsPrivate,
         };
