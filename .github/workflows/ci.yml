@@ -17,6 +17,7 @@ jobs:
         run: docker compose build
 
       - name: Run tests with secret
+        working-directory: ./_backend/services/user-service
         run: mvn test
         env:
           CONNECTION_URI: ${{ secrets.CONNECTION_URI }}
