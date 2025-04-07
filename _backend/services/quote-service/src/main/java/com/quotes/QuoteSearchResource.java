@@ -104,15 +104,7 @@ public class QuoteSearchResource {
     @Operation(summary = "get quotes with the most bookmarks", description = "No input required. Searches for quotes" +
             " with the most bookmarks and returns json of all the quotes. It is sorted in descending order. Currently it" +
             " is limited to 100 results")
-    public Response getTopBookmarks(@Context HttpHeaders header) {
-        String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
-
-        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
-                    .build();
-        }
-
+    public Response getTopBookmarks() {
         try{
             String result = mongo.getTopBookmarked();
             return Response.ok(result).build();
@@ -131,15 +123,7 @@ public class QuoteSearchResource {
             " with the most shares and returns json of all the quotes. It is sorted in descending order. Currently it" +
             " is limited to 100 results")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getSharedBookmarked(@Context HttpHeaders header) {
-        String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
-
-        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
-                    .build();
-        }
-
+    public Response getSharedBookmarked() {
         try{
             String result = mongo.getTopShared();
             return Response.ok(result).build();
@@ -183,15 +167,7 @@ public class QuoteSearchResource {
     })
     @Operation(summary = "get quotes with the most bookmarks", description = "No input required. Returns quotes posted most recently" +
             ". It is sorted in descending order. Currently it is limited to 100 results")
-    public Response getMostRecent(@Context HttpHeaders header) {
-        String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
-
-        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
-                    .build();
-        }
-
+    public Response getMostRecent() {
         try{
             String result = mongo.getMostRecent();
             return Response.ok(result).build();
