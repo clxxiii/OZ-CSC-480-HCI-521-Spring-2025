@@ -2,6 +2,7 @@ package com.usedQuotes;
 
 import com.mongodb.client.*;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -34,7 +35,9 @@ public class UsedQuoteService {
 
     public ObjectId newUsedQuote(UsedQuote usedQuote) {
         try{
-            usedQuote.setId(new ObjectId());
+            if (usedQuote.getId() == null) {
+                usedQuote.setId(new ObjectId());
+            }
             Document usedQuoteDoc = new Document()
                     .append("_id", usedQuote.getId())
                     .append("used", usedQuote.getUsed())
@@ -112,6 +115,33 @@ public class UsedQuoteService {
                         .entity(new Document("error", "Used Quote Not found!").toJson())
                         .build();
             }
+        } else {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(new Document("error", "Used Quote Not found!").toJson())
+                    .build();
+        }
+    }
+
+    public Response deleteUsedQuote(String usedQuoteID) {
+        ObjectId objectId;
+
+        try {
+            objectId = new ObjectId(usedQuoteID);
+        } catch (Exception e) {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(new Document("error", "Invalid object id!").toJson())
+                    .build();
+        }
+
+        Bson query = eq("_id", objectId);
+        DeleteResult result = usedQuoteCollection.deleteOne(query);
+
+        if (result.getDeletedCount() == 1) {
+            return Response
+                    .status(Response.Status.OK)
+                    .build();
         } else {
             return Response
                     .status(Response.Status.NOT_FOUND)

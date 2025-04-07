@@ -13,14 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+      - name: Build Docker images
+        run: docker compose build
 
-      - name: Set environment variable for CONNECTION_URI
-        run: echo "CONNECTION_URI=${{ secrets.CONNECTION_URI }}" >> $GITHUB_ENV
-
-      - name: Build all images in the docker-compose file
-        run: docker compose build --build-arg CONNECTION_URI=${{ secrets.CONNECTION_URI }}
+      - name: Run tests with secret
+        run: mvn test
+        env:
+          CONNECTION_URI: ${{ secrets.CONNECTION_URI }}

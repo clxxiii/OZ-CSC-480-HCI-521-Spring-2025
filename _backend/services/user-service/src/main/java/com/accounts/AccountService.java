@@ -8,6 +8,7 @@ import com.ibm.websphere.security.jwt.JwtConsumer;
 import com.ibm.websphere.security.jwt.JwtToken;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,10 +21,7 @@ import org.bson.types.ObjectId;
 import jakarta.ws.rs.core.Response;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -58,6 +56,13 @@ public class AccountService {
                     .build();
         }
 
+        if (!accountDocument.containsKey("Email") || accountDocument.getString("Email") == null || Objects.equals(accountDocument.getString("Email"), "")) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity(new Document("error", "Missing required field: email").toJson())
+                    .build();
+        }
+
         FindIterable<Document> result = accountCollection.find(eq("email", accountDocument.getString("email")));
 
         if (result != null && result.first() != null) {
@@ -81,7 +86,6 @@ public class AccountService {
 
         String id;
 
-        String url;
         if (oldAccountDocument != null) {
             Document updateFields = new Document();
             updateFields.append("access_token", account.access_token);
@@ -92,17 +96,15 @@ public class AccountService {
             id = oldAccountDocument.getObjectId("_id").toString();
             accountCollection.updateOne(oldAccountDocument,
                     new Document("$set", updateFields));
-            url = AuthResource.HOME_URL;
         } else {
             id = accountCollection.insertOne(accountDocument).getInsertedId().asObjectId().getValue().toString();
-            url = AuthResource.HOME_URL;
         }
 
         String jwt = JwtService.buildJwt(id).toString();
 
         return Response
                 .status(Response.Status.FOUND)
-                .location(URI.create("http://localhost:9081/users/auth/checkJWT/" + jwt + "?redirectURL=" + url))
+                .location(URI.create("http://localhost:9081/users/auth/checkJWT/" + jwt))
                 .build();
     }
 
@@ -149,6 +151,12 @@ public class AccountService {
 
     public Response retrieveUserByEmail(String email, boolean includePrivateData) {
         try {
+            if (email == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(new Document("error", "Email is null!").toJson())
+                        .build();
+            }
+
             Document user = accountCollection.find(eq("Email", email)).first();
 
             if (user == null) {
@@ -208,11 +216,18 @@ public class AccountService {
 
         MongoCollection<Document> users = accountDB.getCollection("Users");
         Bson query = eq("_id", objectId);
-        users.deleteOne(query);
+        DeleteResult result = users.deleteOne(query);
 
-        return Response
-                .status(Response.Status.OK)
-                .build();
+        if (result.getDeletedCount() == 1) {
+            return Response
+                    .status(Response.Status.OK)
+                    .build();
+        } else {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(new Document("error", "Account not found!").toJson())
+                    .build();
+        }
     }
 
     public Response deleteUserByEmail(String email) {

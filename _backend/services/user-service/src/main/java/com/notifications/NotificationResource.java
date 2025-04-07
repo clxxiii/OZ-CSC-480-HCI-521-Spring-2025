@@ -1,5 +1,6 @@
 package com.notifications;
 
+import com.accounts.AccountService;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Consumes;
@@ -7,6 +8,8 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.json.Json;
@@ -38,7 +41,8 @@ public class NotificationResource {
     private static MongoClient mongoClient;
     private static MongoDatabase database;
     private static MongoCollection<Document> notificationsCollection;
-    
+    AccountService accountService = new AccountService();
+
     static {
         mongoClient = MongoClients.create(System.getenv("CONNECTION_STRING"));
         database = mongoClient.getDatabase("Accounts");
@@ -55,7 +59,23 @@ public class NotificationResource {
     })
     @Operation(summary = "Get all notifications for a specific user", 
               description = "Returns JSON of all notifications where the user is the recipient, enter ID of user recieving notifications")
-    public Response getNotificationsForUser(@PathParam("userId") String userId) {
+    public Response getNotificationsForUser(@PathParam("userId") String userId, @Context HttpHeaders headers) {
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Document userDoc = accountService.retrieveUserFromJWT(jwtString);
+
+        if (userDoc == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to have notifications").toJson()).build();
+        }
+
         try {
             if(!isValidObjectId(userId)) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -102,7 +122,23 @@ public class NotificationResource {
     required = true,
     description = "notification data required: from(id), to(id), type(string), and quote_id(id)"
 )
-    public Response createNotification(String jsonInput) {
+    public Response createNotification(String jsonInput, @Context HttpHeaders headers) {
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Document userDoc = accountService.retrieveUserFromJWT(jwtString);
+
+        if (userDoc == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to create notification").toJson()).build();
+        }
+
         try {
             JsonObject inputJson = Json.createReader(new StringReader(jsonInput)).readObject();
             
@@ -160,7 +196,23 @@ public class NotificationResource {
     })
     @Operation(summary = "Delete a notification by ID", 
               description = "Deletes a notification with the specified ID")
-    public Response deleteNotification(@PathParam("notificationId") String notificationId) {
+    public Response deleteNotification(@PathParam("notificationId") String notificationId, @Context HttpHeaders headers) {
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Document userDoc = accountService.retrieveUserFromJWT(jwtString);
+
+        if (userDoc == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to delete notifications").toJson()).build();
+        }
+
         try {
             if (!isValidObjectId(notificationId)) {
                 return Response.status(Response.Status.BAD_REQUEST)

@@ -105,7 +105,7 @@ public class AuthResource {
 
     @GET
     @Path("/checkJWT/{jwt}")
-    public Response checkJWT(@PathParam("jwt") String jwt, @QueryParam("redirectURL") String url) {
+    public Response checkJWT(@PathParam("jwt") String jwt) {
         ArrayList<String> groups;
         String userId;
         try {
@@ -163,7 +163,7 @@ public class AuthResource {
 
         return Response.status(Response.Status.FOUND)
                 .cookie(cookie)
-                .location(URI.create(url))
+                .location(URI.create(HOME_URL))
                 .build();
 
     }
@@ -310,21 +310,26 @@ public class AuthResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to logout").toJson()).build();
         }
 
-        sessionService.deleteSession(sessionId);
+        boolean success = sessionService.deleteSession(sessionId);
 
-        NewCookie cookie = new NewCookie.Builder("SessionId")
-                .value(null)
-                .path("/")
-                .maxAge(0)
-                .secure(true)
-                .sameSite(NewCookie.SameSite.LAX)
-                .httpOnly(true)
-                .build();
+        if (success) {
 
-        return Response
-                .status(Response.Status.OK)
-                .cookie(cookie)
-                .build();
+            NewCookie cookie = new NewCookie.Builder("SessionId")
+                    .value(null)
+                    .path("/")
+                    .maxAge(0)
+                    .secure(true)
+                    .sameSite(NewCookie.SameSite.LAX)
+                    .httpOnly(true)
+                    .build();
+
+            return Response
+                    .status(Response.Status.OK)
+                    .cookie(cookie)
+                    .build();
+        } else {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
     }
 
 

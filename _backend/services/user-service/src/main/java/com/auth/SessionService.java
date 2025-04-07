@@ -28,6 +28,12 @@ public class SessionService {
         sessionsCollection = sessionsDB.getCollection("Sessions");
     }
 
+    public SessionService(MongoClient mongoClient, String dbName, String collectionName) {
+        client = mongoClient;
+        sessionsDB = client.getDatabase(dbName);
+        sessionsCollection = sessionsDB.getCollection(collectionName);
+    }
+
     public String createSession(Session session) {
         Document sessionDoc = new Document()
                 .append("_id", session.SessionId)
@@ -40,9 +46,6 @@ public class SessionService {
             return null;
         }
 
-        // Remove this when deployed!!!!
-        sessionsCollection.deleteOne(new Document("UserId", session.UserId));
-
         sessionsCollection.insertOne(sessionDoc);
 
         return session.SessionId.toString();
@@ -54,6 +57,10 @@ public class SessionService {
         try {
             objectId = new ObjectId(sessionId);
         } catch (Exception e) {
+            return false;
+        }
+
+        if (session == null) {
             return false;
         }
 
@@ -83,11 +90,17 @@ public class SessionService {
         }
     }
 
-    public void deleteSession(String sessionId) {
-        ObjectId objectId = new ObjectId(sessionId);
+    public boolean deleteSession(String sessionId) {
+        try {
+            ObjectId objectId = new ObjectId(sessionId);
 
-        Bson query = eq("_id", objectId);
-        sessionsCollection.deleteOne(query);
+            Bson query = eq("_id", objectId);
+            long deletedCount = sessionsCollection.deleteOne(query).getDeletedCount();
+            return deletedCount > 0;
+        } catch(Exception e) {
+            System.out.println(e);
+            return false;
+        }
     }
 
     public Session documentToSession(Document doc) {

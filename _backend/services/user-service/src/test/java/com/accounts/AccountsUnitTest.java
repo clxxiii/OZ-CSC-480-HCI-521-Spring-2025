@@ -1,40 +1,73 @@
 package com.accounts;
 
+import com.ibm.websphere.security.jwt.*;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import jakarta.json.*;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.*;
 import io.github.cdimascio.dotenv.Dotenv;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import javax.crypto.spec.SecretKeySpec;
 
+import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AccountsUnitTest {
     static AccountService accountService;
     static Account account;
+    static String jwt;
+    static ObjectId id;
 
     // Setup Method
     @BeforeAll
     public static void setUp() {
+//        System.setProperty("config.path", "src/main/liberty/config");
+
 //        Dotenv dotenv = Dotenv.configure()
 //                .load();
 
 //        String connectionString = "mongodb://user:password@quotes-database:27017";
 
 //        MongoClient client = MongoClients.create(dotenv.get("CONNECTION_STRING"));
+//
+//        accountService = new AccountService(client, "Test", "Users");
 
         String connectionString = System.getenv("CONNECTION_URI");
 
         MongoClient client = MongoClients.create(connectionString);
 
         accountService = new AccountService(client, "Test", "Users");
+
+//        byte[] keyBytes = "secret".getBytes(StandardCharsets.UTF_8);
+//
+//        if (keyBytes.length < 32) {
+//            byte[] paddedKey = new byte[32];
+//            System.arraycopy(keyBytes, 0, paddedKey, 0, keyBytes.length);
+//            keyBytes = paddedKey;
+//        }
+//
+//        Key signingKey = new SecretKeySpec(keyBytes, SignatureAlgorithm.HS256.getJcaName());
+//
+//        jwt = Jwts.builder()
+//                .claim("token_type", "Bearer")
+//                .claim(Claims.SUBJECT, "362846238")
+//                .claim("groups", new String[]{"admin"})
+//                .setIssuer("quotable")
+//                .setExpiration(new Date(System.currentTimeMillis() + 300000))
+//                .setIssuedAt(new Date())
+//                .setHeaderParam("typ", "JWT")
+//                .signWith(signingKey)
+//                .compact();
+//
+//        System.out.println(jwt);
     }
 
     @BeforeEach
@@ -81,6 +114,11 @@ public class AccountsUnitTest {
         );
     }
 
+//    @Test
+//    void retrieveUserFromJWTTC1() {
+//        Document doc = accountService.retrieveUserFromJWT(jwt);
+//    }
+
     // TEST CASES
 
     // POST Create Account
@@ -89,7 +127,7 @@ public class AccountsUnitTest {
     // Create account (email already exists) 409
     @Test
     @Order(1)
-    void newUserTC200() {
+    void newUserTC1() {
         try(Response response = accountService.newUser(account.toJson())) {
             assertEquals(200, response.getStatus());
         }
@@ -97,7 +135,7 @@ public class AccountsUnitTest {
 
     @Test
     @Order(2)
-    void newUserTC400() {
+    void newUserTC2() {
         String jsonAccountMissingBracket = account.toJson().substring(0, account.toJson().length() - 1);
         try(Response response = accountService.newUser(jsonAccountMissingBracket)) {
             assertEquals(400, response.getStatus());
@@ -106,9 +144,34 @@ public class AccountsUnitTest {
 
     @Test
     @Order(3)
-    void newUserTC409() {
+    void newUserTC3() {
+        try(Response response = accountService.newUser("{}")) {
+            assertEquals(400, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(4)
+    void newUserTC4() {
         try(Response response = accountService.newUser(account.toJson())) {
             assertEquals(409, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(5)
+    void newUserTC5() {
+        try(Response response = accountService.newUser(null)) {
+            assertEquals(400, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(6)
+    void newUserTC6() {
+        Document doc = new Document("Email", "");
+        try(Response response = accountService.newUser(doc.toJson())) {
+            assertEquals(400, response.getStatus());
         }
     }
 
@@ -116,19 +179,56 @@ public class AccountsUnitTest {
     // Search account (success) code 200
     // Search account (failure) code 404
     @Test
-    @Order(4)
-    void retrieveUserByEmailTC200() {
+    @Order(7)
+    void retrieveUserByEmailTC1() {
+        Document d;
         try(Response response = accountService.retrieveUserByEmail("example@gmail.com", false)) {
+            assertEquals(200, response.getStatus());
+            d = Document.parse(response.getEntity().toString());
+            assertEquals("John Doe", d.getString("Username"));
+        }
+        id = d.getObjectId("_id");
+    }
+
+    @Test
+    @Order(8)
+    void retrieveUserByEmailTC2() {
+        try(Response response = accountService.retrieveUserByEmail("example@gmail.com", true)) {
             assertEquals(200, response.getStatus());
             Document d = Document.parse(response.getEntity().toString());
             assertEquals("John Doe", d.getString("Username"));
+            assertEquals(account.access_token, d.getString("access_token"));
         }
     }
 
     @Test
-    @Order(5)
-    void retrieveUserByEmailTC404() {
+    @Order(9)
+    void retrieveUserByEmailTC3() {
         try(Response response = accountService.retrieveUserByEmail("example@oswego.edu", false)) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(10)
+    void retrieveUserByEmailTC4() {
+        try(Response response = accountService.retrieveUserByEmail("example@oswego.edu", true)) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(11)
+    void retrieveUserByEmailTC5() {
+        try(Response response = accountService.retrieveUserByEmail(null, true)) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(12)
+    void retrieveUserByEmailTC6() {
+        try(Response response = accountService.retrieveUserByEmail("", true)) {
             assertEquals(404, response.getStatus());
         }
     }
@@ -137,16 +237,9 @@ public class AccountsUnitTest {
     // Search account (success) code 200
     // Search account (failure) code 404
     @Test
-    @Order(6)
-    void retrieveUserByEmailTC201() { // for some reason only works when it is named this
-        String accountID;
-        try(Response response = accountService.retrieveUserByEmail("example@gmail.com", false)) {
-            assertEquals(200, response.getStatus());
-            Document d = Document.parse(response.getEntity().toString());
-            assertEquals("John Doe", d.getString("Username"));
-            accountID = d.getObjectId("_id").toString();
-        }
-        try(Response response = accountService.retrieveUser(accountID, false)) {
+    @Order(13)
+    void retrieveUserTC1() {
+        try(Response response = accountService.retrieveUser(id.toString(), false)) {
             assertEquals(200, response.getStatus());
             Document d = Document.parse(response.getEntity().toString());
             assertEquals("John Doe", d.getString("Username"));
@@ -154,9 +247,44 @@ public class AccountsUnitTest {
     }
 
     @Test
-    @Order(7)
-    void retrieveUserTC404() {
+    @Order(14)
+    void retrieveUserTC2() {
+        try(Response response = accountService.retrieveUser(id.toString(), true)) {
+            assertEquals(200, response.getStatus());
+            Document d = Document.parse(response.getEntity().toString());
+            assertEquals("John Doe", d.getString("Username"));
+            assertEquals(account.access_token, d.getString("access_token"));
+        }
+    }
+
+    @Test
+    @Order(15)
+    void retrieveUserTC3() {
         try(Response response = accountService.retrieveUser("512753721", false)) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(16)
+    void retrieveUserTC4() {
+        try(Response response = accountService.retrieveUser("aaaaaaaaaaaaaaaaaaaaaaaa", false)) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(17)
+    void retrieveUserTC5() {
+        try(Response response = accountService.retrieveUser(null, false)) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(18)
+    void retrieveUserTC6() {
+        try(Response response = accountService.retrieveUser("", false)) {
             assertEquals(404, response.getStatus());
         }
     }
@@ -166,17 +294,18 @@ public class AccountsUnitTest {
     // Update (invalid JSON) code 400
     // Update (account not found) code 404
     @Test
-    @Order(8)
-    void retrieveUserByEmailTC202() { // for some reason only works when it is named this
-        String accountID;
-        try(Response response = accountService.retrieveUserByEmail("example@gmail.com", false)) {
-            assertEquals(200, response.getStatus());
-            Document d = Document.parse(response.getEntity().toString());
-            assertEquals("John Doe", d.getString("Username"));
-            accountID = d.getObjectId("_id").toString();
+    @Order(19)
+    void updateUserTC1() {
+        try (Response response = accountService.updateUser(account.toJson(), id.toString())) {
+            assertEquals(404, response.getStatus());
         }
+    }
+
+    @Test
+    @Order(20)
+    void updateUserTC2() {
         account.Profession = "Testing Manager";
-        try(Response response = accountService.updateUser(account.toJson(), accountID)) {
+        try(Response response = accountService.updateUser(account.toJson(), id.toString())) {
             assertEquals(200, response.getStatus());
             Document d = Document.parse(response.getEntity().toString());
             assertEquals("Testing Manager", d.getString("Profession"));
@@ -184,24 +313,49 @@ public class AccountsUnitTest {
     }
 
     @Test
-    @Order(9)
-    void retrieveUserByEmailTC400() { // for some reason only works when it is named this
-        String accountID;
-        try(Response response = accountService.retrieveUserByEmail("example@gmail.com", false)) {
-            assertEquals(200, response.getStatus());
-            Document d = Document.parse(response.getEntity().toString());
-            assertEquals("John Doe", d.getString("Username"));
-            accountID = d.getObjectId("_id").toString();
-        }
-        try(Response response = accountService.updateUser(account.toJson().substring(0, account.toJson().length() - 1), accountID)) {
+    @Order(21)
+    void updateUserTC3() {
+        try(Response response = accountService.updateUser(account.toJson().substring(0, account.toJson().length() - 1), id.toString())) {
             assertEquals(400, response.getStatus());
         }
     }
 
     @Test
-    @Order(10)
-    void updateUserTC404() {
+    @Order(22)
+    void updateUserTC4() {
         try(Response response = accountService.updateUser(account.toJson(), "134643343")) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(23)
+    void updateUserTC5() {
+        try(Response response = accountService.updateUser(account.toJson(), "aaaaaaaaaaaaaaaaaaaaaaaa")) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(24)
+    void updateUserTC6() {
+        try(Response response = accountService.updateUser(account.toJson(), null)) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(25)
+    void updateUserTC7() {
+        try(Response response = accountService.updateUser(null, id.toString())) {
+            assertEquals(400, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(25)
+    void updateUserTC8() {
+        try(Response response = accountService.updateUser(account.toJson(), new ObjectId().toString())) {
             assertEquals(404, response.getStatus());
         }
     }
@@ -209,42 +363,63 @@ public class AccountsUnitTest {
     // DELETE Delete account by ID
     // Delete (success) code 200
     // Delete (account not found) code 404
-
     @Test
-    @Order(11)
-    void deleteUserTC404() {
+    @Order(26)
+    void deleteUserTC1() {
         try(Response response = accountService.deleteUser("2165217521757")) {
             assertEquals(404, response.getStatus());
         }
     }
 
-    @AfterAll
-    static void retrieveUserByEmailTC203() { // for some reason only works when it is named this
-        String accountID;
-        try(Response response = accountService.retrieveUserByEmail("example@gmail.com", false)) {
-            assertEquals(200, response.getStatus());
-            Document d = Document.parse(response.getEntity().toString());
-            assertEquals("John Doe", d.getString("Username"));
-            accountID = d.getObjectId("_id").toString();
+    @Test
+    @Order(26)
+    void deleteUserTC2() {
+        try(Response response = accountService.deleteUser("aaaaaaaaaaaaaaaaaaaaaaaa")) {
+            assertEquals(404, response.getStatus());
         }
-        try(Response response = accountService.deleteUser(accountID)) {
+    }
+
+    @Test
+    @Order(26)
+    void deleteUserTC3() {
+        try(Response response = accountService.deleteUser(new ObjectId().toString())) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(26)
+    void deleteUserTC4() {
+        try(Response response = accountService.deleteUser(null)) {
+            assertEquals(404, response.getStatus());
+        }
+    }
+
+    @Test
+    @Order(29)
+    void deleteUserTC5() {
+        try(Response response = accountService.deleteUser(id.toString())) {
             assertEquals(200, response.getStatus());
         }
     }
 
-    // NOT CURRENTLY NEEDED:
+    // Account to document
+    @Test
+    void account_to_documentTC1() {
+        Document doc = accountService.account_to_document(account);
+        assertEquals("example@gmail.com", doc.getString("Email"));
+        assertEquals("John Doe", doc.getString("Username"));
+        assertEquals(0, doc.getInteger("admin"));
+        assertEquals("sample_access_token", doc.getString("access_token"));
+        assertEquals("sample_refresh_token", doc.getString("refresh_token"));
+        assertEquals("Tester", doc.getString("Profession"));
+    }
 
-    // POST User Bookmark quote (quoteID)
-    // Quote bookmarked (success) code 200
-    // Invalid request (failure) code 400
-    // Unauthorized (failure) code 401
-
-    // GET User Bookmarked quotes
-    // Quotes retrieved (success) code 200
-    // Quotes invalid request (failure) code 400
-
-    // DELETE Bookmarked quote (quoteID)
-    // Delete bookmark (success) code 200
-    // Delete bookmark invalid (failure) code 400
+    // Document to Account
+    @Test
+    void document_to_accountTC1() {
+        Account account1 = accountService.document_to_account(accountService.account_to_document(account));
+        assertEquals(account.toJson(), account1.toJson());
+    }
 
 }
