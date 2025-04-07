@@ -5,7 +5,7 @@
 # `docker volume create --name quotes_db`
 # `docker compose up -d`
 
-name: 480-entire-stack
+name: quotable
 
 services:
 
@@ -21,22 +21,28 @@ services:
     ports:
       - 9082:9082
     environment:
-      CONNECTION_STRING: mongodb://user:password@quotes-database:27017
+      CONNECTION_STRING: "mongodb://user:password@quotes-database:27017/?directConnection=true"
+    depends_on:
+    - quotes-database
 
   user-service:
     build: ./_backend/services/user-service
     ports:
       - 9081:9081
     environment:
-      CONNECTION_STRING: mongodb://user:password@quotes-database:27017
+      CONNECTION_STRING: "mongodb://user:password@quotes-database:27017/?directConnection=true"
+    depends_on:
+    - quotes-database
 
   quotes-database:
-    image: mongo
+    image: mongodb/mongodb-atlas-local
     volumes:
-      - quotes_db:/data/db
+      - ./mongo_data:/data
+    ports:
+      - 27017:27017
     environment:
-      MONGO_INITDB_ROOT_USERNAME: user
-      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGODB_INITDB_ROOT_USERNAME: user
+      MONGODB_INITDB_ROOT_PASSWORD: password
 
   nginx:
     image: nginx:latest
@@ -51,7 +57,6 @@ services:
       - quotes-service
 
 
-volumes:
-  quotes_db:
-    external: true
-
+# volumes:
+#   quotes_db:
+#     external: true
