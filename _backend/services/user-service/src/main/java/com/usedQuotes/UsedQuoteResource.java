@@ -44,7 +44,7 @@ public class UsedQuoteResource {
         Document userDoc = accountService.retrieveUserFromJWT(jwtString);
         
         if (userDoc == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to delete account").toJson()).build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to use quote").toJson()).build();
         }
         Account requestUser = accountService.document_to_account(userDoc);
         String accountId = accountService.getAccountIdByEmail(requestUser.Email);
@@ -55,14 +55,39 @@ public class UsedQuoteResource {
             requestUser.UsedQuotes.put(id, usedQuoteId.toString());
             Document backToDoc = accountService.account_to_document(requestUser);
             backToDoc.remove("expires_at");
-            return accountService.updateUser(backToDoc.toJson(), accountId);
+            Response updateUser = accountService.updateUser(backToDoc.toJson(), accountId);
+             if(updateUser.getStatus()==Response.Status.OK.getStatusCode()){
+                return Response
+                .status(Response.Status.OK)
+                .entity(usedQuote.getUsed())
+                .build();
+             }
+             else{
+                return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(new Document("error", "Failed to update user!").toJson())
+                .build();
+             }
         }
         else{
         Document usedQuoteDoc = usedQuoteService.retrieveUsedQuote(requestUser.UsedQuotes.get(id));
         int currentCount = usedQuoteDoc.getInteger("count", 1);
         usedQuoteDoc.put("count", currentCount + 1);
         usedQuoteDoc.put("used", currentDate);
-        return usedQuoteService.updateUsedQuote(usedQuoteDoc.toJson(), requestUser.UsedQuotes.get(id));
+        
+        Response updateUsedQuotes =  usedQuoteService.updateUsedQuote(usedQuoteDoc.toJson(), requestUser.UsedQuotes.get(id));
+        if(updateUsedQuotes.getStatus()==Response.Status.OK.getStatusCode()){
+            return Response
+            .status(Response.Status.OK)
+            .entity(usedQuoteDoc.getDate("used"))
+            .build();
+         }
+         else{
+            return Response
+            .status(Response.Status.BAD_REQUEST)
+            .entity(new Document("error", "Failed to update used quote!").toJson())
+            .build();
+         }
         }
 
     }   
