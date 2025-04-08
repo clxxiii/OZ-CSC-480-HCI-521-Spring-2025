@@ -56,8 +56,12 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal, onQuoteUsed }) => {
 
       {showLogin && <LoginOverlay setShowLogin={setShowLogin} />}
 
-      <QuoteTags tags={quote.tags} />
-      <QuoteContent quote={quote} />
+      <QuoteTags 
+        tags={quote.tags}
+      />
+      <QuoteContent
+        quote={quote}
+      />
       <QuoteActions
         quote={quote}
         onBookmarkToggle={onBookmarkToggle}
