@@ -154,7 +154,7 @@ public class MongoUtil {
         List<String> TermsToExclude = new ArrayList<>();
         List<Document> MustNotClause = new ArrayList<>();
         if(ExcludeTerms != null) {
-            TermsToExclude = Arrays.stream(ExcludeTerms.split(",")).toList(); //split "," separated terms into list
+            TermsToExclude = Arrays.stream(ExcludeTerms.split(",")).toList(); //split terms into list
             //create clause specifying quote must not include specified terms
             MustNotClause.add(new Document("text", new Document("query", TermsToExclude).append("path", "quote")));
         }

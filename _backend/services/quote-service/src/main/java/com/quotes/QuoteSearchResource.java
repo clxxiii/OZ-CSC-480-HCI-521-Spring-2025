@@ -88,14 +88,18 @@ public class QuoteSearchResource {
             //get user jwt from header
             boolean isGuest;
             String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
-            if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
-                //return Response.status(Response.Status.UNAUTHORIZED)
-                //        .entity(new Document("error", "Missing or invalid Authorization header").toJson())
-                //        .build();
+            if (authHeader == null) {
+                //no jwt, treat as guest
                 isGuest = true;
+            } else if(!authHeader.toLowerCase().startsWith("bearer ")) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                        .build();
             } else {
+                //valid jwt, treat as user
                 isGuest = false;
             }
+
             String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
 
             //handle query string
