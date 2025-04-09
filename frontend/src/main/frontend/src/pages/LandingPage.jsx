@@ -64,6 +64,58 @@ const LandingPage = () => {
     setShowModal(false); 
   };
 
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${import.meta.env.PROXY_URL}/auth/logout`)}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            method: "DELETE",
+          }),
+        }
+      );
+  
+      if (response.ok) {
+        localStorage.removeItem("hasLoggedIn");
+        setIsLoggedIn(false);
+        setAlert({ type: "success", message: "Successfully logged out." });
+        setShowLogin(true);
+      } else {
+        setAlert({ type: "danger", message: "Logout failed." });
+      }
+    } catch (error) {
+      setAlert({ type: "danger", message: "An error occurred during logout." });
+    }
+  };
+
+
+  /* Sams Method:
+
+  export const logout = async () => {
+  try {
+    await fetch(${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(${PROXY_URL}/users/auth/logout)}, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", 
+      body: JSON.stringify({
+        method: "DELETE", 
+      }),
+    });
+
+  } catch (error) {
+    console.error("Error during logout:", error);
+    throw error;
+  }
+};
+  */
+
   return (
     <>
       {showLogin && <LoginOverlay setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn} />}
@@ -73,7 +125,7 @@ const LandingPage = () => {
           <AlertMessage type={alert.type} message={alert.message} autoDismiss={true} />
         </div>
       )}
-      
+      <button className="btn btn-danger position-absolute top-0 end-0 m-3" onClick={handleLogout}> Log Out </button>
       <Splash />
 
       <QuoteUploadModal

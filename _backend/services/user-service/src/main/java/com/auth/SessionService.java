@@ -5,7 +5,9 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
+import jakarta.ws.rs.core.Response;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
@@ -37,9 +39,6 @@ public class SessionService {
         if (sessionDoc == null || sessionDoc.getString("UserId") == null) {
             return null;
         }
-
-        // Remove this when deployed!!!!
-        sessionsCollection.deleteOne(new Document("UserId", session.UserId));
 
         sessionsCollection.insertOne(sessionDoc);
 
@@ -79,6 +78,13 @@ public class SessionService {
             System.out.println(e);
             return null;
         }
+    }
+
+    public void deleteSession(String sessionId) {
+        ObjectId objectId = new ObjectId(sessionId);
+
+        Bson query = eq("_id", objectId);
+        sessionsCollection.deleteOne(query);
     }
 
     public Session documentToSession(Document doc) {
