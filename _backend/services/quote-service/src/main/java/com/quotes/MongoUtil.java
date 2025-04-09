@@ -53,6 +53,7 @@ public class MongoUtil {
         try {
             MongoDatabase UserDatabase = mongoClient.getDatabase("Accounts");
             MongoCollection<Document> userCollection = UserDatabase.getCollection("Users");
+            //this test cause error while testing
             JwtConsumer consumer = JwtConsumer.create("defaultJwtConsumer");
             JwtToken jwt = consumer.createJwt(jwtString);
 

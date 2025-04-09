@@ -172,6 +172,20 @@ public class MongoUtilTesting {
         assertTrue(result.contains("test"));  // Ensure the search term "test" is present in the result
     }
 
+    @Test
+    void testSearchWithFuzzyQuery() {
+        String searchQuery = "tst";
+        boolean filterUsed = false;
+        boolean filterBookmarked = false;
+        boolean filterUploaded = false;
+        String includeTerms = null;
+        String excludeTerms = null;
+        String jwtString = "jwtString";
+        String result = mongoUtil.searchQuote(searchQuery, filterUsed, filterBookmarked, filterUploaded, includeTerms, excludeTerms, jwtString);
+        assertNotNull(result);
+        assertTrue(result.contains("test"));
+    }
+
 
 
 
