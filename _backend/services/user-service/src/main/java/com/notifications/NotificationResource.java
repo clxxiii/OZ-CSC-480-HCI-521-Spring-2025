@@ -36,13 +36,21 @@ import java.io.StringWriter;
 public class NotificationResource {
     
     private static MongoClient mongoClient;
-    private static MongoDatabase database;
+    private static MongoDatabase accountDatabase;
+    private static MongoDatabase dataDatabase;
     private static MongoCollection<Document> notificationsCollection;
+    private static MongoCollection<Document> usersCollection;
+    private static MongoCollection<Document> quotesCollection;
     
     static {
         mongoClient = MongoClients.create(System.getenv("CONNECTION_STRING"));
-        database = mongoClient.getDatabase("Accounts");
-        notificationsCollection = database.getCollection("Notifications");
+
+        accountDatabase = mongoClient.getDatabase("Accounts");
+        notificationsCollection = accountDatabase.getCollection("Notifications");
+        usersCollection = accountDatabase.getCollection("Users");
+
+        dataDatabase = mongoClient.getDatabase("Data");
+        quotesCollection = dataDatabase.getCollection("Quotes");
     }
 
     @GET
@@ -51,6 +59,7 @@ public class NotificationResource {
     @APIResponses(value = {
             @APIResponse(responseCode = "200", description = "Successfully found and returned user's notifications"),
             @APIResponse(responseCode = "400", description = "Given ID is not a valid ObjectId"),
+            @APIResponse(responseCode = "404", description = "User not found"),
             @APIResponse(responseCode = "409", description = "Exception occurred during operation")
     })
     @Operation(summary = "Get all notifications for a specific user", 
@@ -62,8 +71,16 @@ public class NotificationResource {
                         .entity("Given ID is not a valid ObjectId")
                         .build();
             }
-            ObjectId objectId = new ObjectId(userId);
-            String jsonNotifications = getNotificationsByUser(objectId);
+
+            ObjectId userObjectId = new ObjectId(userId);
+            Document user = usersCollection.find(new Document("_id", userObjectId)).first();
+            if (user == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("User not found")
+                        .build();
+            }
+
+            String jsonNotifications = getNotificationsByUser(userObjectId);
             return Response.ok(jsonNotifications).build();
         } catch (Exception e) {
             return Response.status(Response.Status.CONFLICT)
@@ -79,6 +96,7 @@ public class NotificationResource {
     @APIResponses(value = {
             @APIResponse(responseCode = "201", description = "Notification successfully created"),
             @APIResponse(responseCode = "400", description = "Invalid input data"),
+            @APIResponse(responseCode = "404", description = "User or quote not found"),
             @APIResponse(responseCode = "409", description = "Exception occurred during operation")
     })
     @Operation(summary = "Create a new notification")
@@ -120,6 +138,22 @@ public class NotificationResource {
             if (!isValidObjectId(fromId) || !isValidObjectId(toId) || !isValidObjectId(quoteId)) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity("Invalid ObjectId format in from, to, or quote_id")
+                        .build();
+            }
+            
+            ObjectId toObjectId = new ObjectId(toId);
+            Document toUser = usersCollection.find(new Document("_id", toObjectId)).first();
+            if (toUser == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("to user not found")
+                        .build();
+            }
+            
+            ObjectId quoteObjectId = new ObjectId(quoteId);
+            Document quote = quotesCollection.find(new Document("_id", quoteObjectId)).first();
+            if (quote == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Quote not found")
                         .build();
             }
             
