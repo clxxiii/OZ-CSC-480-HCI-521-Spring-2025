@@ -80,6 +80,11 @@ public class MongoUtil {
 
         if(result != null) {
             result.put("_id", result.getObjectId("_id").toString()); //gets rid of "$oid" subfield
+            ObjectId creator = result.getObjectId("creator");
+            if(creator == null) {
+                System.out.println("creator is null");
+                return null;
+            }
             result.put("creator", result.getObjectId("creator").toString());
             return result.toJson();
         }
@@ -220,21 +225,23 @@ public class MongoUtil {
     public boolean updateQuote(QuoteObject quote) {
         MongoCollection<Document> collection = database.getCollection("Quotes");
 
+        if(quote == null) {
+            System.out.println("Quote object is null");
+            return false;
+        }
+
         //get current quote for reference
         String originalQuote = getQuote(quote.getId());
+        if(originalQuote == null) {
+            System.out.println("Quote id is null or invalid");
+            return false;
+        }
         QuoteObject ogQuote = parseQuote(originalQuote);
 
         if(ogQuote == null) {
             System.out.println("Og Quote null for some reason");
             return false;
         }
-
-        //quote.PrintQuote();
-        if(quote.getId() == null) {
-            System.out.print("Missing ID");
-            return false;
-        }
-        System.out.print("Has ID");
 
         try {
             Document IdQuery = new Document();
