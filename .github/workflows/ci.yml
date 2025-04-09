@@ -16,6 +16,9 @@ jobs:
       - name: Build Docker images
         run: docker compose build
 
+      - name: Start up containers
+        run: docker compose up -d quotes-database
+
       - name: Run tests with secret
         working-directory: ./_backend/services/user-service
         run: mvn test
