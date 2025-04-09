@@ -6,22 +6,28 @@ import com.ibm.websphere.security.jwt.InvalidConsumerException;
 import com.ibm.websphere.security.jwt.InvalidTokenException;
 import com.ibm.websphere.security.jwt.JwtConsumer;
 import com.ibm.websphere.security.jwt.JwtToken;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.UpdateResult;
+import com.sharedQuotes.SharedQuote;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.NewCookie;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import jakarta.ws.rs.core.Response;
-
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -35,9 +41,18 @@ public class AccountService {
 
     public AccountService() {
         String connectionString = System.getenv("CONNECTION_STRING");
+        
+        CodecProvider pojoCodecProvider = PojoCodecProvider
+        .builder()
+        .register(SharedQuote.class)
+        .build();
+        
+        CodecRegistry pojoCodecRegistry = 
+        fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
+        fromProviders(pojoCodecProvider));
 
         client = MongoClients.create(connectionString);
-        accountDB = client.getDatabase("Accounts");
+        accountDB = client.getDatabase("Accounts").withCodecRegistry(pojoCodecRegistry);
         accountCollection = accountDB.getCollection("Users");
     }
 
@@ -291,7 +306,7 @@ public class AccountService {
         List<String> notifications = document.getList("Notifications", String.class);
         List<String> myQuotes = document.getList("MyQuotes", String.class);
         List<String> bookmarkedQuotes = document.getList("BookmarkedQuotes", String.class);
-        List<String> sharedQuotes = document.getList("SharedQuotes", String.class);
+        List<SharedQuote> sharedQuotes = document.getList("SharedQuotes", SharedQuote.class);
         String profession = document.getString("Profession");
         String personalQuote = document.getString("PersonalQuote");
         Map<String, String> usedQuotes = (Map<String, String>) document.get("UsedQuotes");
