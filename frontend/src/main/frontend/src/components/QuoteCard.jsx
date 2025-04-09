@@ -57,8 +57,8 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal, onQuoteUsed }) => {
       {showLogin && <LoginOverlay setShowLogin={setShowLogin} />}
 
       <div style={{ display: "flex", gap: "10px" }}>
-        <QuoteTags tags={quote.tags.slice(0, 3)} />
-        {quote.tags.length > 3 && (
+        <QuoteTags tags={(quote.tags || []).slice(0, 3)} />
+        {quote.tags && quote.tags.length > 3 && (
           <span style={{ fontSize: "14px", fontWeight: "bold", color: "#5A5A5A" }}>
             +{quote.tags.length - 3}
           </span>
