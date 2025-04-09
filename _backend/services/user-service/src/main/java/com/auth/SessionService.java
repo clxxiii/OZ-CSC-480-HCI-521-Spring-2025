@@ -40,9 +40,6 @@ public class SessionService {
             return null;
         }
 
-        // Remove this when deployed!!!!
-        sessionsCollection.deleteOne(new Document("UserId", session.UserId));
-
         sessionsCollection.insertOne(sessionDoc);
 
         return session.SessionId.toString();

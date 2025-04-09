@@ -251,7 +251,8 @@ public class AuthResource {
             Client client = ClientBuilder.newClient();
             WebTarget target = client.target(internalUrl);
             Invocation.Builder requestBuilder = target.request(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + jwt);
+                    .header("Authorization", "Bearer " + jwt)
+                    .cookie("SessionId", sessionId);;
 
             Response forwardResponse;
             try {
@@ -313,13 +314,14 @@ public class AuthResource {
         sessionService.deleteSession(sessionId);
 
         NewCookie cookie = new NewCookie.Builder("SessionId")
-                .value(null)
+                .value("")
                 .path("/")
                 .maxAge(0)
                 .secure(true)
                 .sameSite(NewCookie.SameSite.LAX)
                 .httpOnly(true)
                 .build();
+
 
         return Response
                 .status(Response.Status.OK)
