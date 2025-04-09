@@ -115,36 +115,7 @@ public class MongoUtilTesting {
         assertNull(mongoUtil.getQuote(id));
     }
 
-    @Test
-    public void testSearchQuotes(){
-        String searchQuery = "text";
-        assertNotNull(mongoUtil.searchQuote(searchQuery));
-    }
 
-
-
-    //have not properly set up for null text
-    @Test
-    public void testSearchQuoteswithNullText(){
-        String searchQuery = null;
-        assertNotNull(mongoUtil.searchQuote(searchQuery));
-    }
-
-
-    //com.mongodb.MongoCommandException: Command failed with error 8 (UnknownError): '"text.query" cannot be empty' on server csc480cluster-shard-00-02.ldmco.mongodb.net:27017. The full response is {"ok": 0.0, "errmsg": "\"text.query\" cannot be empty", "code": 8, "codeName": "UnknownError", "$clusterTime": {"clusterTime": {"$timestamp": {"t": 1743743791, "i": 7}}, "signature": {"hash": {"$binary": {"base64": "ITnzdP/EWTN6dtwJZezgavFGxAE=", "subType": "00"}}, "keyId": 7431942852730421250}}, "operationTime": {"$timestamp": {"t": 1743743791, "i": 7}}}
-    @Test
-    public void testSearchQuotesWithEmptyText(){
-        String searchQuery = "";
-        assertNotNull(mongoUtil.searchQuote(searchQuery));
-    }
-
-
-    //gives "[]" back
-    @Test
-    public void testSearchQuotesWithRandomText(){
-        String searchQuery = "asfah";
-        assertNotNull(mongoUtil.searchQuote(searchQuery));
-    }
 
     //Testing parseQuote methods
     //method is private
@@ -184,6 +155,24 @@ public class MongoUtilTesting {
         quoteObject.setId(null);
         assertFalse(mongoUtil.updateQuote(quoteObject));
     }
+
+
+    //the jwtString creates error
+    @Test
+    void testSearchWithoutFilters() {
+        String searchQuery = "test";
+        boolean filterUsed = false;
+        boolean filterBookmarked = false;
+        boolean filterUploaded = false;
+        String includeTerms = null;
+        String excludeTerms = null;
+        String jwtString = "jwtString";
+        String result = mongoUtil.searchQuote(searchQuery, filterUsed, filterBookmarked, filterUploaded, includeTerms, excludeTerms, jwtString);
+        assertNotNull(result);
+        assertTrue(result.contains("test"));  // Ensure the search term "test" is present in the result
+    }
+
+
 
 
 

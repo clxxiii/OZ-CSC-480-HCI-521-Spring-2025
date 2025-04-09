@@ -22,12 +22,22 @@ import static com.mongodb.client.model.Filters.eq;
 @ApplicationScoped
 public class MongoUtil {
 
-    private static final String DATABASE_NAME = "Data";
+    private static final String DATABASE_NAME = "Test";
     private static MongoClient mongoClient;
     private static MongoDatabase database;
 
-    static {
+//    static {
+//        mongoClient = MongoClients.create(getConnectionString());
+//        database = mongoClient.getDatabase(DATABASE_NAME);
+//    }
+
+    public MongoUtil() {
         mongoClient = MongoClients.create(getConnectionString());
+        database = mongoClient.getDatabase(DATABASE_NAME);
+    }
+
+    public MongoUtil(String connectionString) {
+        mongoClient = MongoClients.create(connectionString);
         database = mongoClient.getDatabase(DATABASE_NAME);
     }
 
