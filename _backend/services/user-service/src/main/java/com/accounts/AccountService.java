@@ -18,14 +18,9 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.NewCookie;
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecProvider;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import jakarta.ws.rs.core.Response;
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,18 +36,8 @@ public class AccountService {
 
     public AccountService() {
         String connectionString = System.getenv("CONNECTION_STRING");
-        
-        CodecProvider pojoCodecProvider = PojoCodecProvider
-        .builder()
-        .register(SharedQuote.class)
-        .build();
-        
-        CodecRegistry pojoCodecRegistry = 
-        fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
-        fromProviders(pojoCodecProvider));
-
         client = MongoClients.create(connectionString);
-        accountDB = client.getDatabase("Accounts").withCodecRegistry(pojoCodecRegistry);
+        accountDB = client.getDatabase("Accounts");
         accountCollection = accountDB.getCollection("Users");
     }
 
@@ -306,7 +291,15 @@ public class AccountService {
         List<String> notifications = document.getList("Notifications", String.class);
         List<String> myQuotes = document.getList("MyQuotes", String.class);
         List<String> bookmarkedQuotes = document.getList("BookmarkedQuotes", String.class);
-        List<SharedQuote> sharedQuotes = document.getList("SharedQuotes", SharedQuote.class);
+        List<Document> sharedQuotesDocs = document.getList("SharedQuotes", Document.class);
+        List<SharedQuote> sharedQuotes = new ArrayList<>();
+        for(Document shareDoc:sharedQuotesDocs){
+            SharedQuote sharedQuote = new SharedQuote();
+            sharedQuote.setTo(shareDoc.getString("to"));
+            sharedQuote.setFrom(shareDoc.getString("from"));
+            sharedQuote.setQuoteId(shareDoc.getString("quoteId"));
+            sharedQuotes.add(sharedQuote);
+        }
         String profession = document.getString("Profession");
         String personalQuote = document.getString("PersonalQuote");
         Map<String, String> usedQuotes = (Map<String, String>) document.get("UsedQuotes");
