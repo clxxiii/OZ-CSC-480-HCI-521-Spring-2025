@@ -310,6 +310,26 @@ export const deleteBookmark = async (quoteId) => {
     throw error;
   }
 };
+export const logout = async () => {
+  try {
+    const response = await fetch(
+      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/auth/logout`)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ method: "DELETE" }),
+      }
+    );
+
+    return response.ok;
+  } catch (error) {
+    console.error("Error during logout:", error);
+    return false;
+  }
+};
 
 export const updateMe = async (updatedData) => {
   try {
