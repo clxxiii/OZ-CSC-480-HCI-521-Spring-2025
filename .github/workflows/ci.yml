@@ -13,11 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: run database
+        run: docker volume create --name quotes_db
+
       - name: Build Docker images
         run: docker compose build
-
-      - name: Start up containers
-        run: docker compose up -d quotes-database
 
       - name: Run tests with secret
         working-directory: ./_backend/services/user-service
