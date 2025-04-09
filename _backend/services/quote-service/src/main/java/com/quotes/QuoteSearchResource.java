@@ -67,18 +67,39 @@ public class QuoteSearchResource {
     })
     @Operation(summary = "Fuzzy search for quotes relevant to supplied query",
     description = "Searches for quotes similar to the users input and returns json of quotes determined to be most similar." +
-            " They are sorted in descending order so the first json object is the closest to users input")
-    public Response advancedSearch(@QueryParam("filterUsed") boolean filterUsed, @QueryParam("filterBookmarked") boolean filterBookmarked,
-                                   @QueryParam("filterUploaded") boolean filterUploaded, @QueryParam("include") String Included,
-                                   @QueryParam("exclude") String Excluded, @QueryParam("query") String query, @Context HttpHeaders header) {
+            " They are sorted in descending order so the first json object is the closest to users input.")
+    public Response advancedSearch(@QueryParam("filterUsed") @Parameter(description = "Should filter out Used Quotes. Defaults to false if left blank", required = false)
+                                       boolean filterUsed,
+                                   @QueryParam("filterBookmarked") @Parameter(description = "Should filter out Bookmarked Quotes. Defaults to false if left blank", required = false)
+                                   boolean filterBookmarked,
+                                   @QueryParam("filterUploaded") @Parameter(description = "Should filter out users Uploaded Quotes. Defaults to false if left blank", required = false)
+                                       boolean filterUploaded,
+                                   @QueryParam("include") @Parameter(description = "String of terms that must be included in quote. Leave as comma separated string. null if left blank",
+                                           required = false, example = "one,two,three")
+                                       String Included,
+                                   @QueryParam("exclude") @Parameter(description = "String of terms that must be excluded in quote. Leave as comma separated string. null if left blank",
+                                           required = false, example = "one,two,three")
+                                       String Excluded,
+                                   @QueryParam("query") @Parameter(description = "Query string user entered", required = true)
+                                       String query,
+                                   @Context HttpHeaders header)
+    {
         try{
             //get user jwt from header
+            boolean isGuest;
             String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
-            if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            if (authHeader == null) {
+                //no jwt, treat as guest
+                isGuest = true;
+            } else if(!authHeader.toLowerCase().startsWith("bearer ")) {
                 return Response.status(Response.Status.UNAUTHORIZED)
                         .entity(new Document("error", "Missing or invalid Authorization header").toJson())
                         .build();
+            } else {
+                //valid jwt, treat as user
+                isGuest = false;
             }
+
             String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
 
             //handle query string
@@ -87,7 +108,10 @@ public class QuoteSearchResource {
             }
             query = SanitizerClass.sanitize(query); //removes special characters
             //search database using Atlas Search
-            String result = mongo.searchQuote(query, filterUsed, filterBookmarked, filterUploaded, Included, Excluded, jwtString);
+            String result = mongo.searchQuote(query, filterUsed, filterBookmarked, filterUploaded, Included, Excluded, jwtString, isGuest);
+            if(result == null) {
+                return Response.status(Response.Status.EXPECTATION_FAILED).entity("Error getting user info").build();
+            }
             return Response.ok(result).build();
         } catch (Exception e) {
             return Response.status(Response.Status.CONFLICT).entity("Exception Occured: "+e).build();
