@@ -13,7 +13,7 @@ RUN mvn clean package $MAVEN_ARGS
 # ======================
 #       Run Stage
 # ======================
-FROM open-liberty:kernel-slim-java17-openj9 AS run
+FROM icr.io/appcafe/open-liberty:kernel-slim-java17-openj9-ubi AS run
 
 # Enable features
 COPY --chown=1001:0 src/main/liberty/config/ /config/
@@ -22,3 +22,4 @@ RUN features.sh
 COPY --from=build --chown=1001:0 target/*.war /config/apps/
 
 RUN configure.sh
+
