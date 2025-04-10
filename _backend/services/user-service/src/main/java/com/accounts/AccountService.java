@@ -310,15 +310,7 @@ public class AccountService {
         List<String> notifications = document.getList("Notifications", String.class);
         List<String> myQuotes = document.getList("MyQuotes", String.class);
         List<String> bookmarkedQuotes = document.getList("BookmarkedQuotes", String.class);
-        List<Document> sharedQuotesDocs = document.getList("SharedQuotes", Document.class);
-        List<SharedQuote> sharedQuotes = new ArrayList<>();
-        for(Document shareDoc:sharedQuotesDocs){
-            SharedQuote sharedQuote = new SharedQuote();
-            sharedQuote.setTo(shareDoc.getString("to"));
-            sharedQuote.setFrom(shareDoc.getString("from"));
-            sharedQuote.setQuoteId(shareDoc.getString("quoteId"));
-            sharedQuotes.add(sharedQuote);
-        }
+        List<SharedQuote> sharedQuotes = document.getList("SharedQuotes", SharedQuote.class);
         String profession = document.getString("Profession");
         String personalQuote = document.getString("PersonalQuote");
         Map<String, String> usedQuotes = (Map<String, String>) document.get("UsedQuotes");
