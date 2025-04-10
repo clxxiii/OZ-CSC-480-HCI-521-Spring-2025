@@ -354,7 +354,17 @@ export const updateMe = async (updatedData) => {
 export const fetchUserQuotes = async (userId) => {
   //fetch quotes created by a specific user
   try {
-    const response = await fetch(`${PROXY_URL}/quotes/search/user/${userId}`);
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/search/user/${userId}`)}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        method: "GET",
+      }),
+    });
+
     if (!response.ok) throw new Error("Failed to fetch user quotes");
 
     const data = await response.json();
