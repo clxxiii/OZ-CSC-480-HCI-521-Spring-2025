@@ -88,6 +88,8 @@ public class QuoteSearchResource {
             //get user jwt from header
             boolean isGuest;
             String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
+            String jwtString = null;
+
             if (authHeader == null) {
                 //no jwt, treat as guest
                 isGuest = true;
@@ -98,9 +100,8 @@ public class QuoteSearchResource {
             } else {
                 //valid jwt, treat as user
                 isGuest = false;
+                jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
             }
-
-            String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
 
             //handle query string
             if(query == null) {
@@ -110,7 +111,7 @@ public class QuoteSearchResource {
             //search database using Atlas Search
             String result = mongo.searchQuote(query, filterUsed, filterBookmarked, filterUploaded, Included, Excluded, jwtString, isGuest);
             if(result == null) {
-                return Response.status(Response.Status.EXPECTATION_FAILED).entity("Error getting user info").build();
+                return Response.status(Response.Status.NOT_FOUND).entity("No quotes matched the search criteria").build();
             }
             return Response.ok(result).build();
         } catch (Exception e) {

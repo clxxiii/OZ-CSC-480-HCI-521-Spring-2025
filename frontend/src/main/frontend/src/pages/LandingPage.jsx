@@ -8,6 +8,7 @@ import AlertMessage from "../components/AlertMessage";
 import { FetchTopQuotes } from "../lib/FetchTopQuotes";
 import { UserContext } from "../lib/Contexts";
 import AccountSetup from "../pages/AccountSetup"; // adjust path if it's in pages
+import { logout } from "../lib/api"; 
 
 const LandingPage = () => {
   const [alert, setAlert] = useState(null);
@@ -66,55 +67,15 @@ const LandingPage = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(
-        `${import.meta.env.PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${import.meta.env.PROXY_URL}/auth/logout`)}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            method: "DELETE",
-          }),
-        }
-      );
-  
-      if (response.ok) {
-        localStorage.removeItem("hasLoggedIn");
-        setIsLoggedIn(false);
-        setAlert({ type: "success", message: "Successfully logged out." });
-        setShowLogin(true);
-      } else {
-        setAlert({ type: "danger", message: "Logout failed." });
-      }
+      await logout(); 
+      localStorage.removeItem("hasLoggedIn");
+      setIsLoggedIn(false);
+      setAlert({ type: "success", message: "Successfully logged out." });
+      setShowLogin(true);
     } catch (error) {
       setAlert({ type: "danger", message: "An error occurred during logout." });
     }
   };
-
-
-  /* Sams Method:
-
-  export const logout = async () => {
-  try {
-    await fetch(${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(${PROXY_URL}/users/auth/logout)}, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include", 
-      body: JSON.stringify({
-        method: "DELETE", 
-      }),
-    });
-
-  } catch (error) {
-    console.error("Error during logout:", error);
-    throw error;
-  }
-};
-  */
 
   return (
     <>
