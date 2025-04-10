@@ -5,6 +5,8 @@ import { BsPersonCircle } from "react-icons/bs";
 import '../TopNav.css';
 import { UserContext } from "../lib/Contexts";
 import logo from "../assets/logo.png"; 
+import NotificationDropdown from "./NotificationDropdown";
+
 
 const TopNavigation = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -12,6 +14,40 @@ const TopNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user] = useContext(UserContext);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  const handleFetchNotifications = async () => {
+    if (user && user.id) {
+      try {
+        const fetchedNotifications = await fetchNotifications(user.id);
+        setNotifications(fetchedNotifications);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    }
+  };
+  
+  const handleRemoveNotification = async (index) => {
+    try {
+      const notificationId = notifications[index]._id;
+      await deleteNotification(notificationId);
+      setNotifications((prevNotifications) => prevNotifications.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error("Failed to remove notification:", error);
+    }
+  };
+
+  const handleClearAllNotifications = async () => {
+    if (user && user.id) {
+      try {
+        await clearAllNotifications(user.id);
+        setNotifications([]);
+      } catch (error) {
+        console.error("Failed to clear all notifications:", error);
+      }
+    }
+  };
 
   const isActive = (path) => location.pathname === path;
 
@@ -49,10 +85,47 @@ const TopNavigation = () => {
               <></>
 
             )}
-            <li className="nav-item ml-3 mr-3" title={user?.Username || "Click sign in to sign in"}>
-              <Link to="/account">
+            <li className="nav-item ml-3 mr-3" style={{ position: 'relative' }} title={user?.Username || "Click sign in to sign in"}>
+              <div style={{ cursor: "pointer" }} 
+              onClick={() => { 
+                setIsNotificationOpen(!isNotificationOpen);
+                if (!isNotificationOpen) handleFetchNotifications();
+              }}>
+              
                 <BsPersonCircle size={40} style={{ color: "#146C43" }} />
-              </Link>
+
+               {/* Notification Dot */}
+               {notifications.length > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  bottom: '5px', 
+                  right: '-5px',
+                  minWidth: '24px',
+                  height: '24px',
+                  backgroundColor: 'red',
+                  color: 'white',
+                  borderRadius: '50%',
+                  border: '2px solid white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  padding: '2px',
+                  lineHeight: 1,
+                }}>
+                  {notifications.length > 9 ? '9+' : notifications.length} 
+                </span>
+              )}
+              </div>
+
+              {/* Notification Dropdown */}
+            <NotificationDropdown
+              isVisible={isNotificationOpen}
+              onClose={() => setIsNotificationOpen(false)}
+              notifications={notifications}
+              onRemoveNotification={handleRemoveNotification}
+              onClearAll={handleClearAllNotifications}
+            />
             </li>
           </ul>
         </div>
