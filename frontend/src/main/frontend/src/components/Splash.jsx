@@ -2,7 +2,6 @@ import { useState } from "react"; //import useState to manage component state
 import { useNavigate } from "react-router-dom"; //import useNavigate to navigate between pages
 import searchSvg from "../assets/search.svg";
 import Tag from "./Tag";
-import { filteredSearch } from "../lib/api"; 
 
 export default function Splash() {
   const [searchQuery, setSearchQuery] = useState(""); //store the user's search input
