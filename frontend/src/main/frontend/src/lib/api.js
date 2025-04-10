@@ -428,6 +428,38 @@ export const useQuote = async (quoteId) => {
   }
 };
 
+{/* Notification Related */}
+export const fetchNotifications = async (userId) => {
+  try {
+    const response = await axios.get(`${PROXY_URL}/notifications/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    throw error;
+  }
+};
+
+export const deleteNotification = async (notificationId) => {
+  try {
+    await axios.delete(`${PROXY_URL}/notifications/delete/${notificationId}`);
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    throw error;
+  }
+};
+
+export const clearAllNotifications = async (userId) => {
+  try {
+    const notifications = await fetchNotifications(userId);
+    await Promise.all(
+      notifications.map((notification) => deleteNotification(notification._id))
+    );
+  } catch (error) {
+    console.error("Error clearing all notifications:", error);
+    throw error;
+  }
+};
+
 export const filteredSearch = async (query, filters = {}) => {
   try {
     const {
@@ -450,8 +482,8 @@ export const filteredSearch = async (query, filters = {}) => {
     const isGuest = !JSON.parse(localStorage.getItem("hasLoggedIn"));
 
     const endpoint = isGuest
-      ? `${PROXY_URL}/quotes/search/query?${params.toString()}` // Direct endpoint for guests
-      : `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/search/query?${params.toString()}`)}`; // Redirect URL for authenticated users
+      ? `${PROXY_URL}/quotes/search/query?${params.toString()}`
+      : `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/search/query?${params.toString()}`)}`;
 
     const options = isGuest
       ? {
