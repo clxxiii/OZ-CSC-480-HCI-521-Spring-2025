@@ -436,7 +436,7 @@ export const useQuote = async (quoteId) => {
 {/* Notification Related */}
 export const fetchNotifications = async (userId) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/notifications/user/${userId}`);
+    const response = await axios.get(`${PROXY_URL}/notifications/user/${userId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -446,7 +446,7 @@ export const fetchNotifications = async (userId) => {
 
 export const deleteNotification = async (notificationId) => {
   try {
-    await axios.delete(`${API_BASE_URL}/notifications/delete/${notificationId}`);
+    await axios.delete(`${PROXY_URL}/notifications/delete/${notificationId}`);
   } catch (error) {
     console.error("Error deleting notification:", error);
     throw error;
