@@ -3,6 +3,7 @@ package com.accounts;
 import com.ibm.websphere.security.jwt.*;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.sharedQuotes.SharedQuote;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.ws.rs.core.Response;
@@ -102,9 +103,8 @@ public class AccountsUnitTest {
         bookmarkedQuotes.add("sample_id_1");
         bookmarkedQuotes.add("sample_id_2");
 
-        List<String> sharedQuotes = new ArrayList<>();
-        sharedQuotes.add("sample_id_1");
-        sharedQuotes.add("sample_id_2");
+        List<SharedQuote> sharedQuotes = new ArrayList<>();
+        sharedQuotes.add(new SharedQuote());
 
         Map<String, String> usedQuotes = new HashMap<>();
         usedQuotes.put("sample_id_1", "sample_id_2");
