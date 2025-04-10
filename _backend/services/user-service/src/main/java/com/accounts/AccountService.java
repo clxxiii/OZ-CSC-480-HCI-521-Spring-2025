@@ -6,9 +6,12 @@ import com.ibm.websphere.security.jwt.InvalidConsumerException;
 import com.ibm.websphere.security.jwt.InvalidTokenException;
 import com.ibm.websphere.security.jwt.JwtConsumer;
 import com.ibm.websphere.security.jwt.JwtToken;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.UpdateResult;
+import com.sharedQuotes.SharedQuote;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -18,10 +21,8 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import jakarta.ws.rs.core.Response;
-
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +36,6 @@ public class AccountService {
 
     public AccountService() {
         String connectionString = System.getenv("CONNECTION_STRING");
-
         client = MongoClients.create(connectionString);
         accountDB = client.getDatabase("Accounts");
         accountCollection = accountDB.getCollection("Users");
@@ -291,7 +291,15 @@ public class AccountService {
         List<String> notifications = document.getList("Notifications", String.class);
         List<String> myQuotes = document.getList("MyQuotes", String.class);
         List<String> bookmarkedQuotes = document.getList("BookmarkedQuotes", String.class);
-        List<String> sharedQuotes = document.getList("SharedQuotes", String.class);
+        List<Document> sharedQuotesDocs = document.getList("SharedQuotes", Document.class);
+        List<SharedQuote> sharedQuotes = new ArrayList<>();
+        for(Document shareDoc:sharedQuotesDocs){
+            SharedQuote sharedQuote = new SharedQuote();
+            sharedQuote.setTo(shareDoc.getString("to"));
+            sharedQuote.setFrom(shareDoc.getString("from"));
+            sharedQuote.setQuoteId(shareDoc.getString("quoteId"));
+            sharedQuotes.add(sharedQuote);
+        }
         String profession = document.getString("Profession");
         String personalQuote = document.getString("PersonalQuote");
         Map<String, String> usedQuotes = (Map<String, String>) document.get("UsedQuotes");
