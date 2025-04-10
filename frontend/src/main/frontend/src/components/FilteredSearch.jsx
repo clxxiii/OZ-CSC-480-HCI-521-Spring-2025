@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ToggleButton from "../buttons/ToggleButton";
+import { filteredSearch } from "../lib/api";
 
 const FilteredSearch = ({ isVisible, onClose, onSearch }) => {
   const [filters, setFilters] = useState({
@@ -12,9 +13,23 @@ const FilteredSearch = ({ isVisible, onClose, onSearch }) => {
 
   if (!isVisible) return null;
 
-  const handleApply = () => {
-    // const filtersJson = JSON.stringify(filters); 
-    // onSearch(filtersJson);
+  const handleApply = async () => {
+    try {
+      const results = await filteredSearch("your-query", {
+        filterUsed: filters.includeUsed,
+        filterBookmarked: filters.includeBookmarked,
+        filterUploaded: filters.includeUploaded,
+        include: filters.includeTerm,
+        exclude: filters.excludeTerm,
+      });
+      if (onSearch) {
+        onSearch(results);
+      } else {
+        console.error("onSearch is not defined or not a function");
+      }
+    } catch (error) {
+      console.error("Error during filtered search:", error);
+    }
     onClose();
   };
 
