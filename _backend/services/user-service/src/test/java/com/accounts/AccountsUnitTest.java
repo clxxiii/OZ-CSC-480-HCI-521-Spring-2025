@@ -10,25 +10,35 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.*;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.*;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.crypto.spec.SecretKeySpec;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Testcontainers
 public class AccountsUnitTest {
     static AccountService accountService;
     static Account account;
     static String jwt;
     static ObjectId id;
 
+    @Container
+    private static final MongoDBContainer mongoDBContainer =
+            new MongoDBContainer("mongo:6.0");
+
     // Setup Method
     @BeforeAll
-    public static void setUp() {
+    public static void setUp() throws UnknownHostException {
 //        System.setProperty("config.path", "src/main/liberty/config");
 
 //        Dotenv dotenv = Dotenv.configure()
@@ -40,7 +50,11 @@ public class AccountsUnitTest {
 //
 //        accountService = new AccountService(client, "Test", "Users");
 
-        String connectionString = System.getenv("CONNECTION_URI");
+//        String connectionString = System.getenv("CONNECTION_STRING");
+
+        String connectionString = mongoDBContainer.getConnectionString();
+
+        System.out.println(connectionString);
 
         MongoClient client = MongoClients.create(connectionString);
 

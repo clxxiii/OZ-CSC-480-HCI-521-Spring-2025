@@ -7,16 +7,24 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.*;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Testcontainers
 class SessionServiceTest {
 
     static SessionService sessionService;
     static Session session;
     static ObjectId _id = new ObjectId();
+
+    @Container
+    private static final MongoDBContainer mongoDBContainer =
+            new MongoDBContainer("mongo:6.0");
 
     // Setup Method
     @BeforeAll
@@ -28,8 +36,9 @@ class SessionServiceTest {
 
 //        MongoClient client = MongoClients.create(dotenv.get("CONNECTION_STRING"));
 
-        String connectionString = System.getenv("CONNECTION_URI");
+//        String connectionString = System.getenv("CONNECTION_STRING");
 
+        String connectionString = mongoDBContainer.getConnectionString();
         MongoClient client = MongoClients.create(connectionString);
 
         sessionService = new SessionService(client, "Test", "Sessions");

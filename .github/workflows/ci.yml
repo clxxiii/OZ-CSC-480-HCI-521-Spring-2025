@@ -13,14 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: run database
-        run: docker volume create --name quotes_db
-
       - name: Build Docker images
         run: docker compose build
 
-      - name: Run tests with secret
+      - name: Run tests
         working-directory: ./_backend/services/user-service
         run: mvn test
-        env:
-          CONNECTION_URI: mongodb://user:password@quotes-database:27017

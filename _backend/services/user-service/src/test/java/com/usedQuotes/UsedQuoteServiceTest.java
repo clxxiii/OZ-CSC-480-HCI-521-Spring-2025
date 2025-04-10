@@ -9,6 +9,9 @@ import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.*;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,12 +20,17 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Testcontainers
 class UsedQuoteServiceTest {
 
     static UsedQuoteService usedQuoteService;
     static UsedQuote quote;
     static ObjectId _id = new ObjectId();
     static Date used = new Date();
+
+    @Container
+    private static final MongoDBContainer mongoDBContainer =
+            new MongoDBContainer("mongo:6.0");
 
     @BeforeAll
     public static void setUp() {
@@ -33,7 +41,9 @@ class UsedQuoteServiceTest {
 
 //        usedQuoteService = new UsedQuoteService(dotenv.get("CONNECTION_STRING"), "Test", "UsedQuotes");
 
-        String connectionString = System.getenv("CONNECTION_URI");
+//        String connectionString = System.getenv("CONNECTION_STRING");
+
+        String connectionString = mongoDBContainer.getConnectionString();
 
         usedQuoteService = new UsedQuoteService(connectionString, "Test", "UsedQuotes");
     }
