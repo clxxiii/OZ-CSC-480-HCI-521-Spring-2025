@@ -98,21 +98,6 @@ export const reportQuote = async (reportData) => {
   }
 };
 
-export const searchQuotes = async (query, isQuoteID = false) => {
-  //search for quotes by text or by a specific quote ID
-  try {
-    const endpoint = isQuoteID
-        ? `${PROXY_URL}/quotes/search/id/${query}`
-        : `${PROXY_URL}/quotes/search/query/${query}`; //search by text
-
-    const response = await fetch(endpoint);
-    if (!response.ok) throw new Error("Failed to search quotes");
-    return await response.json();
-  } catch (error) {
-    console.error("Error searching quotes:", error);
-  }
-};
-
 export const updateQuote = async (quoteData) => {
   //send a request to update an existing quote with new data
   try {
@@ -310,6 +295,26 @@ export const deleteBookmark = async (quoteId) => {
     throw error;
   }
 };
+export const logout = async () => {
+  try {
+    const response = await fetch(
+      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/auth/logout`)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ method: "DELETE" }),
+      }
+    );
+
+    return response.ok;
+  } catch (error) {
+    console.error("Error during logout:", error);
+    return false;
+  }
+};
 
 export const updateMe = async (updatedData) => {
   try {
@@ -349,7 +354,17 @@ export const updateMe = async (updatedData) => {
 export const fetchUserQuotes = async (userId) => {
   //fetch quotes created by a specific user
   try {
-    const response = await fetch(`${PROXY_URL}/quotes/search/user/${userId}`);
+    const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/search/user/${userId}`)}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        method: "GET",
+      }),
+    });
+
     if (!response.ok) throw new Error("Failed to fetch user quotes");
 
     const data = await response.json();
@@ -413,29 +428,60 @@ export const useQuote = async (quoteId) => {
   }
 };
 
-// const getJWT = async () => {
-//   try {
-//     const response = await fetch(`${PROXY_URL}/users/auth/jwt`, {
-//       method: "GET",
-//       credentials: "include",
-//     });
-//
-//     console.log([...response.headers.entries()]);
-//
-//     if (!response.ok) {
-//       const errorText = await response.text();
-//       console.error("Backend returned an error:", errorText);
-//       throw new Error(`Failed to fetch JWT: ${errorText}`);
-//     }
-//
-//     const jwt = response.headers.get("Authorization")?.replace("Bearer ", "");
-//     if (!jwt) {
-//       throw new Error("JWT not found in response headers.");
-//     }
-//
-//     return jwt;
-//   } catch (error) {
-//     console.error("Error fetching JWT:", error);
-//     throw error;
-//   }
-// };
+export const filteredSearch = async (query, filters = {}) => {
+  try {
+    const {
+      filterUsed = false,
+      filterBookmarked = false,
+      filterUploaded = false,
+      include = "",
+      exclude = "",
+    } = filters;
+
+    const params = new URLSearchParams({
+      query,
+      filterUsed: filterUsed.toString(),
+      filterBookmarked: filterBookmarked.toString(),
+      filterUploaded: filterUploaded.toString(),
+      ...(include && { include }),
+      ...(exclude && { exclude }),
+    });
+
+    const isGuest = !JSON.parse(localStorage.getItem("hasLoggedIn"));
+
+    const endpoint = isGuest
+      ? `${PROXY_URL}/quotes/search/query?${params.toString()}` // Direct endpoint for guests
+      : `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/search/query?${params.toString()}`)}`; // Redirect URL for authenticated users
+
+    const options = isGuest
+      ? {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      : {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            method: "GET",
+          }),
+        };
+
+    const response = await fetch(endpoint, options);
+
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      console.error("Error during filtered search:", errorMessage);
+      throw new Error(`Failed to perform filtered search: ${errorMessage}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error in filteredSearch:", error);
+    throw error;
+  }
+};
