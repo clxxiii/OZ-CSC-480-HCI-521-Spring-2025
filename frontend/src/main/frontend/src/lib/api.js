@@ -433,6 +433,38 @@ export const useQuote = async (quoteId) => {
   }
 };
 
+{/* Notification Related */}
+export const fetchNotifications = async (userId) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/notifications/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    throw error;
+  }
+};
+
+export const deleteNotification = async (notificationId) => {
+  try {
+    await axios.delete(`${API_BASE_URL}/notifications/delete/${notificationId}`);
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    throw error;
+  }
+};
+
+export const clearAllNotifications = async (userId) => {
+  try {
+    const notifications = await fetchNotifications(userId);
+    await Promise.all(
+      notifications.map((notification) => deleteNotification(notification._id))
+    );
+  } catch (error) {
+    console.error("Error clearing all notifications:", error);
+    throw error;
+  }
+};
+
 // const getJWT = async () => {
 //   try {
 //     const response = await fetch(`${PROXY_URL}/users/auth/jwt`, {
