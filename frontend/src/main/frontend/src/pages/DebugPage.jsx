@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import {
   createQuote,
   deleteQuote,
-  searchQuotes,
+ // searchQuotes,
   updateQuote,
   fetchTopBookmarkedQuotes,
   fetchTopSharedQuotes,
@@ -90,15 +90,15 @@ const DebugPage = () => {
   const [searchId, setSearchId] = useState("");
   const [searchIdResult, setSearchIdResult] = useState(null);
 
-  const handleSearchById = async (e) => {
-    e.preventDefault();
-    try {
-      const result = await searchQuotes(searchId, true); // isQuoteID = true
-      setSearchIdResult(result);
-    } catch (error) {
-      setSearchIdResult(`Error searching quote by ID: ${error.message}`);
-    }
-  };
+  // const handleSearchById = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const result = await searchQuotes(searchId, true); // isQuoteID = true
+  //     setSearchIdResult(result);
+  //   } catch (error) {
+  //     setSearchIdResult(`Error searching quote by ID: ${error.message}`);
+  //   }
+  // };
 
   //
   // 4) SEARCH QUOTES BY TEXT
@@ -106,15 +106,15 @@ const DebugPage = () => {
   const [searchText, setSearchText] = useState("");
   const [searchTextResult, setSearchTextResult] = useState(null);
 
-  const handleSearchByText = async (e) => {
-    e.preventDefault();
-    try {
-      const result = await searchQuotes(searchText, false); // isQuoteID = false
-      setSearchTextResult(result);
-    } catch (error) {
-      setSearchTextResult(`Error searching quotes by text: ${error.message}`);
-    }
-  };
+  // const handleSearchByText = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const result = await searchQuotes(searchText, false); // isQuoteID = false
+  //     setSearchTextResult(result);
+  //   } catch (error) {
+  //     setSearchTextResult(`Error searching quotes by text: ${error.message}`);
+  //   }
+  // };
 
   //
   // 5) UPDATE QUOTE

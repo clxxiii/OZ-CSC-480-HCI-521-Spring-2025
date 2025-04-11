@@ -54,12 +54,6 @@ public class BookmarkResource {
         Document doc = accountService.retrieveUserFromJWT(jwtString);
             doc.remove("expires_at");
             Account acc = accountService.document_to_account(doc);
-            if(acc.MyQuotes.contains(quoteId)){
-                return Response
-            .status(Response.Status.BAD_REQUEST)
-            .entity("That's your quote")
-            .build();
-            }
             if(acc.BookmarkedQuotes.contains(quoteId)){
                 return Response
             .status(Response.Status.BAD_REQUEST)
