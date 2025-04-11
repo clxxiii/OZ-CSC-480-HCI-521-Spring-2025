@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BookmarkFill, Bookmark, Share, Flag } from "react-bootstrap-icons";
 import { bookmarkQuote, deleteBookmark } from "../lib/api";
+
 import ShareQuotePopup from "../components/ShareQuotePopup";
 import { shareQuote } from "../lib/api"; // near top
 
@@ -155,6 +156,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert, setShowLogin }) => {
         {/*    style={{ background: "none", border: "none", cursor: "pointer" }}*/}
         {/*>*/}
         {/*  <Share size={22} />*/}
+
         {/*</button>*/}
 
         <div style={{ position: "relative" }}>
@@ -166,6 +168,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert, setShowLogin }) => {
           </button>
 
           {showSharePopup && (
+
               <div
                   style={{
                     position: "absolute",
@@ -175,6 +178,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert, setShowLogin }) => {
                   }}
               >
                 <ShareQuotePopup
+
                     quote={quote}
                     onClose={() => setShowSharePopup(false)}
                     onSend={handleSendQuote}

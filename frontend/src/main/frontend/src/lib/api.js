@@ -23,6 +23,8 @@ export const createQuote = async ({ quote, author, tags, private: isPrivate }) =
     //   credentials: "include",
     // });
 
+
+
     const response = await fetch(`${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/create`)}`, {
       method: "POST",
       headers: {
@@ -196,6 +198,68 @@ export const fetchTopSharedQuotes = async () => {
   }
 };
 
+// export const handleSend = async (input, id) => {
+//   // Making sure JWT is stored correctly
+//   // const token = localStorage.getItem("jwt");
+//   // if (!token) {
+//   //     alert("You must be logged in.");
+//   //     return;
+//   // }
+//   console.log("send clicked")
+//   setLoading(true);
+//
+//   // for (const user of selectedUsers) {
+//   try {
+//     const res = await fetch(`${PROXY_URL}/sharedQuotes/share/${input}/${id}`, {
+//       method: "POST",
+//       credentials: "include"
+//       // headers: {
+//       //     Authorization: `Bearer ${token}`,
+//       //     "Content-Type": "application/json"
+//       // }
+//     });
+//
+//     if (!res.ok) {
+//       const error = await res.json();
+//       alert(`Failed to share with ${input}: ${error.error}`);
+//     }
+//   } catch (err) {
+//     console.error("Error sharing quote:", err);
+//     alert(`Error sharing with ${input}`);
+//   }
+//   // }
+//
+//   setLoading(false);
+//   onClose();
+// };
+
+// in api.js
+export const handleSend = async (input, quoteId) => {
+  // setLoading(true);
+  try {
+    const res = await fetch(`http://localhost:9081/users/sharedQuotes/share/${input}/${quoteId}`, {
+      method: "POST",
+      credentials: "include"
+    });
+
+
+    if (!res.ok) {
+      const error = await res.json();
+      alert(`Failed to share with ${input}: ${error.error}`);
+
+    } else {
+      alert("Quote successfully shared!");
+    }
+
+  } catch (err) {
+    console.error("Error sharing quote:", err);
+    alert("Error sharing quote.");
+  }
+  // setLoading(false);
+  // onClose();
+};
+
+
 export const fetchMe = async () => {
   //fetch the currently logged-in user's data
   try {
@@ -205,6 +269,7 @@ export const fetchMe = async () => {
           credentials: "include"
         }
     );
+
 
     if (!response.ok) return null;
 
@@ -460,6 +525,68 @@ export const clearAllNotifications = async (userId) => {
   }
 };
 
+export const shareQuote = async (quoteId, recipientEmail) => {
+  try {
+    const payload = {
+      quoteId,
+      recipient: recipientEmail,
+    };
+
+    const response = await fetch(
+        `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/share`)}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            method: "POST",
+            body: payload,
+          }),
+        }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error sharing quote:", errorText);
+      throw new Error("Failed to share quote.");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error in shareQuote API:", error);
+    throw error;
+  }
+};
+
+
+// const getJWT = async () => {
+//   try {
+//     const response = await fetch(`${PROXY_URL}/users/auth/jwt`, {
+//       method: "GET",
+//       credentials: "include",
+//     });
+//
+//     console.log([...response.headers.entries()]);
+//
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error("Backend returned an error:", errorText);
+//       throw new Error(`Failed to fetch JWT: ${errorText}`);
+//     }
+//
+//     const jwt = response.headers.get("Authorization")?.replace("Bearer ", "");
+//     if (!jwt) {
+//       throw new Error("JWT not found in response headers.");
+//     }
+//
+//     return jwt;
+//   } catch (error) {
+//     console.error("Error fetching JWT:", error);
+//     throw error;
+//   }
+// };
 export const filteredSearch = async (query, filters = {}) => {
   try {
     const {

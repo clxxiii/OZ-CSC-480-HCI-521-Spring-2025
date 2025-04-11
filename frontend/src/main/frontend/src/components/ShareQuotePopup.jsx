@@ -1,63 +1,106 @@
 import React, { useEffect, useRef, useState } from "react";
+import {handleSend} from "../lib/api.js";
 
-const ShareQuotePopup = ({ quote, onClose, onSend }) => {
+const ShareQuotePopup = ({ quote, onClose }) => {
     const [input, setInput] = useState("");
-    const [selectedUsers, setSelectedUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
+    const [selectedUsers, setSelectedUsers] = useState([]);
+
     const [isTyping, setIsTyping] = useState(false);
+
+    const [loading, setLoading] = useState(false);
+
     const popupRef = useRef(null);
 
-    // Close on outside click
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (popupRef.current && !popupRef.current.contains(e.target)) {
-                onClose();
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [onClose]);
 
-    // Live search users
-    useEffect(() => {
-        const delayDebounce = setTimeout(async () => {
-            if (input.trim() === "") {
-                setFilteredUsers([]);
-                setIsTyping(false);
-                return;
-            }
+    // close on outside click
+    // useEffect(() => {
+    //     const handleClickOutside = (e) => {
+    //         if (popupRef.current && !popupRef.current.contains(e.target)) {
+    //             onClose();
+    //         }
+    //     };
+    //     document.addEventListener("mousedown", handleClickOutside);
+    //     return () => document.removeEventListener("mousedown", handleClickOutside);
+    // }, [onClose]);
 
-            try {
-                const res = await fetch(`/api/users/search?q=${encodeURIComponent(input)}`);
-                const data = await res.json();
-                setFilteredUsers(data);
-                setIsTyping(true);
-            } catch (error) {
-                console.error("Failed to fetch users:", error);
-            }
-        }, 300); // debounce
+    // Debounced user search
+    // useEffect(() => {
+    //     const timeout = setTimeout(async () => {
+    //         if (!input.trim()) {
+    //             setFilteredUsers([]);
+    //             setIsTyping(false);
+    //             return;
+    //         }
+    //
+    //         try {
+    //             const res = await fetch(`/api/users/search?q=${encodeURIComponent(input)}`);
+    //             const data = await res.json();
+    //             setFilteredUsers(data);
+    //             setIsTyping(true);
+    //         } catch (err) {
+    //             console.error("User search failed:", err);
+    //         }
+    //     }, 300);
+    //
+    //     return () => clearTimeout(timeout);
+    // }, [input]);
 
-        return () => clearTimeout(delayDebounce);
-    }, [input]);
+    // Add/remove from selected
 
     const toggleUser = (user) => {
         setSelectedUsers((prev) =>
-            prev.some((u) => u.email === user.email)
-                ? prev.filter((u) => u.email !== user.email)
+            prev.some(u => u.email === user.email)
+                ? prev.filter(u => u.email !== user.email)
                 : [...prev, user]
         );
     };
 
-    const handleSend = () => {
-        selectedUsers.forEach((user) => onSend(user));
-        onClose();
-    };
+    // Share quote with selected users
+    // const handleSend = async () => {
+    //     // Making sure JWT is stored correctly
+    //     // const token = localStorage.getItem("jwt");
+    //     // if (!token) {
+    //     //     alert("You must be logged in.");
+    //     //     return;
+    //     // }
+    //     console.log("send clicked")
+    //     setLoading(true);
+    //
+    //     // for (const user of selectedUsers) {
+    //         try {
+    //             const res = await fetch(`/sharedQuotes/share/${input}/${quote._id}`, {
+    //                 method: "POST",
+    //                 credentials: "include"
+    //                 // headers: {
+    //                 //     Authorization: `Bearer ${token}`,
+    //                 //     "Content-Type": "application/json"
+    //                 // }
+    //             });
+
+
+    //
+    //
+    //             if (!res.ok) {
+    //                 const error = await res.json();
+    //                 alert(`Failed to share with ${input}: ${error.error}`);
+    //             }
+    //         } catch (err) {
+    //             console.error("Error sharing quote:", err);
+    //             alert(`Error sharing with ${input}`);
+    //         }
+    //     // }
+    //
+    //     setLoading(false);
+    //     onClose();
+    // };
 
     const copyLink = () => {
         const link = `${window.location.origin}/quote/${quote._id}`;
         navigator.clipboard.writeText(link);
         alert("Link copied to clipboard!");
     };
+
 
     return (
         <div
@@ -72,6 +115,8 @@ const ShareQuotePopup = ({ quote, onClose, onSend }) => {
                 zIndex: 1000,
             }}
         >
+
+
             <div
                 style={{
                     background: "#fff9d1",
@@ -85,113 +130,108 @@ const ShareQuotePopup = ({ quote, onClose, onSend }) => {
                 Share this quote
             </div>
 
-            <div style={{ marginBottom: "10px" }}>
-                <input
-                    type="text"
-                    placeholder="Search who to share with..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    style={{
-                        width: "100%",
-                        padding: "8px",
-                        borderRadius: "8px",
-                        border: "1px solid #ccc",
-                        fontSize: "14px",
-                    }}
-                />
+            <input
+                type="text"
+                placeholder="Search by email..."
+                value={input}
+                onChange={(e) =>
+                    setInput(e.target.value)}
+                style={{
+                    width: "100%",
+                    padding: "8px",
+                    borderRadius: "6px",
+                    border: "1px solid #ccc",
+                    marginBottom: "10px"
+                }}
+            />
+
+
+
+
+            {/*{isTyping && filteredUsers.length > 0 && (*/}
+            {/*    <ul style={{ maxHeight: "100px", overflowY: "auto", padding: 0, margin: 0 }}>*/}
+            {/*        {filteredUsers.map((user) => (*/}
+            {/*            <li*/}
+            {/*                key={user.email}*/}
+            {/*                onClick={() => toggleUser(user)}*/}
+            {/*                style={{*/}
+            {/*                    padding: "6px",*/}
+            {/*                    cursor: "pointer",*/}
+            {/*                    backgroundColor: selectedUsers.some(u => u.email === user.email)*/}
+            {/*                        ? "#e0f7fa"*/}
+            {/*                        : "#fff",*/}
+            {/*                    borderBottom: "1px solid #eee"*/}
+            {/*                }}*/}
+            {/*            >*/}
+            {/*                <strong>{user.name}</strong> – {user.email}*/}
+            {/*            </li>*/}
+            {/*        ))}*/}
+            {/*    </ul>*/}
+            {/*)}*/}
+
+            {/*{selectedUsers.length > 0 && (*/}
+            {/*    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", margin: "10px 0" }}>*/}
+            {/*        {selectedUsers.map((user) => (*/}
+            {/*            <div*/}
+            {/*                key={user.email}*/}
+            {/*                style={{*/}
+            {/*                    background: "#d0f0ff",*/}
+            {/*                    padding: "4px 8px",*/}
+            {/*                    borderRadius: "12px",*/}
+            {/*                    fontSize: "13px",*/}
+            {/*                    display: "flex",*/}
+            {/*                    alignItems: "center",*/}
+            {/*                    gap: "4px"*/}
+            {/*                }}*/}
+            {/*            >*/}
+            {/*                {user.name}*/}
+            {/*                <span*/}
+            {/*                    style={{ cursor: "pointer", fontWeight: "bold" }}*/}
+            {/*                    onClick={() => toggleUser(user)}*/}
+            {/*                >*/}
+            {/*                    ×*/}
+            {/*                </span>*/}
+            {/*            </div>*/}
+            {/*        ))}*/}
+            {/*    </div>*/}
+            {/*)}*/}
+
+            <button
+                // onClick={handleSend(input, quote._id)}
+
+                onClick={() => handleSend(input, quote._id)}
+
+                // disabled={selectedUsers.length === 0 || loading}
+
+                style={{
+                    width: "100%",
+                    padding: "8px",
+                    background: loading ? "#ccc" : "#007bff",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    marginTop: "8px"
+                }}
+            >
+                Send
+
+                {/*{loading ? "Sharing..." : "Send"}*/}
+            </button>
+
+            <hr style={{ margin: "12px 0" }} />
+
+            <div
+                onClick={copyLink}
+                style={{
+                    textAlign: "center",
+                    color: "#007bff",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                }}
+            >
+                🔗 Copy Shareable Link
             </div>
-
-            {/* Typing mode */}
-            {isTyping ? (
-                <ul style={{ listStyle: "none", padding: 0, marginBottom: "8px" }}>
-                    {filteredUsers.map((user) => (
-                        <li
-                            key={user.email}
-                            onClick={() => toggleUser(user)}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                padding: "6px",
-                                borderRadius: "6px",
-                                background: selectedUsers.some(u => u.email === user.email)
-                                    ? "#e0f7fa"
-                                    : "#fff",
-                                cursor: "pointer",
-                                borderBottom: "1px solid #eee"
-                            }}
-                        >
-                            <div
-                                style={{
-                                    width: "32px",
-                                    height: "32px",
-                                    borderRadius: "50%",
-                                    background: "#eee",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    fontWeight: "bold",
-                                    marginRight: "10px",
-                                }}
-                            >
-                                {user.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
-                            </div>
-                            <div>
-                                <div style={{ fontWeight: "bold" }}>{user.name}</div>
-                                <div style={{ fontSize: "12px", color: "#888" }}>{user.title || user.email}</div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <>
-                    <hr />
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            marginTop: "8px",
-                            gap: "6px",
-                            fontWeight: "bold",
-                            color: "#007bff"
-                        }}
-                        onClick={copyLink}
-                    >
-                        <span style={{ background: "#e3fce1", borderRadius: "50%", padding: "4px" }}>
-                            🔗
-                        </span>
-                        Copy Link
-                    </div>
-                </>
-            )}
-
-            {selectedUsers.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
-                    {selectedUsers.map(user => (
-                        <div
-                            key={user.email}
-                            style={{
-                                background: "#d0f0ff",
-                                padding: "4px 8px",
-                                borderRadius: "12px",
-                                fontSize: "13px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px"
-                            }}
-                        >
-                            {user.name}
-                            <span
-                                style={{ cursor: "pointer", fontWeight: "bold" }}
-                                onClick={() => toggleUser(user)}
-                            >
-                    ×
-                </span>
-                        </div>
-                    ))}
-                </div>
-            )}
 
         </div>
     );
