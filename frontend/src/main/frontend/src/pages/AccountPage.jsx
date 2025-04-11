@@ -4,9 +4,11 @@ import { updateMe } from "../lib/api";
 import { BsCheckSquare, BsPencilSquare } from "react-icons/bs"; // Import icons
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../lib/Contexts";
+import AlertMessage from "../components/AlertMessage";
 
 const AccountPage = () => {
   const [user, setUser] = useContext(UserContext);
+  const [alert, setAlert] = useState(null);
   const [error, setError] = useState(null);
   const [isEditingProfession, setIsEditingProfession] = useState(false);
   const [isEditingPersonalQuote, setIsEditingPersonalQuote] = useState(false);
@@ -64,6 +66,19 @@ const AccountPage = () => {
       });
   };
 
+    const handleLogout = async () => {
+      try {
+        await logout(); 
+        localStorage.removeItem("hasLoggedIn");
+        setIsLoggedIn(false);
+        setAlert({ type: "success", message: "Successfully logged out." });
+        setShowLogin(true);
+      } catch (error) {
+        setAlert({ type: "danger", message: "An error occurred during logout." });
+      }
+    };
+
+
   if (error) return <div>Error: {error}</div>;
 
   return (
@@ -84,6 +99,8 @@ const AccountPage = () => {
                 fontWeight: "bold",
               }}
             >
+              <button className="btn btn-danger position-absolute top-0 end-0 m-3" onClick={handleLogout}> Log Out </button>
+
               {user.Username ? user.Username[0].toUpperCase() : "U"}
             </div>
             <div className="ms-3 text-start">
