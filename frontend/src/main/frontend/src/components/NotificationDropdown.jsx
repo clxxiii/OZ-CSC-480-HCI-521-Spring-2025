@@ -1,7 +1,8 @@
 import { IoMdClose, IoIosArrowDown } from "react-icons/io";
 import { Link } from "react-router-dom";
 import NotificationItem from "./Notification";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
+import { UserContext } from "../lib/Contexts";
 
 const NotificationDropdown = ({
   isVisible,
@@ -17,6 +18,8 @@ const NotificationDropdown = ({
     overflow: "hidden",
     transition: "max-height 0.4s ease, opacity 0.4s ease",
   });
+
+  const [user] = useContext(UserContext);
 
   useEffect(() => {
     if (isNotificationsVisible) {
