@@ -83,24 +83,26 @@ const NotificationDropdown = ({
         }}
       >
         {/* Account Page Link */}
-        <li
-          style={{
-            padding: "8px 14px", // reduced padding
-            borderBottom: "1px solid #ccc",
-            cursor: "pointer",
-          }}
-        >
-          <Link
-            to="/account"
+        { user && (
+          <li
             style={{
-              textDecoration: "none",
-              color: "black",
-              fontSize: "13px",
+              padding: "8px 14px", // reduced padding
+              borderBottom: "1px solid #ccc",
+              cursor: "pointer",
             }}
           >
-            Account Page
-          </Link>
-        </li>
+            <Link
+              to="/account"
+              style={{
+                textDecoration: "none",
+                color: "black",
+                fontSize: "13px",
+              }}
+            >
+              Account Page
+            </Link>
+          </li>
+        )}
 
         {/* Notifications Section */}
         <li
