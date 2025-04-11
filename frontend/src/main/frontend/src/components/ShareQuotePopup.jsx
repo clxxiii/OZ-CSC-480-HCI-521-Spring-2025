@@ -56,44 +56,6 @@ const ShareQuotePopup = ({ quote, onClose }) => {
         );
     };
 
-    // Share quote with selected users
-    // const handleSend = async () => {
-    //     // Making sure JWT is stored correctly
-    //     // const token = localStorage.getItem("jwt");
-    //     // if (!token) {
-    //     //     alert("You must be logged in.");
-    //     //     return;
-    //     // }
-    //     console.log("send clicked")
-    //     setLoading(true);
-    //
-    //     // for (const user of selectedUsers) {
-    //         try {
-    //             const res = await fetch(`/sharedQuotes/share/${input}/${quote._id}`, {
-    //                 method: "POST",
-    //                 credentials: "include"
-    //                 // headers: {
-    //                 //     Authorization: `Bearer ${token}`,
-    //                 //     "Content-Type": "application/json"
-    //                 // }
-    //             });
-
-
-    //
-    //
-    //             if (!res.ok) {
-    //                 const error = await res.json();
-    //                 alert(`Failed to share with ${input}: ${error.error}`);
-    //             }
-    //         } catch (err) {
-    //             console.error("Error sharing quote:", err);
-    //             alert(`Error sharing with ${input}`);
-    //         }
-    //     // }
-    //
-    //     setLoading(false);
-    //     onClose();
-    // };
 
     const copyLink = () => {
         const link = `${window.location.origin}/quote/${quote._id}`;

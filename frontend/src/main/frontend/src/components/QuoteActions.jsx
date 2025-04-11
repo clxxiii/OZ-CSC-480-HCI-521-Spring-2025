@@ -39,14 +39,6 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert, setShowLogin }) => {
         }
     };
 
-    // const handleShareClick = (e) => {
-    //     e.stopPropagation();
-    //     const otherUser = prompt("Enter the email to share this quote with:");
-    //     if (otherUser) {
-    //         alert(`Quote shared with ${otherUser}!`);
-    //     }
-    // };
-
     const handleShareClick = (e) => {
         e.stopPropagation();
         setShowSharePopup(prev => !prev);
@@ -111,16 +103,10 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert, setShowLogin }) => {
                 <span
                     style={{ fontSize: "14px", fontWeight: "500", color: "#5A5A5A" }}
                 >
-          {bookmarkCount}
-        </span>
+                    {bookmarkCount}
+                </span>
             </button>
 
-            {/*<button*/}
-            {/*    onClick={handleShareClick}*/}
-            {/*    style={{ background: "none", border: "none", cursor: "pointer" }}*/}
-            {/*>*/}
-            {/*    <Share size={22} />*/}
-            {/*</button>*/}
             <div style={{ position: "relative" }}>
                 <button
                     onClick={handleShareClick}

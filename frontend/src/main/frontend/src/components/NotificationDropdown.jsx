@@ -1,16 +1,16 @@
 import { IoMdClose, IoIosArrowDown } from "react-icons/io";
 import { Link } from "react-router-dom";
+import { useContext } from "react";
 import NotificationItem from "./Notification";
 import { useState, useRef, useEffect } from "react";
+import { fetchNotifications, deleteNotification, clearAllNotifications } from "../lib/api";
+import { UserContext } from "../lib/Contexts";
 
-const NotificationDropdown = ({
-  isVisible,
-  notifications,
-  onRemoveNotification,
-  onClearAll,
-}) => {
+const NotificationDropdown = ({ isVisible }) => {
+  const [notifications, setNotifications] = useState([]);
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const contentRef = useRef(null);
+  const [user] = useContext(UserContext); 
   const [dropdownStyles, setDropdownStyles] = useState({
     maxHeight: "0px",
     opacity: 0,
@@ -34,6 +34,42 @@ const NotificationDropdown = ({
       }));
     }
   }, [isNotificationsVisible, notifications]);
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+
+        const userId = user._id.$oid;
+        const fetchedNotifications = await fetchNotifications(userId); 
+        setNotifications(fetchedNotifications);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    if (isVisible) {
+      loadNotifications();
+    }
+  }, [isVisible, user]);
+
+  const handleRemoveNotification = async (index) => {
+    try {
+      const notificationId = notifications[index]._id;
+      await deleteNotification(notificationId);
+      setNotifications((prev) => prev.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error("Error removing notification:", error);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await clearAllNotifications(user._id);
+      setNotifications([]);
+    } catch (error) {
+      console.error("Error clearing all notifications:", error);
+    }
+  };
 
   if (!isVisible) return null;
 
@@ -191,19 +227,19 @@ const NotificationDropdown = ({
                 <>
                   {notifications.map((notification, index) => (
                     <NotificationItem
-                      key={notification.id}
+                      key={notification._id}
                       notification={{
                         ...notification,
                         isLast: index === notifications.length - 1,
                       }}
-                      onRemove={() => onRemoveNotification(index)}
+                      onRemove={() => handleRemoveNotification(index)}
                     />
                   ))}
                   <div style={{ padding: "6px", textAlign: "center" }}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onClearAll();
+                        handleClearAll();
                       }}
                       style={{
                         background: borderColor,
