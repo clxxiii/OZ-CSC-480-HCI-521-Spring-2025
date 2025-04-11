@@ -68,7 +68,7 @@ const SavedQuotes = () => {
       const response = await fetch(`/useQuote/use/${quoteId}`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${user.token}`, // Ensure user.token exists
+          Authorization: `Bearer ${user.token}`, 
         },
       });
 
