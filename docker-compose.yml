@@ -7,6 +7,7 @@
 
 name: quotable
 
+
 services:
   # For GUI, comment this section out when building and run npm run dev in /frontend/src/main/frontend to debug changes.
   frontend:
@@ -24,7 +25,10 @@ services:
       - quotes-database
 
   user-service:
-    build: ./_backend/services/user-service
+    build:
+      context: ./_backend/services/user-service
+      args:
+        MAVEN_ARGS: -DskipTests
     ports:
       - 9081:9081
     environment:

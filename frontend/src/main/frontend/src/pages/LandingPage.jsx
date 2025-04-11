@@ -65,28 +65,15 @@ const LandingPage = () => {
     setShowModal(false); 
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout(); 
-      localStorage.removeItem("hasLoggedIn");
-      setIsLoggedIn(false);
-      setAlert({ type: "success", message: "Successfully logged out." });
-      setShowLogin(true);
-    } catch (error) {
-      setAlert({ type: "danger", message: "An error occurred during logout." });
-    }
-  };
-
   return (
     <>
-      {showLogin && <LoginOverlay setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn} />}
+      {showLogin && <LoginOverlay aria-label="Login Overlay" aria-live="assertive" setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn}/>}
       
       {alert && (
         <div className="position-fixed top-0 start-50 translate-middle-x mt-3 px-4" style={{ zIndex: 1050 }}>
           <AlertMessage type={alert.type} message={alert.message} autoDismiss={true} />
         </div>
       )}
-      <button className="btn btn-danger position-absolute top-0 end-0 m-3" onClick={handleLogout}> Log Out </button>
       <Splash />
 
       <QuoteUploadModal
