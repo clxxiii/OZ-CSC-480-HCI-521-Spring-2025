@@ -2,9 +2,13 @@ import React, { useState, useEffect } from "react";
 import { BookmarkFill, Bookmark, Share, Flag } from "react-bootstrap-icons";
 import { bookmarkQuote, deleteBookmark } from "../lib/api";
 
+import ShareQuotePopup from "../components/ShareQuotePopup";
+import { shareQuote } from "../lib/api"; // near top
+
 const QuoteActions = ({ quote, onBookmarkToggle, setAlert, setShowLogin }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkCount, setBookmarkCount] = useState(quote.bookmarks || 0);
+  const [showSharePopup, setShowSharePopup] = useState(false);
 
   useEffect(() => {
     const bookmarkedQuotes = JSON.parse(localStorage.getItem("bookmarkedQuotes")) || [];
@@ -62,9 +66,22 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert, setShowLogin }) => {
 
   const handleShareClick = (e) => {
     e.stopPropagation();
-    const otherUser = prompt("Enter the email to share this quote with:");
-    if (otherUser) {
-      alert(`Quote shared with ${otherUser}!`);
+    setShowSharePopup(prev => !prev);
+  };
+
+  const handleSendQuote = async (user) => {
+    try {
+      await shareQuote(quote._id, user.email);
+      setAlert({
+        type: "success",
+        message: `Quote successfully shared with ${user.name}!`,
+      });
+    } catch (error) {
+      console.error("Error sharing quote:", error);
+      setAlert({
+        type: "danger",
+        message: "Failed to share the quote. Please try again.",
+      });
     }
   };
 
@@ -89,11 +106,11 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert, setShowLogin }) => {
         style={{ background: "none", border: "none", cursor: "pointer" }}
       >
         <svg
+          xmlns="http://www.w3.org/2000/svg"
           width="24"
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg"
         >
           <path
             id="Vector"
@@ -124,16 +141,33 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert, setShowLogin }) => {
         </span>
       </button>
 
-      <button
-        aria-label="Share button"
-        onClick={handleShareClick}
-        style={{ background: "none", border: "none", cursor: "pointer" }}
-      >
-        <Share size={22} />
-      </button>
+      <div style={{ position: "relative" }}>
+        <button
+          onClick={handleShareClick}
+          style={{ background: "none", border: "none", cursor: "pointer" }}
+        >
+          <Share size={22} />
+        </button>
+
+        {showSharePopup && (
+          <div
+            style={{
+              position: "absolute",
+              top: "30px",
+              left: "0",
+              zIndex: 10,
+            }}
+          >
+            <ShareQuotePopup
+              quote={quote}
+              onClose={() => setShowSharePopup(false)}
+              onSend={handleSendQuote}
+            />
+          </div>
+        )}
+      </div>
 
       <button
-        aria-label="Report button"
         onClick={handleFlagClick}
         style={{
           background: "none",
