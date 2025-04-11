@@ -65,18 +65,6 @@ const LandingPage = () => {
     setShowModal(false); 
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout(); 
-      localStorage.removeItem("hasLoggedIn");
-      setIsLoggedIn(false);
-      setAlert({ type: "success", message: "Successfully logged out." });
-      setShowLogin(true);
-    } catch (error) {
-      setAlert({ type: "danger", message: "An error occurred during logout." });
-    }
-  };
-
   return (
     <>
       {showLogin && <LoginOverlay setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn} />}
@@ -86,7 +74,6 @@ const LandingPage = () => {
           <AlertMessage type={alert.type} message={alert.message} autoDismiss={true} />
         </div>
       )}
-      <button className="btn btn-danger position-absolute top-0 end-0 m-3" onClick={handleLogout}> Log Out </button>
       <Splash />
 
       <QuoteUploadModal
