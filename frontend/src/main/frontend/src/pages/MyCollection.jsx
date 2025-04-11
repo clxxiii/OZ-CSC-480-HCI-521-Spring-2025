@@ -65,14 +65,9 @@ const MyCollection = () => {
   });
 
   return (
-    <div className="d-flex" style={{ marginLeft: "0" }}>
-      <Sidebar
-        userQuotes={userQuotes}
-        bookmarkedQuotes={bookmarkedQuotes}
-        onFilterChange={handleFilterChange}
-      />
-      <div className="p-6 max-w-3xl mx-auto" style={{ flex: 1 }}>
-        <div className="mb-4" style={{ maxWidth: "500px", margin: "0 auto" }}>
+    <div className="container">
+      <div className="row">
+        <div className="col-12 text-center mb-4">
           <Input
             type="text"
             placeholder="Search by tag, author, or keyword..."
@@ -80,26 +75,45 @@ const MyCollection = () => {
             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
             className="form-control"
           />
+          <div className="mt-3">
+            <ToggleButton
+              isActive={!showUsed}
+              onToggle={(isActive) => setShowUsed(!isActive)}
+              labels={["Unused", "Used"]}
+            />
+          </div>
         </div>
-        <div className="text-center mb-4">
-          <ToggleButton
-            isActive={!showUsed} 
-            onToggle={(isActive) => setShowUsed(!isActive)}
-            labels={["Unused", "Used"]}
-          />
-        </div>
-        <div className="row w-100 gap-4">
-          {displayedQuotes.length > 0 ? (
-            displayedQuotes.map((quote) => (
-              <QuoteCard
-                key={quote._id}
-                quote={quote}
-                onQuoteUsed={handleQuoteUsed}
-              />
-            ))
-          ) : (
-            <p className="text-center w-100">No quotes found.</p>
-          )}
+      </div>
+      <div className="row">
+        <Sidebar
+          userQuotes={userQuotes}
+          bookmarkedQuotes={bookmarkedQuotes}
+          onFilterChange={handleFilterChange}
+        />
+        <div
+          className="col"
+          style={{
+            paddingLeft: "70px", 
+          }}
+        >
+          <div
+            className="row w-100"
+            style={{
+              gap: "32px",
+            }}
+          >
+            {displayedQuotes.length > 0 ? (
+              displayedQuotes.map((quote) => (
+                <QuoteCard
+                  key={quote._id}
+                  quote={quote}
+                  onQuoteUsed={handleQuoteUsed}
+                />
+              ))
+            ) : (
+              <p className="text-center w-100">No quotes found.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
