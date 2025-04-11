@@ -1,7 +1,8 @@
 import { IoMdClose, IoIosArrowDown } from "react-icons/io";
 import { Link } from "react-router-dom";
-import { useState, useRef, useEffect, useContext } from "react";
+import { useContext } from "react";
 import NotificationItem from "./Notification";
+import { useState, useRef, useEffect } from "react";
 import { fetchNotifications, deleteNotification, clearAllNotifications } from "../lib/api";
 import { UserContext } from "../lib/Contexts";
 
@@ -16,8 +17,6 @@ const NotificationDropdown = ({ isVisible }) => {
     overflow: "hidden",
     transition: "max-height 0.4s ease, opacity 0.4s ease",
   });
-
-  const [user] = useContext(UserContext);
 
   useEffect(() => {
     if (isNotificationsVisible) {
@@ -120,26 +119,24 @@ const NotificationDropdown = ({ isVisible }) => {
         }}
       >
         {/* Account Page Link */}
-        { user && (
-          <li
+        <li
+          style={{
+            padding: "8px 14px", // reduced padding
+            borderBottom: "1px solid #ccc",
+            cursor: "pointer",
+          }}
+        >
+          <Link
+            to="/account"
             style={{
-              padding: "8px 14px", // reduced padding
-              borderBottom: "1px solid #ccc",
-              cursor: "pointer",
+              textDecoration: "none",
+              color: "black",
+              fontSize: "13px",
             }}
           >
-            <Link
-              to="/account"
-              style={{
-                textDecoration: "none",
-                color: "black",
-                fontSize: "13px",
-              }}
-            >
-              Account Page
-            </Link>
-          </li>
-        )}
+            Account Page
+          </Link>
+        </li>
 
         {/* Notifications Section */}
         <li
