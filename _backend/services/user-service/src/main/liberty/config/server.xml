@@ -177,6 +177,11 @@
         allowedMethods="GET, OPTIONS"
         allowedHeaders="Content-Type, Authorization, Accept"
         allowCredentials="true"/>
+    <cors domain="users/sharedQuotes/share/*"
+          allowedOrigins="${ORIGIN}"
+          allowedMethods="POST"
+          allowedHeaders="Content-Type, Authorization, Accept"
+          allowCredentials="true"/>
 
     <!-- Enable static content serving -->
     <httpDispatcher enableWelcomePage="true"/>

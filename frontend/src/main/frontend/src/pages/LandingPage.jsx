@@ -8,6 +8,7 @@ import AlertMessage from "../components/AlertMessage";
 import { FetchTopQuotes } from "../lib/FetchTopQuotes";
 import { UserContext } from "../lib/Contexts";
 import AccountSetup from "../pages/AccountSetup"; // adjust path if it's in pages
+import { logout } from "../lib/api"; 
 
 const LandingPage = () => {
   const [alert, setAlert] = useState(null);
@@ -66,14 +67,13 @@ const LandingPage = () => {
 
   return (
     <>
-      {showLogin && <LoginOverlay setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn} />}
+      {showLogin && <LoginOverlay aria-label="Login Overlay" aria-live="assertive" setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn}/>}
       
       {alert && (
         <div className="position-fixed top-0 start-50 translate-middle-x mt-3 px-4" style={{ zIndex: 1050 }}>
           <AlertMessage type={alert.type} message={alert.message} autoDismiss={true} />
         </div>
       )}
-      
       <Splash />
 
       <QuoteUploadModal

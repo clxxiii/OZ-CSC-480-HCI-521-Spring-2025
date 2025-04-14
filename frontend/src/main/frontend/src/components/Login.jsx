@@ -1,12 +1,12 @@
 import React from 'react';
 import { FaTimes, FaUser } from 'react-icons/fa'; 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-const LoginBox = ({ setShowLogin }) => {
+const LoginBox = ({ setShowLogin, setIsLoggedIn }) => {
   const navigate = useNavigate(); 
 
   const handleClose = () => {
-    setShowLogin(false);
+    navigate('/');
   };
 
   const handleGoogleLogin = () => {
@@ -14,8 +14,9 @@ const LoginBox = ({ setShowLogin }) => {
   };
 
   const handleGuestLogin = () => {
+    setIsLoggedIn(false);
     setShowLogin(false);
-    navigate('/'); 
+    navigate('/');
   };
 
   return (
@@ -32,18 +33,20 @@ const LoginBox = ({ setShowLogin }) => {
       }}
     >
       {/* Header Section */}
-      <div className="d-flex justify-content-between align-items-center" style={{ width: '222px', height: '48px', gap: '82px' }}>
+      <div 
+        className="d-flex justify-content-between align-items-center" 
+        style={{ width: '222px', height: '48px', gap: '82px' }}
+      >
         <h2 
           className="mb-0"
+          aria-label="Welcome!"
           style={{
             fontFamily: 'Inter',
             fontWeight: 600,
             fontSize: '24px',
-            lineHeight: '48px',
-            textAlign: 'center',
+            lineHeight: '24px',
+            textAlign: 'left',
             color: '#1E1E1E',
-            width: '115px',
-            height: '48px'
           }}
         >
           Welcome!
@@ -51,9 +54,10 @@ const LoginBox = ({ setShowLogin }) => {
         <button 
           onClick={handleClose} 
           className="btn"
+          aria-label="Exit login"
           style={{ 
-            width: '25px',
-            height: '25px',
+            width: '50px',
+            height: '40px',
             background: 'none',
             border: 'none',
             cursor: 'pointer'
@@ -83,6 +87,7 @@ const LoginBox = ({ setShowLogin }) => {
             fontSize: '20px',
             lineHeight: '24.2px'
           }}
+          aria-label="Login with a Google Account button"
         >
           <span 
             className="d-flex align-items-center justify-content-center" 
@@ -110,6 +115,7 @@ const LoginBox = ({ setShowLogin }) => {
             fontSize: '20px',
             lineHeight: '24.2px'
           }}
+          aria-label="Continue as Guest button"
         >
           <FaUser size={20} className="me-1" />
          <div style={{paddingLeft: '14px'}}>Continue as Guest</div>

@@ -132,24 +132,37 @@ public class MongoUtil {
     }
 
     public String searchQuote(String searchQuery, boolean filterUsed, boolean filterBookmarked, boolean filterUploaded,
-                              String IncludeTerms, String ExcludeTerms, String jwtString) { // fuzzy search for quote
+                              String IncludeTerms, String ExcludeTerms, String jwtString, boolean isGuest) { // fuzzy search for quote
+
         MongoCollection<Document> collection = database.getCollection("Quotes");
+
+        //certain filter fields only available to user
         List<String> filterQuoteIds = new ArrayList<>(); //instantiate list of quote id's to compare to
-        Document userDoc = retrieveUserFromJWT(jwtString); //Get User Document
-        if(filterUsed) { //if filter used, add quote ids to filterlist
+        Document userDoc = new Document();
+        String userId = null;
+        if(!isGuest) {
+            userDoc = retrieveUserFromJWT(jwtString); //Get User Document if not guest
+            if(userDoc == null) {
+                return null;
+            }
+            userId = userDoc.getObjectId("_id").toHexString();
+        }
+
+        if(filterUsed && !isGuest) { //if filter true, add quote ids to filter list
             filterQuoteIds.addAll(fetchUserUsedQuoteIds(userDoc)); // append list containing used quote id's
         }
-        if(filterBookmarked) {
+        if(filterBookmarked && !isGuest) {
             filterQuoteIds.addAll(fetchUserBookmarkedQuotes(userDoc));
         }
-        if(filterUploaded) {
+        if(filterUploaded && !isGuest) {
             filterQuoteIds.addAll(fetchUserUploadedQuotes(userDoc));
         }
 
+        //following fields will still work for guest
         List<String> TermsToInclude = new ArrayList<>();
         List<Document> ShouldClause = new ArrayList<>();
         if(IncludeTerms != null) {
-            TermsToInclude = Arrays.stream(IncludeTerms.split(",")).toList(); //split "," separated terms into list
+            TermsToInclude = Arrays.stream(IncludeTerms.split(",")).toList(); //split terms into list
             //create clause specifying quote must should include specified terms
             ShouldClause.add(new Document("text", new Document("query", TermsToInclude).append("path", "quote")));
         }
@@ -157,11 +170,12 @@ public class MongoUtil {
         List<String> TermsToExclude = new ArrayList<>();
         List<Document> MustNotClause = new ArrayList<>();
         if(ExcludeTerms != null) {
-            TermsToExclude = Arrays.stream(ExcludeTerms.split(",")).toList(); //split "," separated terms into list
+            TermsToExclude = Arrays.stream(ExcludeTerms.split(",")).toList(); //split terms into list
             //create clause specifying quote must not include specified terms
             MustNotClause.add(new Document("text", new Document("query", TermsToExclude).append("path", "quote")));
         }
 
+        //Base clause
         List<Document> MustClause = List.of( //search that "must" occur
                 new Document("text", new Document("query", searchQuery) //set query string to user query
                         .append("path", Arrays.asList("quote", "author", "tags")) // fields to search and compare to
@@ -173,22 +187,38 @@ public class MongoUtil {
         Document CompoundDoc = new Document("must", MustClause); //default searching
         //append include/exclude clauses if specified
         if(!TermsToInclude.isEmpty()) {
-            CompoundDoc.append("should", ShouldClause).append("minimumShouldMatch", 1); //Num of elements the quote text must include
+            CompoundDoc.append("should", ShouldClause).append("minimumShouldMatch", 1); //Min num of elements the quote text must include
         }
         if(!TermsToExclude.isEmpty()) {
             CompoundDoc.append("mustNot", MustNotClause);
         }
 
         // create query document
-        AggregateIterable<Document> results = collection.aggregate(Arrays.asList(
-                new Document("$search", new Document("index", "QuotesAtlasSearch") //set to search atlas index
-                        .append("compound", CompoundDoc)),
-                //post search section
-                new Document("$match", new Document("private", new Document("$ne", true))), //Exclude private quotes
-                new Document("$match", new Document("_id.oid", new Document("$nin", filterQuoteIds))), //Ignore specified quotes
-                new Document("$sort", new Document("score", -1)), //sort by relevance
-                new Document("$limit", 50) //limit to 50 results
-        ));
+        AggregateIterable<Document> results;
+        if(isGuest) { //query if is guest
+            results = collection.aggregate(Arrays.asList(
+                    new Document("$search", new Document("index", "QuotesAtlasSearch") //set to search atlas index
+                            .append("compound", CompoundDoc)),
+                    //post search section
+                    new Document("$match", new Document("private", new Document("$ne", true))), //Exclude private quotes
+                    new Document("$match", new Document("_id.oid", new Document("$nin", filterQuoteIds))), //Ignore specified quotes
+                    new Document("$sort", new Document("score", -1)), //sort by relevance
+                    new Document("$limit", 50) //limit to 50 results
+            ));
+        } else { //query if is user
+            results = collection.aggregate(Arrays.asList(
+                    new Document("$search", new Document("index", "QuotesAtlasSearch") //set to search atlas index
+                            .append("compound", CompoundDoc)),
+                    //post search section
+                    new Document("$match", new Document("$or", List.of(
+                            new Document("private", new Document("$ne", true)), //exclude private quotes
+                            new Document("$expr", new Document("$eq", List.of("$creator", userId))) //unless is creator
+                    ))),
+                    new Document("$match", new Document("_id.oid", new Document("$nin", filterQuoteIds))), //Ignore specified quotes
+                    new Document("$sort", new Document("score", -1)), //sort by relevance
+                    new Document("$limit", 50) //limit to 50 results
+            ));
+        }
 
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
 

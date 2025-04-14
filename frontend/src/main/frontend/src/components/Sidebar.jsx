@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { BorderBottom, TextLeft, LayoutSidebar } from "react-bootstrap-icons";
 
 const Sidebar = ({ userQuotes, bookmarkedQuotes, onFilterChange }) => {
   const [selectedTags, setSelectedTags] = useState([]);
   const [filter, setFilter] = useState("public");
   const [sortBy, setSortBy] = useState("dateUsedRecent");
+  const [isOpen, setIsOpen] = useState(true);
 
   const allQuotes = [...bookmarkedQuotes, ...userQuotes];
   const uniqueTags = Array.from(new Set(allQuotes.flatMap((quote) => quote.tags)));
@@ -44,67 +46,112 @@ const Sidebar = ({ userQuotes, bookmarkedQuotes, onFilterChange }) => {
 
   return (
     <div
-      className="sidebar border-end p-4 shadow-sm"
+      className={`d-flex flex-column border-end pt-2 pb-2 shadow-sm ${isOpen ? "flex-shrink-0" : ""}`}
       style={{
-        maxWidth: "250px",
-        position: "fixed",
-        left: "0",
-        height: "90vh",
-        backgroundColor: "#FFFBEA",
+        width: isOpen ? "400px" : "0",
+        backgroundColor: "#FDF7CD", 
+        overflow: "hidden",
+        transition: "width 0.3s ease",
+        paddingLeft: "20px",
+        paddingRight: "20px",
       }}
     >
-      <h3 className="h5 fw-bold mb-4">Filters</h3>
-      {["public", "private", "uploaded", "bookmarked"].map((type) => (
-        <button
-          key={type}
-          className={`btn w-100 text-start ${filter === type ? "fw-bold" : ""}`}
-          style={{ background: "none", border: "none", padding: "10px 0" }}
-          onClick={() => setFilter(type)}
-        >
-          {type.charAt(0).toUpperCase() + type.slice(1)} Quotes
+      {/* Collapse Button */}
+      <div className="d-flex justify-content-end">
+        <button className="btn w-20" onClick={() => setIsOpen(!isOpen)}>
+          <LayoutSidebar size={22}></LayoutSidebar>
         </button>
-      ))}
-
-      <div className="mb-4">
-        <h4 className="h6 fw-bold mb-3">Most Used Tags</h4>
-        <ul className="list-unstyled d-flex flex-wrap gap-2">
-          {uniqueTags.map((tag) => (
-            <li key={tag}>
-              <button
-                className={`btn btn-sm ${
-                  selectedTags.includes(tag) ? "btn-success text-white" : "btn-outline-success"
-                }`}
-                onClick={() => toggleTag(tag)}
-                style={{
-                  borderRadius: "50px",
-                  padding: "5px 15px",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                }}
-              >
-                #{tag}
-              </button>
-            </li>
+      </div>
+      {isOpen && (
+        <>
+          {/* Uploaded Quotes with Sub-Filters */}
+          <h3 className="h5 fw-bold ps-2 text-start" style={{ borderBottom: "1px solid black", width: "200px" }}>
+            Uploaded Quotes
+          </h3>
+          {["public", "private"].map((type) => (
+            <button
+              key={type}
+              className={`btn w-100 text-start ${filter === type ? "fw-bold" : ""}`}
+              style={{ background: "none", border: "none", padding: "10px 15px" }}
+              onClick={() => setFilter(type)}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)} Quotes {filter === type ? " ✔" : ""}
+            </button>
           ))}
-        </ul>
-      </div>
 
-      <div>
-        <h4 className="h6 fw-bold mb-3">Sort by</h4>
-        {["dateUsedRecent", "dateUsedOldest", "dateCreatedRecent", "dateCreatedOldest"].map((option) => (
-          <label key={option} className="d-block">
-            <input
-              type="radio"
-              name="sortBy"
-              value={option}
-              checked={sortBy === option}
-              onChange={() => setSortBy(option)}
-              className="form-check-input me-2"
-            />
-            {option.replace(/([A-Z])/g, " $1").replace("date", "Date").trim()}
-          </label>
-        ))}
-      </div>
+          <h3 className="h5 fw-bold ps-2 text-start" style={{ borderBottom: "1px solid black", width: "200px" }}>
+            Bookmarked Quotes
+          </h3>
+          <button
+            className={`btn w-100 text-start ${filter === "bookmarked" ? "fw-bold" : ""}`}
+            style={{ background: "none", border: "none", padding: "10px 15px" }}
+            onClick={() => setFilter("bookmarked")}
+          >
+            Bookmarked Quotes {filter === "bookmarked" ? " ✔" : ""}
+          </button>
+
+          <div className="mb-4 pt-2">
+            <h4 className="h5 fw-bold mb-3 text-start ps-2" style={{ borderBottom: "1px solid black", width: "200px" }}>
+              Most Used Tags
+            </h4>
+            <ul className="list-unstyled d-flex flex-wrap gap-2">
+              {uniqueTags.map((tag) => (
+                <li key={tag}>
+                  <button
+                    className={`btn btn-sm ${
+                      selectedTags.includes(tag) ? "btn-success text-white" : "btn-outline-success"
+                    }`}
+                    onClick={() => toggleTag(tag)}
+                    style={{
+                      borderRadius: "50px",
+                      padding: "5px 15px",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    #{tag}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Sort By */}
+          <div>
+            <h4 className="h5 fw-bold mb-3 text-start ps-2" style={{ borderBottom: "1px solid black", width: "200px" }}>
+              Sort by
+            </h4>
+            <h6 className="fw-bold mb-3 text-start ps-3">Date Used:</h6>
+            {["dateUsedRecent", "dateUsedOldest"].map((option) => (
+              <label key={option} className="d-block text-start ps-4">
+                <input
+                  className="visually-hidden-radio form-check-input me-2"
+                  type="radio"
+                  name="sortBy"
+                  value={option}
+                  checked={sortBy === option}
+                  onChange={() => setSortBy(option)}
+                />
+                {option.replace(/([A-Z])/g, " $1").replace("date", "Date").trim()} {sortBy === option ? " ✔" : ""}
+              </label>
+            ))}
+            <h6 className="fw-bold mb-3 text-start ps-3">Date Created:</h6>
+            {["dateCreatedRecent", "dateCreatedOldest"].map((option) => (
+              <label key={option} className="d-block text-start ps-4">
+                <input
+                  className="visually-hidden-radio form-check-input me-2"
+                  type="radio"
+                  name="sortBy"
+                  value={option}
+                  checked={sortBy === option}
+                  onChange={() => setSortBy(option)}
+                />
+                {option.replace(/([A-Z])/g, " $1").replace("date", "Date").trim()} {sortBy === option ? "✔" : ""}
+              </label>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };
