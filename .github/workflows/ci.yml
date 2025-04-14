@@ -2,15 +2,20 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "Testing" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "Testing" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Build all images in the docker-compose file
-      run: docker compose build
+      - uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Run tests
+        working-directory: ./_backend/services/user-service
+        run: mvn test
