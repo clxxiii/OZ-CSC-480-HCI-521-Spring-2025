@@ -398,7 +398,7 @@ export const useQuote = async (quoteId) => {
 {/* Notification Related */}
 export const fetchNotifications = async (userId) => {
     const response = await fetch(
-      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/notifications/user/${userId}`)}`,
+      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/notifications/user/${userId}`)}`,
       {
         method: "POST",
         headers: {
@@ -420,7 +420,7 @@ export const fetchNotifications = async (userId) => {
 export const deleteNotification = async (notificationId) => {
   try {
     const response = await fetch(
-      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/notifications/delete/${notificationId}`)}`,
+      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/notifications/delete/${notificationId}`)}`,
       {
         method: "POST",
         headers: {

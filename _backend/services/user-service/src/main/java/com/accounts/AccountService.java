@@ -9,6 +9,7 @@ import com.ibm.websphere.security.jwt.JwtToken;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.sharedQuotes.SharedQuote;
 
@@ -22,6 +23,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +43,8 @@ public class AccountService {
         accountCollection = accountDB.getCollection("Users");
     }
 
-    public AccountService(String connectionString, String dbName, String collectionName) {
-        client = MongoClients.create(connectionString);
+    public AccountService(MongoClient mongoClient, String dbName, String collectionName) {
+        client = mongoClient;
         accountDB = client.getDatabase(dbName);
         accountCollection = accountDB.getCollection(collectionName);
     }
@@ -55,6 +57,13 @@ public class AccountService {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity(new Document("error", "Cannot parse JSON object!").toJson())
+                    .build();
+        }
+
+        if (!accountDocument.containsKey("Email") || accountDocument.getString("Email") == null || Objects.equals(accountDocument.getString("Email"), "")) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity(new Document("error", "Missing required field: email").toJson())
                     .build();
         }
 
@@ -81,7 +90,6 @@ public class AccountService {
 
         String id;
 
-        String url;
         if (oldAccountDocument != null) {
             Document updateFields = new Document();
             updateFields.append("access_token", account.access_token);
@@ -92,17 +100,15 @@ public class AccountService {
             id = oldAccountDocument.getObjectId("_id").toString();
             accountCollection.updateOne(oldAccountDocument,
                     new Document("$set", updateFields));
-            url = AuthResource.HOME_URL;
         } else {
             id = accountCollection.insertOne(accountDocument).getInsertedId().asObjectId().getValue().toString();
-            url = AuthResource.HOME_URL;
         }
 
         String jwt = JwtService.buildJwt(id).toString();
 
         return Response
                 .status(Response.Status.FOUND)
-                .location(URI.create("http://localhost:9081/users/auth/checkJWT/" + jwt + "?redirectURL=" + url))
+                .location(URI.create("http://localhost:9081/users/auth/checkJWT/" + jwt))
                 .build();
     }
 
@@ -149,6 +155,12 @@ public class AccountService {
 
     public Response retrieveUserByEmail(String email, boolean includePrivateData) {
         try {
+            if (email == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(new Document("error", "Email is null!").toJson())
+                        .build();
+            }
+
             Document user = accountCollection.find(eq("Email", email)).first();
 
             if (user == null) {
@@ -208,11 +220,18 @@ public class AccountService {
 
         MongoCollection<Document> users = accountDB.getCollection("Users");
         Bson query = eq("_id", objectId);
-        users.deleteOne(query);
+        DeleteResult result = users.deleteOne(query);
 
-        return Response
-                .status(Response.Status.OK)
-                .build();
+        if (result.getDeletedCount() == 1) {
+            return Response
+                    .status(Response.Status.OK)
+                    .build();
+        } else {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(new Document("error", "Account not found!").toJson())
+                    .build();
+        }
     }
 
     public Response deleteUserByEmail(String email) {
@@ -291,15 +310,7 @@ public class AccountService {
         List<String> notifications = document.getList("Notifications", String.class);
         List<String> myQuotes = document.getList("MyQuotes", String.class);
         List<String> bookmarkedQuotes = document.getList("BookmarkedQuotes", String.class);
-        List<Document> sharedQuotesDocs = document.getList("SharedQuotes", Document.class);
-        List<SharedQuote> sharedQuotes = new ArrayList<>();
-        for(Document shareDoc:sharedQuotesDocs){
-            SharedQuote sharedQuote = new SharedQuote();
-            sharedQuote.setTo(shareDoc.getString("to"));
-            sharedQuote.setFrom(shareDoc.getString("from"));
-            sharedQuote.setQuoteId(shareDoc.getString("quoteId"));
-            sharedQuotes.add(sharedQuote);
-        }
+        List<SharedQuote> sharedQuotes = document.getList("SharedQuotes", SharedQuote.class);
         String profession = document.getString("Profession");
         String personalQuote = document.getString("PersonalQuote");
         Map<String, String> usedQuotes = (Map<String, String>) document.get("UsedQuotes");

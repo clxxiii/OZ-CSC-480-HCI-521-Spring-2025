@@ -37,7 +37,7 @@ public class Session {
     public String toJson() {
         Document doc = Document.parse(new Gson().toJson(this));
         if (doc.containsKey("_id")) {
-            doc.replace("_id", doc.getObjectId("_id").toHexString());
+            doc.replace("_id", doc.getObjectId("_id").toString());
         }
         return doc.toJson();
     }
