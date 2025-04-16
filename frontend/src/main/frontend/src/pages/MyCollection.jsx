@@ -26,9 +26,9 @@ const MyCollection = () => {
           Promise.all(user.BookmarkedQuotes.map(fetchQuoteById)).then((quotes) =>
             quotes.filter(Boolean)
           ),
-          Promise.all(user.SharedQuotes.map(fetchQuoteById)).then((quotes) =>
-            quotes.filter(Boolean)
-          ),
+          Promise.all(
+            user.SharedQuotes.map((shared) => fetchQuoteById(shared.quoteId))
+          ).then((quotes) => quotes.filter(Boolean)),
         ]);
         setUserQuotes(userQuotes);
         setBookmarkedQuotes(bookmarkedQuotes);
