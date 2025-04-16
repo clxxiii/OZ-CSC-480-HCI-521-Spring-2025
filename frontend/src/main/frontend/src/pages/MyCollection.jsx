@@ -10,6 +10,7 @@ const MyCollection = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userQuotes, setUserQuotes] = useState([]);
   const [bookmarkedQuotes, setBookmarkedQuotes] = useState([]);
+  const [sharedQuotes, setSharedQuotes] = useState([]); 
   const [filteredQuotes, setFilteredQuotes] = useState([]);
   const [showUsed, setShowUsed] = useState(false);
   const [usedQuotes, setUsedQuotes] = useState([]);
@@ -20,15 +21,19 @@ const MyCollection = () => {
 
     const fetchData = async () => {
       try {
-        const [userQuotes, bookmarkedQuotes] = await Promise.all([
+        const [userQuotes, bookmarkedQuotes, sharedQuotes] = await Promise.all([
           fetchUserQuotes(user._id.$oid),
           Promise.all(user.BookmarkedQuotes.map(fetchQuoteById)).then((quotes) =>
             quotes.filter(Boolean)
           ),
+          Promise.all(
+            user.SharedQuotes.map((shared) => fetchQuoteById(shared.quoteId))
+          ).then((quotes) => quotes.filter(Boolean)),
         ]);
         setUserQuotes(userQuotes);
         setBookmarkedQuotes(bookmarkedQuotes);
-        setFilteredQuotes([...userQuotes, ...bookmarkedQuotes]);
+        setSharedQuotes(sharedQuotes);
+        setFilteredQuotes([...userQuotes, ...bookmarkedQuotes, ...sharedQuotes]);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -88,6 +93,7 @@ const MyCollection = () => {
         <Sidebar
           userQuotes={userQuotes}
           bookmarkedQuotes={bookmarkedQuotes}
+          sharedQuotes={sharedQuotes} 
           onFilterChange={handleFilterChange}
         />
         <div
