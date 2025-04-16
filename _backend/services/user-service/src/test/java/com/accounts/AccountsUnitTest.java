@@ -26,34 +26,32 @@ import javax.crypto.spec.SecretKeySpec;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@Testcontainers
+//@Testcontainers
 public class AccountsUnitTest {
     static AccountService accountService;
     static Account account;
     static String jwt;
     static ObjectId id;
 
-    @Container
-    private static final MongoDBContainer mongoDBContainer =
-            new MongoDBContainer("mongo:6.0");
+//    @Container
+//    private static final MongoDBContainer mongoDBContainer =
+//            new MongoDBContainer("mongo:6.0");
 
     // Setup Method
     @BeforeAll
     public static void setUp() throws UnknownHostException {
 //        System.setProperty("config.path", "src/main/liberty/config");
 
-//        Dotenv dotenv = Dotenv.configure()
-//                .load();
+        Dotenv dotenv = Dotenv.configure()
+                .load();
 
-//        MongoClient client = MongoClients.create(dotenv.get("CONNECTION_STRING"));
+        MongoClient client = MongoClients.create(dotenv.get("CONNECTION_STRING"));
 //
 //        accountService = new AccountService(client, "Test", "Users");
 
-//        String connectionString = System.getenv("CONNECTION_STRING");
+//        String connectionString = mongoDBContainer.getConnectionString();
 
-        String connectionString = mongoDBContainer.getConnectionString();
-
-        MongoClient client = MongoClients.create(connectionString);
+//        MongoClient client = MongoClients.create(connectionString);
 
         accountService = new AccountService(client, "Test", "Users");
 
