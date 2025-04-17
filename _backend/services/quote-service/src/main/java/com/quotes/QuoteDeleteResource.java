@@ -1,6 +1,11 @@
 package com.quotes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moderation.DeleteService;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import jakarta.inject.Inject;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -92,6 +97,14 @@ public class QuoteDeleteResource {
             // user is not owner of quote
             if (!accountObjectID.equals(quote.getCreator()) && !group.equals("admin")) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to delete quotes").toJson()).build();
+            }
+
+            if (group.equals("admin")) {
+                DeleteService deleteService = new DeleteService();
+                Document deleteQuoteDoc = Document.parse(jsonQuote)
+                        .append("adminID", accountID)
+                        .append("deletedDate", System.currentTimeMillis()/ 1000L);
+                deleteService.createDeletedQuote(deleteQuoteDoc);
             }
 
             //check id is in valid form
