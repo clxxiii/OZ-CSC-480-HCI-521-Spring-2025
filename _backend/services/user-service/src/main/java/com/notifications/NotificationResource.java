@@ -38,26 +38,6 @@ import java.io.StringWriter;
 @Path("/notifications")
 public class NotificationResource {
 
-    private static MongoClient mongoClient;
-    private static MongoDatabase accountDatabase;
-    private static MongoDatabase dataDatabase;
-    private static MongoCollection<Document> notificationsCollection;
-    private static MongoCollection<Document> usersCollection;
-    private static MongoCollection<Document> quotesCollection;
-
-    AccountService accountService = new AccountService();
-
-    static {
-        mongoClient = MongoClients.create(System.getenv("CONNECTION_STRING"));
-
-        accountDatabase = mongoClient.getDatabase("Accounts");
-        notificationsCollection = accountDatabase.getCollection("Notifications");
-        usersCollection = accountDatabase.getCollection("Users");
-
-        dataDatabase = mongoClient.getDatabase("Data");
-        quotesCollection = dataDatabase.getCollection("Quotes");
-    }
-
     @GET
     @Path("/user/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -70,6 +50,7 @@ public class NotificationResource {
     @Operation(summary = "Get all notifications for a specific user",
             description = "Returns JSON of all notifications where the user is the recipient, enter ID of user recieving notifications")
     public Response getNotificationsForUser(@PathParam("userId") String userId, @Context HttpHeaders headers) {
+        NotificationService notificationService = new NotificationService();
         String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
@@ -80,28 +61,28 @@ public class NotificationResource {
 
         String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
 
-        Document userDoc = accountService.retrieveUserFromJWT(jwtString);
+        Document userDoc = notificationService.accountService.retrieveUserFromJWT(jwtString);
 
         if (userDoc == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to have notifications").toJson()).build();
         }
 
         try {
-            if(!isValidObjectId(userId)) {
+            if(!notificationService.isValidObjectId(userId)) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity("Given ID is not a valid ObjectId")
                         .build();
             }
 
             ObjectId userObjectId = new ObjectId(userId);
-            Document user = usersCollection.find(new Document("_id", userObjectId)).first();
+            Document user = notificationService.usersCollection.find(new Document("_id", userObjectId)).first();
             if (user == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("User not found")
                         .build();
             }
 
-            String jsonNotifications = getNotificationsByUser(userObjectId);
+            String jsonNotifications = notificationService.getNotificationsByUser(userObjectId);
             return Response.ok(jsonNotifications).build();
         } catch (Exception e) {
             return Response.status(Response.Status.CONFLICT)
@@ -142,6 +123,7 @@ public class NotificationResource {
             description = "notification data required: from(id), to(id), type(string), and quote_id(id)"
     )
     public Response createNotification(String jsonInput, @Context HttpHeaders headers) {
+        NotificationService notificationService = new NotificationService();
         String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
@@ -152,7 +134,7 @@ public class NotificationResource {
 
         String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
 
-        Document userDoc = accountService.retrieveUserFromJWT(jwtString);
+        Document userDoc = notificationService.accountService.retrieveUserFromJWT(jwtString);
 
         if (userDoc == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to create notification").toJson()).build();
@@ -172,14 +154,14 @@ public class NotificationResource {
             String toId = inputJson.getString("to");
             String quoteId = inputJson.getString("quote_id");
 
-            if (!isValidObjectId(fromId) || !isValidObjectId(toId) || !isValidObjectId(quoteId)) {
+            if (!notificationService.isValidObjectId(fromId) || !notificationService.isValidObjectId(toId) || !notificationService.isValidObjectId(quoteId)) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity("Invalid ObjectId format in from, to, or quote_id")
                         .build();
             }
 
             ObjectId toObjectId = new ObjectId(toId);
-            Document toUser = usersCollection.find(new Document("_id", toObjectId)).first();
+            Document toUser = notificationService.usersCollection.find(new Document("_id", toObjectId)).first();
             if (toUser == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("to user not found")
@@ -187,7 +169,7 @@ public class NotificationResource {
             }
 
             ObjectId quoteObjectId = new ObjectId(quoteId);
-            Document quote = quotesCollection.find(new Document("_id", quoteObjectId)).first();
+            Document quote = notificationService.quotesCollection.find(new Document("_id", quoteObjectId)).first();
             if (quote == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("Quote not found")
@@ -201,7 +183,7 @@ public class NotificationResource {
                     .append("quote_id", new ObjectId(quoteId))
                     .append("Created_at", System.currentTimeMillis());
 
-            notificationsCollection.insertOne(notificationDoc);
+            notificationService.notificationsCollection.insertOne(notificationDoc);
 
             JsonObject response = Json.createObjectBuilder()
                     .add("success", true)
@@ -232,6 +214,7 @@ public class NotificationResource {
     @Operation(summary = "Delete a notification by ID",
             description = "Deletes a notification with the specified ID")
     public Response deleteNotification(@PathParam("notificationId") String notificationId, @Context HttpHeaders headers) {
+        NotificationService notificationService = new NotificationService();
         String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
@@ -242,14 +225,14 @@ public class NotificationResource {
 
         String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
 
-        Document userDoc = accountService.retrieveUserFromJWT(jwtString);
+        Document userDoc = notificationService.accountService.retrieveUserFromJWT(jwtString);
 
         if (userDoc == null) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized to delete notifications").toJson()).build();
         }
 
         try {
-            if (!isValidObjectId(notificationId)) {
+            if (!notificationService.isValidObjectId(notificationId)) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity("Given ID is not a valid ObjectId")
                         .build();
@@ -257,7 +240,7 @@ public class NotificationResource {
 
             ObjectId objectId = new ObjectId(notificationId);
             Document filter = new Document("_id", objectId);
-            long deletedCount = notificationsCollection.deleteOne(filter).getDeletedCount();
+            long deletedCount = notificationService.notificationsCollection.deleteOne(filter).getDeletedCount();
 
             if (deletedCount == 0) {
                 return Response.status(Response.Status.NOT_FOUND)
@@ -277,42 +260,6 @@ public class NotificationResource {
                     .entity("Exception occurred: " + e.getMessage())
                     .build();
         }
-    }
-
-    private boolean isValidObjectId(String id) {
-        try {
-            new ObjectId(id);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private String getNotificationsByUser(ObjectId userId) {
-        Document query = new Document("to", userId);
-        FindIterable<Document> notifications = notificationsCollection.find(query);
-        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
-        for (Document doc : notifications) {
-            if (doc.containsKey("_id")) {
-                doc.put("_id", doc.getObjectId("_id").toString());
-            }
-            if (doc.containsKey("from")) {
-                doc.put("from", doc.getObjectId("from").toString());
-            }
-            if (doc.containsKey("to")) {
-                doc.put("to", doc.getObjectId("to").toString());
-            }
-            if (doc.containsKey("quote_id")) {
-                doc.put("quote_id", doc.getObjectId("quote_id").toString());
-            }
-            JsonObject jsonObject = Json.createReader(new java.io.StringReader(doc.toJson())).readObject();
-            jsonArrayBuilder.add(jsonObject);
-        }
-        StringWriter stringWriter = new StringWriter();
-        try (JsonWriter jsonWriter = Json.createWriter(stringWriter)) {
-            jsonWriter.writeArray(jsonArrayBuilder.build());
-        }
-        return stringWriter.toString();
     }
 
 }
