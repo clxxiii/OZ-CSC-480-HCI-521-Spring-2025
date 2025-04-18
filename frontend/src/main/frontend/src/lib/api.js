@@ -415,6 +415,8 @@ export const fetchNotifications = async (userId) => {
       const errorMessage = await response.text();
       console.error("Error fetching notifications:", errorMessage);
     }
+    
+  return await response.json();
 };
 
 export const deleteNotification = async (notificationId) => {
