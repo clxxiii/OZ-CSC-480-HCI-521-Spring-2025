@@ -415,6 +415,30 @@ export const fetchNotifications = async (userId) => {
       const errorMessage = await response.text();
       console.error("Error fetching notifications:", errorMessage);
     }
+    
+  return await response.json();
+};
+
+//   retrieves single notification object with all information about quote
+export const fetchNotification = async (notificationId) => {
+  const response = await fetch(
+      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/notifications/notification/${notificationId}`)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          method: "GET",
+        }),
+      }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await response.text();
+    console.error("Error fetching notification:", errorMessage);
+  }
 };
 
 export const deleteNotification = async (notificationId) => {
