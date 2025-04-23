@@ -45,17 +45,11 @@ public class AccountsUnitTest {
 //        Dotenv dotenv = Dotenv.configure()
 //                .load();
 
-//        String connectionString = "mongodb://user:password@quotes-database:27017";
-
 //        MongoClient client = MongoClients.create(dotenv.get("CONNECTION_STRING"));
 //
 //        accountService = new AccountService(client, "Test", "Users");
 
-//        String connectionString = System.getenv("CONNECTION_STRING");
-
         String connectionString = mongoDBContainer.getConnectionString();
-
-        System.out.println(connectionString);
 
         MongoClient client = MongoClients.create(connectionString);
 
