@@ -391,6 +391,7 @@ public class AccountService {
         }
     }
 
+   
     public Account document_to_account(Document document) {
         String email = document.getString("Email");
         String username = document.getString("Username");
@@ -405,11 +406,11 @@ public class AccountService {
         List<String> bookmarkedQuotes = document.getList("BookmarkedQuotes", String.class);
         List<Document> sharedQuotesDocs = document.getList("SharedQuotes", Document.class);
         List<SharedQuote> sharedQuotes = new ArrayList<>();
-        for(Document shareDoc:sharedQuotesDocs){
+        for (Document sharedDoc : sharedQuotesDocs) {
             SharedQuote sharedQuote = new SharedQuote();
-            sharedQuote.setTo(shareDoc.getString("to"));
-            sharedQuote.setFrom(shareDoc.getString("from"));
-            sharedQuote.setQuoteId(shareDoc.getString("quoteId"));
+            sharedQuote.setTo(sharedDoc.getString("to"));
+            sharedQuote.setFrom(sharedDoc.getString("from"));
+            sharedQuote.setQuoteId(sharedDoc.getString("quoteId"));
             sharedQuotes.add(sharedQuote);
         }
         String profession = document.getString("Profession");
