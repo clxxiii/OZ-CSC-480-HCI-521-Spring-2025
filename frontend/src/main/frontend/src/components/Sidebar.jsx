@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { BorderBottom, TextLeft, LayoutSidebar } from "react-bootstrap-icons";
 
-const Sidebar = ({ userQuotes, bookmarkedQuotes, onFilterChange }) => {
+const Sidebar = ({ userQuotes = [], bookmarkedQuotes = [], sharedQuotes = [], onFilterChange }) => {
   const [selectedTags, setSelectedTags] = useState([]);
   const [filter, setFilter] = useState("public");
   const [sortBy, setSortBy] = useState("dateUsedRecent");
   const [isOpen, setIsOpen] = useState(true);
 
-  const allQuotes = [...bookmarkedQuotes, ...userQuotes];
+  const allQuotes = [...bookmarkedQuotes, ...userQuotes, ...sharedQuotes];
   const uniqueTags = Array.from(new Set(allQuotes.flatMap((quote) => quote.tags)));
 
   const updateFilteredQuotes = useCallback(() => {
@@ -17,6 +17,7 @@ const Sidebar = ({ userQuotes, bookmarkedQuotes, onFilterChange }) => {
     if (filter === "private") filteredQuotes = filteredQuotes.filter((q) => q.private);
     if (filter === "uploaded") filteredQuotes = filteredQuotes.filter((q) => userQuotes.includes(q));
     if (filter === "bookmarked") filteredQuotes = filteredQuotes.filter((q) => bookmarkedQuotes.includes(q));
+    if (filter === "shared") filteredQuotes = filteredQuotes.filter((q) => sharedQuotes.includes(q));
 
     if (selectedTags.length > 0) {
       filteredQuotes = filteredQuotes.filter((q) => selectedTags.every((tag) => q.tags.includes(tag)));
@@ -32,7 +33,7 @@ const Sidebar = ({ userQuotes, bookmarkedQuotes, onFilterChange }) => {
     filteredQuotes.sort(sortOptions[sortBy]);
 
     onFilterChange(filteredQuotes);
-  }, [filter, selectedTags, sortBy, allQuotes, bookmarkedQuotes, userQuotes, onFilterChange]);
+  }, [filter, selectedTags, sortBy, allQuotes, bookmarkedQuotes, userQuotes, sharedQuotes, onFilterChange]);
 
   useEffect(() => {
     if (allQuotes.length > 0) {
@@ -88,6 +89,17 @@ const Sidebar = ({ userQuotes, bookmarkedQuotes, onFilterChange }) => {
             onClick={() => setFilter("bookmarked")}
           >
             Bookmarked Quotes {filter === "bookmarked" ? " ✔" : ""}
+          </button>
+
+          <h3 className="h5 fw-bold ps-2 text-start" style={{ borderBottom: "1px solid black", width: "200px" }}>
+            Shared Quotes
+          </h3>
+          <button
+            className={`btn w-100 text-start ${filter === "shared" ? "fw-bold" : ""}`}
+            style={{ background: "none", border: "none", padding: "10px 15px" }}
+            onClick={() => setFilter("shared")}
+          >
+            Shared Quotes {filter === "shared" ? " ✔" : ""}
           </button>
 
           <div className="mb-4 pt-2">

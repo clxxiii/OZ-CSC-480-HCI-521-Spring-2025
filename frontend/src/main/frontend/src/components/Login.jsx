@@ -6,6 +6,7 @@ const LoginBox = ({ setShowLogin, setIsLoggedIn }) => {
   const navigate = useNavigate(); 
 
   const handleClose = () => {
+    setShowLogin(false);
     navigate('/');
   };
 

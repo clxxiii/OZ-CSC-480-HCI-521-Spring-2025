@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import QuoteCard from '../components/QuoteCard';
+import QuoteViewModal from '../components/QuoteViewModal';
 import { filteredSearch } from '../lib/api';
 import FilteredSearch from '../components/FilteredSearch';
 import { Funnel } from 'react-bootstrap-icons';
@@ -10,7 +11,10 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const [viewedQuote, setViewedQuote] = useState(null); 
   const location = useLocation();
+
+  const closeView = () => setViewedQuote(null); 
 
   useEffect(() => {
     const query = new URLSearchParams(location.search).get("q") || "*";
@@ -38,6 +42,12 @@ const SearchPage = () => {
 
   return (
     <div className="container">
+      {viewedQuote && (
+        <QuoteViewModal
+          quote={viewedQuote}
+          close={closeView}
+        />
+      )}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1>Search Results</h1>
         <Funnel
@@ -52,7 +62,7 @@ const SearchPage = () => {
         <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
           {searchResults.map((quote) => (
             <div className="col" key={quote.id}>
-              <QuoteCard quote={quote} />
+              <QuoteCard quote={quote} showViewModal={setViewedQuote} />
             </div>
           ))}
         </div>
