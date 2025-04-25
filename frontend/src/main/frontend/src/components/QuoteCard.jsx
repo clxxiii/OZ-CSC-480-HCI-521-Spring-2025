@@ -12,7 +12,6 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal, onQuoteUsed }) => {
   const navigate = useNavigate();
   const [user] = useContext(UserContext);
   const [editable, setEditable] = useState(false);
-  const [alert, setAlert] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [usedDate, setUsedDate] = useState(null);
 
@@ -68,7 +67,6 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal, onQuoteUsed }) => {
       <QuoteActions
         quote={quote}
         onBookmarkToggle={onBookmarkToggle}
-        setAlert={setAlert}
         setShowLogin={setShowLogin}
         user={user}
       />
@@ -77,12 +75,11 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal, onQuoteUsed }) => {
           Used on: {new Date(usedDate).toLocaleDateString()}
         </div>
       )}
-      <QuoteUseButton
+      {user && <QuoteUseButton
         quote={quote}
-        setAlert={setAlert}
         setShowLogin={setShowLogin}
         onQuoteUsed={onQuoteUsed}
-      />
+      />}
     </div>
   );
 };

@@ -28,7 +28,7 @@ export const createQuote = async ({ quote, author, tags, private: isPrivate }) =
     if (!response.ok) {
       const errorMessage = await response.text();
       console.error("Backend Error:", errorMessage);
-      throw new Error("Failed to create quote");
+      throw new Error(errorMessage);
     }
     return await response.json();
   } catch (error) {
@@ -84,6 +84,7 @@ export const reportQuote = async (reportData) => {
     return data;
   } catch (error) {
     console.error("Error reporting quote:", error);
+    throw "Error reporting quote:" + error;
   }
  
 };
@@ -334,7 +335,7 @@ export const updateMe = async (updatedData) => {
     return await response.json();
   } catch (error) {
     console.error("Error updating user:", error);
-    throw error;
+    throw new Error(error);
   }
 };
 
