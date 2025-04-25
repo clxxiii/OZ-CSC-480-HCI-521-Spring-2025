@@ -408,6 +408,7 @@ export const useQuote = async (quoteId) => {
 
 {/* Notification Related */}
 export const fetchNotifications = async (userId) => {
+  try {
     const response = await fetch(
       `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/notifications/user/${userId}`)}`,
       {
@@ -415,22 +416,28 @@ export const fetchNotifications = async (userId) => {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", 
+        credentials: "include",
         body: JSON.stringify({
           method: "GET",
         }),
       }
-    );
+    )
 
     if (!response.ok) {
-      const errorMessage = await response.text();
+      const errorMessage = await response.text(); 
       console.error("Error fetching notifications:", errorMessage);
+      throw new Error(`Failed to fetch notifications: ${errorMessage}`);
     }
-    
-  return await response.json();
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    throw error;
+  }
 };
 
-//   retrieves single notification object with all information about quote
+
 export const fetchNotification = async (notificationId) => {
   const response = await fetch(
       `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/notifications/notification/${notificationId}`)}`,
