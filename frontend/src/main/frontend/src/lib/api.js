@@ -51,6 +51,11 @@ export const deleteQuote = async (quoteId) => {
       }),
     });
 
+    if (!response.ok) {
+      const message = await response.json();
+      throw new Error(message);
+    }
+
     const contentType = response.headers.get("Content-Type");
     if (contentType && contentType.includes("application/json")) {
       return await response.json();
@@ -614,6 +619,29 @@ export const fetchReportedQuotes = async () => {
     return data.reports || [];
   } catch (error) {
     console.error("Error fetching reported quotes:", error);
+    throw error;
+  }
+};
+
+export const searchUsersByQuery = async (query) => {
+  try {
+    const response = await fetch(
+      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/accounts/search/query/${query}`)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          method: "GET",
+        }),
+      }
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error searching users:", error);
     throw error;
   }
 };
