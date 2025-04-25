@@ -80,6 +80,7 @@ const ShareQuotePopup = ({ quote, onClose }) => {
 
 
             <div
+                aria-label="Share this quote."
                 style={{
                     background: "#fff9d1",
                     padding: "8px",
@@ -93,6 +94,7 @@ const ShareQuotePopup = ({ quote, onClose }) => {
             </div>
 
             <input
+                aria-label="Text Field"
                 type="text"
                 placeholder="Search by email..."
                 value={input}
@@ -164,7 +166,7 @@ const ShareQuotePopup = ({ quote, onClose }) => {
                 onClick={() => handleSend(input, quote._id)}
 
                 // disabled={selectedUsers.length === 0 || loading}
-
+                aria-label="Send button"
                 style={{
                     width: "100%",
                     padding: "8px",
@@ -184,6 +186,7 @@ const ShareQuotePopup = ({ quote, onClose }) => {
             <hr style={{ margin: "12px 0" }} />
 
             <div
+                aria-label="Copy sharable link to your clipboard"
                 onClick={copyLink}
                 style={{
                     textAlign: "center",
