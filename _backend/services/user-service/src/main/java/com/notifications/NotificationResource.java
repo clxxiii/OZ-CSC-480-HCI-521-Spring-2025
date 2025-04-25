@@ -3,6 +3,7 @@ package com.notifications;
 import com.accounts.Account;
 import com.accounts.AccountService;
 import com.mongodb.client.result.InsertOneResult;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Consumes;
@@ -41,6 +42,8 @@ import static com.mongodb.client.model.Filters.eq;
 
 @Path("/notifications")
 public class NotificationResource {
+
+    NotificationService notificationService;
 
     @GET
     @Path("/user/{userId}")
