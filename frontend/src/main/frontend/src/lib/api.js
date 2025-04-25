@@ -593,4 +593,28 @@ export const filteredSearch = async (query, filters = {}) => {
   }
 };
 
+export const fetchReportedQuotes = async () => {
+  try {
+    const response = await fetch(
+      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/report/all`)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          method: "GET",
+        }),
+      }
+    );
+    const data = await response.json();
+    console.log("Reported quotes data:", data);
+    return data.reports || [];
+  } catch (error) {
+    console.error("Error fetching reported quotes:", error);
+    throw error;
+  }
+};
+
 
