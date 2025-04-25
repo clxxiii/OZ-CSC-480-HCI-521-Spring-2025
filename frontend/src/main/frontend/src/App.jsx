@@ -11,6 +11,7 @@ import { userQuotes, bookmarkedQuotes } from "./placeholderdata";
 import SearchPage from './pages/SearchPage';
 import { AlertProvider, UserProvider } from "./lib/Contexts";
 import CommunityGuidelinesPage from "./pages/CommunityGuidelinesPage";
+import AdminPanel from "./pages/AdminPanel";
 
 const App = () => {
 
@@ -36,6 +37,7 @@ const App = () => {
               <Route path="/account" element={<AccountPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/community-guidelines" element={<CommunityGuidelinesPage/>} />
+              <Route path="/admin" element={<AdminPanel />} />
             </Route>
           </Routes>
         </Router>
