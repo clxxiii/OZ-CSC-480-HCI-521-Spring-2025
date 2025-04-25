@@ -202,9 +202,7 @@ public class AccountService {
             }
 
             Document user = accountCollection.find(eq("Email", email)).first();
-
-            System.out.println(user.toJson());
-
+            
             if (user == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity(new Document("error", "User with email " + email + " not found").toJson())
