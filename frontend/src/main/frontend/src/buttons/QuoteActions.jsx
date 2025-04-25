@@ -227,7 +227,7 @@ const QuoteActions = ({ quote, onBookmarkToggle }) => {
         <Flag size={22} />
         {!user && <div className="tip-text">Sign in to use this feature!</div>}
       </button>
-      <ReportModal showReportModal={showReportModal} onClose={() => setShowReportModal(false)} user={user} />
+      <ReportModal showReportModal={showReportModal} onClose={() => setShowReportModal(false)} user={user} quoteID={quote._id} />
     </div>
   );
 };
