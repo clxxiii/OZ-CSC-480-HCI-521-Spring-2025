@@ -10,11 +10,15 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+
+import com.usedQuotes.UsedQuoteService;
+
 import jakarta.json.JsonObject;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.Cookie;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import com.sharedQuotes.*;
 
 @Path("/bookmarks")
 public class BookmarkResource {
@@ -23,8 +27,12 @@ public class BookmarkResource {
     @RestClient
     private QuoteClient quoteClient;
 
-   
-    public static AccountService accountService = new AccountService();
+    @Inject
+    AccountService accountService;
+
+    @Inject
+    UsedQuoteService usedQuoteService;
+
 
     @POST
     @Path("/add/{quoteId}")
@@ -57,16 +65,44 @@ public class BookmarkResource {
             if(acc.BookmarkedQuotes.contains(quoteId)){
                 return Response
             .status(Response.Status.BAD_REQUEST)
-            .entity("You already bookmarked that")
+            .entity(new Document("error","You already bookmarked that"))
             .build();
             }
             String userId = accountService.getAccountIdByEmail(acc.Email);
             acc.BookmarkedQuotes.add(quoteId);
             json = acc.toJson();
-            Response quoteSearchRes = quoteClient.idSearch(quoteId);
+            Response quoteSearchRes;
+            try{
+                quoteSearchRes = quoteClient.idSearch(quoteId);
+            }
+            catch(WebApplicationException e){
+                 quoteSearchRes = e.getResponse();
+                 return Response.status(Response.Status.NOT_FOUND)
+                 .entity(new Document("error", "That quote doesn't exist").toJson())
+                 .build();
+            }
             if(quoteSearchRes.getStatus()==Response.Status.OK.getStatusCode()){
             String quoteSearchString = quoteSearchRes.readEntity(String.class);
             Document quoteSearchDoc = Document.parse(quoteSearchString);
+            
+            if(quoteSearchDoc.getBoolean("private")
+            &&!quoteSearchDoc.get("creator").toString().equals(userId)){
+                Boolean sharedWithYou = false;
+                for (SharedQuote shared : acc.SharedQuotes) {
+                    if(shared.getTo().equals(userId)
+                    && shared.getQuoteId().equals(quoteId)&&shared.getFrom().equals(quoteSearchDoc.get("creator").toString())
+                    &&shared.getFrom().equals(quoteSearchDoc.get("creator").toString())){
+                        sharedWithYou = true;
+                    }
+                }
+                if(!sharedWithYou){
+                    return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "You can't bookmark this it's private").toJson())
+                    .build();
+                }
+             
+            }
+           
             int currentBookmarks = quoteSearchDoc.getInteger("bookmarks", 0);
             quoteSearchDoc.put("bookmarks", currentBookmarks + 1);
             quoteSearchDoc.remove("creator");
@@ -107,16 +143,44 @@ public class BookmarkResource {
             doc.remove("expires_at");
             Account acc = accountService.document_to_account(doc);
             List<JsonObject> jsonList = new ArrayList<>();
-
+            List<String> updatedBookmarks = new ArrayList<>(acc.BookmarkedQuotes);
             for(String objectId: acc.BookmarkedQuotes){ //for all bookmarked quotes
                 if(!acc.UsedQuotes.containsKey(objectId)){ //if quote id is not in used quotes map
-                    Response quoteSearchRes = quoteClient.idSearch(objectId); //get quote
+                    Response quoteSearchRes;
+                    try{
+                        quoteSearchRes = quoteClient.idSearch(objectId);
+                    } //get quote
+                    catch(WebApplicationException e){
+                        quoteSearchRes = e.getResponse();
+                        updatedBookmarks.remove(objectId);
+                    }
                     if(quoteSearchRes.getStatus()==Response.Status.OK.getStatusCode()){
+
                         JsonObject quoteSearchJson = quoteSearchRes.readEntity(JsonObject.class);
+                        if(quoteSearchJson.getBoolean("private")
+                        &&!quoteSearchJson.getString("creator").equals(accountService.getAccountIdByEmail(acc.Email))){
+                            Boolean sharedWithYou = false;
+                            for (SharedQuote shared : acc.SharedQuotes) {
+                                if(shared.getTo().equals(accountService.getAccountIdByEmail(acc.Email))
+                                && shared.getQuoteId().equals(objectId)
+                                &&shared.getFrom().equals(quoteSearchJson.getString("creator"))){
+                                    sharedWithYou = true;
+                                }
+                            }
+                            if(!sharedWithYou){
+                                updatedBookmarks.remove(objectId);
+                                continue;
+                            }
+                        }
                         jsonList.add(quoteSearchJson);
                     }
                 }
+                
             }
+            acc.BookmarkedQuotes = updatedBookmarks;
+            accountService.updateUser(acc.toJson(), accountService.getAccountIdByEmail(acc.Email));
+            return Response
+            .ok(jsonList).build();
         }
         return Response.status(Response.Status.BAD_REQUEST).entity("Failed to retrieve account").build();
     }
@@ -148,14 +212,42 @@ public class BookmarkResource {
             doc.remove("expires_at");
             Account acc = accountService.document_to_account(doc);
             List<JsonObject> jsonList = new ArrayList<>();
+            List<String> updatedBookmarks = new ArrayList<>(acc.BookmarkedQuotes);
             for(String objectId: acc.BookmarkedQuotes){
-            Response quoteSearchRes = quoteClient.idSearch(objectId);
+            Response quoteSearchRes;
+            try{
+             quoteSearchRes = quoteClient.idSearch(objectId);
+            }
+            catch(WebApplicationException e){
+            quoteSearchRes = e.getResponse();
+            }
             if(quoteSearchRes.getStatus()==Response.Status.OK.getStatusCode()){
             JsonObject quoteSearchJson = quoteSearchRes.readEntity(JsonObject.class);
-            
+            if(quoteSearchJson.getBoolean("private")
+            &&!quoteSearchJson.getString("creator").equals(accountService.getAccountIdByEmail(acc.Email))){
+                Boolean sharedWithYou = false;
+                for (SharedQuote shared : acc.SharedQuotes) {
+                    if(shared.getTo().equals(accountService.getAccountIdByEmail(acc.Email))
+                    && shared.getQuoteId().equals(objectId) 
+                    &&shared.getFrom().equals(quoteSearchJson.getString("creator"))){
+                        sharedWithYou = true;
+                    }
+                
+                            }
+                            if(!sharedWithYou){
+                                updatedBookmarks.remove(objectId);
+                                continue;
+                            }
+                
+            }
             jsonList.add(quoteSearchJson);
             }
+            else if(quoteSearchRes.getStatus()==Response.Status.NOT_FOUND.getStatusCode()){
+             updatedBookmarks.remove(objectId);
             }
+            }
+            acc.BookmarkedQuotes = updatedBookmarks;
+            accountService.updateUser(acc.toJson(), accountService.getAccountIdByEmail(acc.Email));
             return Response
             .ok(jsonList).build();
         }
@@ -167,6 +259,7 @@ public class BookmarkResource {
 
     @GET
     @Path("/UsedQuotes")
+    @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get users used quotes.")
     public Response userUsedQuotes(@Context HttpHeaders header) {
         String authHeader = header.getHeaderString(HttpHeaders.AUTHORIZATION);
@@ -182,15 +275,46 @@ public class BookmarkResource {
         if(doc != null) {
             doc.remove("expires_at");
             Account account = accountService.document_to_account(doc);
-
+            Map<String,String> updatedUsedQuotes = new HashMap<>(account.UsedQuotes);
             List<JsonObject> jsonList = new ArrayList<>();
             for(String oid: account.UsedQuotes.keySet()) {
-                Response getQuote = quoteClient.idSearch(oid);
+                Response getQuote;
+                try{
+                 getQuote = quoteClient.idSearch(oid);
+                }
+                catch(WebApplicationException e){
+                getQuote = e.getResponse();
+                }
                 if(getQuote.getStatus() == Response.Status.OK.getStatusCode()) {
                     JsonObject quoteObject = getQuote.readEntity(JsonObject.class);
+                    if(quoteObject.getBoolean("private")
+                    &&!quoteObject.get("creator").toString().equals(accountService.getAccountIdByEmail(account.Email))){
+                        Boolean sharedWithYou = false;
+                        for (SharedQuote shared : account.SharedQuotes) {
+                            if(shared.getTo().equals(accountService.getAccountIdByEmail(account.Email))
+                            && shared.getQuoteId().equals(oid) &&shared.getFrom().equals(quoteObject.get("creator").toString())
+                            &&shared.getFrom().equals(quoteObject.get("creator").toString())){
+                                sharedWithYou = true;
+                            }
+                        }
+                        if(!sharedWithYou){
+                            usedQuoteService.deleteUsedQuote(account.UsedQuotes.get(oid));
+                            updatedUsedQuotes.remove(oid);
+                            continue;
+                        }
+                        
+                       
+                    }
                     jsonList.add(quoteObject);
                 }
+                else if(getQuote.getStatus() == Response.Status.NOT_FOUND.getStatusCode()){
+                usedQuoteService.deleteUsedQuote(account.UsedQuotes.get(oid));
+                 updatedUsedQuotes.remove(oid);
+                
+                }
             }
+            account.UsedQuotes = updatedUsedQuotes;
+            accountService.updateUser(account.toJson(), accountService.getAccountIdByEmail(account.Email));
             return Response.ok(jsonList).build();
         }
         return Response.status(Response.Status.BAD_REQUEST).entity("Failed to retrieve account").build();

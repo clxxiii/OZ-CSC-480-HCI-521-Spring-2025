@@ -2,44 +2,67 @@ package com.accounts;
 
 import com.auth.AuthResource;
 import com.auth.JwtService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.websphere.security.jwt.InvalidConsumerException;
 import com.ibm.websphere.security.jwt.InvalidTokenException;
 import com.ibm.websphere.security.jwt.JwtConsumer;
 import com.ibm.websphere.security.jwt.JwtToken;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.*;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.sharedQuotes.SharedQuote;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonWriter;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.NewCookie;
+
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
+
 import jakarta.ws.rs.core.Response;
+
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.moderation.ProfanityClass;
 import static com.mongodb.client.model.Filters.eq;
 
+@RequestScoped
 public class AccountService {
 
-    public static MongoClient client;
-    public static MongoDatabase accountDB;
-    public static MongoCollection<Document> accountCollection;
+    @Inject
+    MongoUtil mongoUtil;
 
-    public AccountService() {
+    private MongoClient client;
+    private MongoDatabase accountDB;
+    private MongoCollection<Document> accountCollection;
+
+    private ProfanityClass profanityFilter = new ProfanityClass();
+
+    public AccountService() {}
+
+    @PostConstruct
+    public void init() {
         String connectionString = System.getenv("CONNECTION_STRING");
-        client = MongoClients.create(connectionString);
+        client = mongoUtil.getMongoClient();
         accountDB = client.getDatabase("Accounts");
         accountCollection = accountDB.getCollection("Users");
     }
@@ -48,6 +71,10 @@ public class AccountService {
         client = mongoClient;
         accountDB = client.getDatabase(dbName);
         accountCollection = accountDB.getCollection(collectionName);
+    }
+
+    public MongoCollection<Document> getAccountCollection() {
+        return accountCollection;
     }
 
     public Response newUser(String accountJson) {
@@ -66,6 +93,14 @@ public class AccountService {
                     .status(Response.Status.BAD_REQUEST)
                     .entity(new Document("error", "Missing required field: email").toJson())
                     .build();
+        }
+
+         if (profanityFilter.checkProfanity(accountDocument.getString("Profession"))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new Document("error", "Profession is not appropiate.").toJson()).build();
+        }
+
+        if (profanityFilter.checkProfanity(accountDocument.getString("PersonalQuote"))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new Document("error", "Personal Quote is not appropiate.").toJson()).build();
         }
 
         FindIterable<Document> result = accountCollection.find(eq("email", accountDocument.getString("email")));
@@ -106,10 +141,11 @@ public class AccountService {
         }
 
         String jwt = JwtService.buildJwt(id).toString();
+        String userServiceUrl = System.getenv("USER_SERVICE_URL");
 
         return Response
                 .status(Response.Status.FOUND)
-                .location(URI.create("http://localhost:9081/users/auth/checkJWT/" + jwt))
+                .location(URI.create(userServiceUrl + "/users/auth/checkJWT/" + jwt))
                 .build();
     }
 
@@ -179,6 +215,81 @@ public class AccountService {
             }
 
             return Response.status(Response.Status.OK).entity(user.toJson()).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new Document("error", "Error retrieving user: " + e.getMessage()).toJson())
+                    .build();
+        }
+    }
+
+    public Response retrieveUsersQuery(String query) {
+        try {
+            if (query == null || query.trim().isEmpty()) {
+                AggregateIterable<Document> results = accountCollection.aggregate(Arrays.asList(
+                        new Document("$sample", new Document("size", 50)),
+                        new Document("$project", new Document("Email", 1).append("Username", 1))
+                ));
+
+                JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+                for (Document doc : results) {
+                    JsonObject jsonObject = Json.createReader(new StringReader(doc.toJson())).readObject();
+                    jsonArrayBuilder.add(jsonObject);
+                }
+
+                StringWriter stringWriter = new StringWriter();
+                try (JsonWriter jsonWriter = Json.createWriter(stringWriter)) {
+                    jsonWriter.writeArray(jsonArrayBuilder.build());
+                }
+
+                return Response.ok(stringWriter.toString()).build();
+            }
+
+            List<Document> MustClause;
+            if (query.length() >= 6) {
+                MustClause = List.of( //search that "must" occur
+                        new Document("text", new Document("query", query) //set query string to user query
+                                .append("path", Arrays.asList("Email", "Username")) // fields to search and compare to
+                                .append("fuzzy", new Document("maxEdits", 2)))
+                );
+            } else if (query.length() >= 3) {
+                MustClause = List.of( //search that "must" occur
+                        new Document("text", new Document("query", query) //set query string to user query
+                                .append("path", Arrays.asList("Email", "Username")) // fields to search and compare to
+                                .append("fuzzy", new Document("maxEdits", 1)))
+                );
+            } else {
+                MustClause = List.of( //search that "must" occur
+                        new Document("autocomplete", new Document("query", query) //set query string to user query
+                                .append("path", Arrays.asList("Email", "Username")) // fields to search and compare to
+                ));
+            }
+
+            //build search query document
+            Document CompoundDoc = new Document("must", MustClause); //default searching
+
+            // create query document
+            AggregateIterable<Document> results = accountCollection.aggregate(Arrays.asList(
+                    new Document("$search", new Document("index", "UsersAtlasSearch") //set to search atlas index
+                            .append("compound", CompoundDoc)),
+                    //post search section
+                    new Document("$sort", new Document("score", -1)), //sort by relevance
+                    new Document("$limit", 50),
+                    new Document("$project", new Document("Email", 1).append("Username", 1)))); //limit to 50 results
+
+            JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+
+            for(Document doc : results) {
+                JsonObject jsonObject = Json.createReader(new StringReader(doc.toJson())).readObject();
+                jsonArrayBuilder.add(jsonObject);
+            }
+
+            StringWriter stringWriter = new StringWriter();
+            try(JsonWriter jsonWriter = Json.createWriter(stringWriter)) {
+                jsonWriter.writeArray(jsonArrayBuilder.build());
+            }
+
+            return Response.ok(stringWriter.toString()).build();
+
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new Document("error", "Error retrieving user: " + e.getMessage()).toJson())
@@ -267,6 +378,14 @@ public class AccountService {
                     .build();
         }
 
+        if (profanityFilter.checkProfanity(updatedAccountDocument.getString("Profession"))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new Document("error", "Profession is not appropiate.").toJson()).build();
+        }
+
+        if (profanityFilter.checkProfanity(updatedAccountDocument.getString("PersonalQuote"))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new Document("error", "Personal Quote is not appropiate.").toJson()).build();
+        }
+
         UpdateResult updateResult = accountCollection.updateOne(
                 eq("_id", objectId),
                 new Document("$set", updatedAccountDocument)
@@ -299,6 +418,7 @@ public class AccountService {
         }
     }
 
+   
     public Account document_to_account(Document document) {
         String email = document.getString("Email");
         String username = document.getString("Username");
@@ -313,11 +433,11 @@ public class AccountService {
         List<String> bookmarkedQuotes = document.getList("BookmarkedQuotes", String.class);
         List<Document> sharedQuotesDocs = document.getList("SharedQuotes", Document.class);
         List<SharedQuote> sharedQuotes = new ArrayList<>();
-        for(Document shareDoc:sharedQuotesDocs){
+        for (Document sharedDoc : sharedQuotesDocs) {
             SharedQuote sharedQuote = new SharedQuote();
-            sharedQuote.setTo(shareDoc.getString("to"));
-            sharedQuote.setFrom(shareDoc.getString("from"));
-            sharedQuote.setQuoteId(shareDoc.getString("quoteId"));
+            sharedQuote.setTo(sharedDoc.getString("to"));
+            sharedQuote.setFrom(sharedDoc.getString("from"));
+            sharedQuote.setQuoteId(sharedDoc.getString("quoteId"));
             sharedQuotes.add(sharedQuote);
         }
         String profession = document.getString("Profession");

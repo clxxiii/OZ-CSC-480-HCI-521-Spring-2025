@@ -12,8 +12,9 @@ const MyCollection = () => {
   const [bookmarkedQuotes, setBookmarkedQuotes] = useState([]);
   const [sharedQuotes, setSharedQuotes] = useState([]); 
   const [filteredQuotes, setFilteredQuotes] = useState([]);
-  const [showUsed, setShowUsed] = useState(false);
+  const [showUsed, setShowUsed] = useState("all");
   const [usedQuotes, setUsedQuotes] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]); 
   const [user] = useContext(UserContext);
 
   useEffect(() => {
@@ -66,7 +67,16 @@ const MyCollection = () => {
       author.toLowerCase().includes(searchTerm) ||
       quote.toLowerCase().includes(searchTerm) ||
       tags.some((tag) => tag.toLowerCase().includes(searchTerm));
-    return matchesSearch && (showUsed ? usedQuotes.includes(_id) : !usedQuotes.includes(_id));
+
+    const matchesTags =
+      selectedTags.length === 0 || selectedTags.every((tag) => tags.includes(tag));
+
+    const matchesUsedFilter =
+      showUsed === "all" ||
+      (showUsed === "used" && usedQuotes.includes(_id)) ||
+      (showUsed === "unused" && !usedQuotes.includes(_id));
+
+    return matchesSearch && matchesTags && matchesUsedFilter;
   });
 
   return (
@@ -82,9 +92,9 @@ const MyCollection = () => {
           />
           <div className="mt-3">
             <ToggleButton
-              isActive={!showUsed}
-              onToggle={(isActive) => setShowUsed(!isActive)}
-              labels={["Unused", "Used"]}
+              activeIndex={["all", "unused", "used"].indexOf(showUsed)}
+              onToggle={(index) => setShowUsed(["all", "unused", "used"][index])}
+              labels={["All", "Unused", "Used"]}
             />
           </div>
         </div>
@@ -95,6 +105,7 @@ const MyCollection = () => {
           bookmarkedQuotes={bookmarkedQuotes}
           sharedQuotes={sharedQuotes} 
           onFilterChange={handleFilterChange}
+          onTagSelect={setSelectedTags}
         />
         <div
           className="col"

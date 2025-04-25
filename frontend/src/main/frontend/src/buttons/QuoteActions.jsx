@@ -3,6 +3,7 @@ import { BookmarkFill, Bookmark, Share, Flag } from "react-bootstrap-icons";
 import { bookmarkQuote, deleteBookmark } from "../lib/api";
 import "../scss/tooltip.css";
 
+import ReportModal from "../components/ReportModal";
 import ShareQuotePopup from "../components/ShareQuotePopup";
 import { shareQuote } from "../lib/api"; // near top
 import { UserContext } from "../lib/Contexts";
@@ -13,6 +14,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
   const [bookmarkCount, setBookmarkCount] = useState(quote.bookmarks || 0);
   const [copied, copy] = useState(false);
   const [showSharePopup, setShowSharePopup] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [user] = useContext(UserContext);
 
   useEffect(() => {
@@ -105,7 +107,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
   };
 
   const handleFlagClick = (e) => {
-    e.stopPropagation();
+     e.stopPropagation();
 
     if (!user) {
       setAlert({
@@ -114,9 +116,11 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
       });
       return;
     }
-
-    alert("Quote has been reported. Our team will review it shortly.");
+    setShowReportModal(true);
+    //alert("Quote has been reported. Our team will review it shortly.");
   };
+
+  
 
   return (
     <div
@@ -179,6 +183,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
 
       <div className="tip" style={{ position: "relative" }}>
         <button
+          aria-label="Share Button"
           onClick={handleShareClick}
           style={{
             background: "none",
@@ -192,6 +197,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
 
         {showSharePopup && (
           <div
+            aria-label="Share Pop-Up"
             style={{
               position: "absolute",
               top: "30px",
@@ -210,6 +216,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
       </div>
 
       <button
+        aria-label="Report Button"
         onClick={handleFlagClick}
         className="tip"
         style={{
@@ -222,6 +229,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
         <Flag size={22} />
         {!user && <div className="tip-text">Sign in to use this feature!</div>}
       </button>
+      <ReportModal showReportModal={showReportModal} onClose={() => setShowReportModal(false)} user={user} quoteID={quote._id} />
     </div>
   );
 };
