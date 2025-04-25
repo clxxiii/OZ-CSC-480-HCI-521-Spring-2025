@@ -45,7 +45,7 @@ public class AuthResource {
 
     @Inject
     SessionService sessionService;
-    public static String HOME_URL = "http://localhost:9080";
+    public static String HOME_URL = System.getenv("HOME_URL");
 
 
     @GET
