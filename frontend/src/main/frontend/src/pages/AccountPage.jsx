@@ -3,12 +3,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { updateMe } from "../lib/api";
 import { BsCheckSquare, BsPencilSquare } from "react-icons/bs"; // Import icons
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../lib/Contexts";
-import AlertMessage from "../components/AlertMessage";
+import { AlertContext, UserContext } from "../lib/Contexts";
 
 const AccountPage = () => {
   const [user, setUser] = useContext(UserContext);
-  const [alert, setAlert] = useState(null);
+  const [_, setAlert] = useContext(AlertContext);
   const [error, setError] = useState(null);
   const [isEditingProfession, setIsEditingProfession] = useState(false);
   const [isEditingPersonalQuote, setIsEditingPersonalQuote] = useState(false);
@@ -43,6 +42,7 @@ const AccountPage = () => {
       })
       .catch((error) => {
         console.error("Failed to update profession:", error);
+        setAlert(error);
         setIsEditingProfession(false); // Still exit edit mode on failure
       });
   };
@@ -62,22 +62,10 @@ const AccountPage = () => {
       })
       .catch((error) => {
         console.error("Failed to update personal quote:", error);
+        setAlert(error);
         setIsEditingPersonalQuote(false);
       });
   };
-
-    const handleLogout = async () => {
-      try {
-        await logout(); 
-        localStorage.removeItem("hasLoggedIn");
-        setIsLoggedIn(false);
-        setAlert({ type: "success", message: "Successfully logged out." });
-        setShowLogin(true);
-      } catch (error) {
-        setAlert({ type: "danger", message: "An error occurred during logout." });
-      }
-    };
-
 
   if (error) return <div>Error: {error}</div>;
 
@@ -99,8 +87,6 @@ const AccountPage = () => {
                 fontWeight: "bold",
               }}
             >
-              <button className="btn btn-danger position-absolute top-0 end-0 m-3" onClick={handleLogout}> Log Out </button>
-
               {user.Username ? user.Username[0].toUpperCase() : "U"}
             </div>
             <div className="ms-3 text-start">
@@ -186,6 +172,19 @@ const AccountPage = () => {
             >
               Uploaded Quotes (PR/PB)
             </button>
+          </div>
+
+          <hr/>
+
+          {/* Community Guidelines Link */}
+          <div className="mt-4">
+                <button
+                  className="fw-bold text-start w-100"
+                  style={{background:"none",border:"none"}}
+                  onClick={() => navigate("/community-guidelines")}
+                >
+                Community Guidelines
+                </button>
           </div>
         </div>
       )}

@@ -1,25 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { BookmarkFill, Bookmark, Share, Flag } from "react-bootstrap-icons";
-import { bookmarkQuote, deleteBookmark } from "../lib/api";
+import { BookmarkFill, Bookmark, Share, Flag, Pencil, Trash } from "react-bootstrap-icons";
+import { bookmarkQuote, deleteBookmark, deleteQuote } from "../lib/api";
 import "../scss/tooltip.css";
 
+import ReportModal from "../components/ReportModal";
 import ShareQuotePopup from "../components/ShareQuotePopup";
 import { shareQuote } from "../lib/api"; // near top
-import { UserContext } from "../lib/Contexts";
+import { AlertContext, UserContext } from "../lib/Contexts";
 import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 
-const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
+const QuoteActions = ({ quote, onBookmarkToggle }) => {
+  const navigate = useNavigate();
+  const [_, setAlert] = useContext(AlertContext);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [editable, setEditable] = useState(false);
   const [bookmarkCount, setBookmarkCount] = useState(quote.bookmarks || 0);
   const [copied, copy] = useState(false);
   const [showSharePopup, setShowSharePopup] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [user] = useContext(UserContext);
 
   useEffect(() => {
     const bookmarkedQuotes =
       JSON.parse(localStorage.getItem("bookmarkedQuotes")) || [];
     setIsBookmarked(bookmarkedQuotes.includes(quote._id));
+
+    setEditable(user?.MyQuotes.includes(quote._id) || user?.admin || false);
   }, [quote._id]);
+
+  useEffect(() => {
+  }, [user, quote]);
 
   const handleBookmarkClick = async (e) => {
     e.stopPropagation();
@@ -105,7 +116,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
   };
 
   const handleFlagClick = (e) => {
-    e.stopPropagation();
+     e.stopPropagation();
 
     if (!user) {
       setAlert({
@@ -114,9 +125,54 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
       });
       return;
     }
-
-    alert("Quote has been reported. Our team will review it shortly.");
+    setShowReportModal(true);
+    //alert("Quote has been reported. Our team will review it shortly.");
   };
+
+  const handleEditClick = () => {
+      navigate(`/edit-quote/${quote._id}`, { state: { quote: { ...quote, tags: quote.tags || [] } } })
+  }
+
+  const handleTrashClick = async (e) => {
+    e.stopPropagation();
+
+    try {
+      await deleteQuote(quote._id);
+      setAlert({ type: "success", message: "Quote deleted successfully!"})
+      setTimeout(() => window.location.reload(), 3000)
+    } catch (error) {
+        setAlert(error);
+    }
+
+    // const newBookmarkState = !isBookmarked;
+    // setIsBookmarked(newBookmarkState);
+    // setBookmarkCount((prevCount) =>
+    //   newBookmarkState ? prevCount + 1 : prevCount - 1,
+    // );
+
+    // try {
+    //   let updatedQuote;
+    //   const bookmarkedQuotes =
+    //     JSON.parse(localStorage.getItem("bookmarkedQuotes")) || [];
+
+    //   if (newBookmarkState) {
+    //     updatedQuote = await bookmarkQuote(quote._id);
+    //     localStorage.setItem(
+    //       "bookmarkedQuotes",
+    //       JSON.stringify([...bookmarkedQuotes, quote._id]),
+    //     );
+    //   } else {
+    //     await deleteBookmark(quote._id);
+    //     localStorage.setItem(
+    //       "bookmarkedQuotes",
+    //       JSON.stringify(bookmarkedQuotes.filter((id) => id !== quote._id)),
+    //     );
+    //   }
+    // } catch (error) {
+    //   console.error("Error updating bookmark:", error);
+    // }
+  };
+  
 
   return (
     <div
@@ -179,6 +235,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
 
       <div className="tip" style={{ position: "relative" }}>
         <button
+          aria-label="Share Button"
           onClick={handleShareClick}
           style={{
             background: "none",
@@ -192,6 +249,7 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
 
         {showSharePopup && (
           <div
+            aria-label="Share Pop-Up"
             style={{
               position: "absolute",
               top: "30px",
@@ -209,7 +267,23 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
         {!user && <div className="tip-text">Sign in to use this feature!</div>}
       </div>
 
+      {editable ?
       <button
+        aria-label="Delete Button"
+        onClick={handleTrashClick}
+        className="tip"
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: user ? "#8B0000" : "#8B000055",
+        }}
+      >
+        <Trash size={22} />
+        <div className="tip-text">Warning! This action is permanent!</div>
+      </button> :
+      <button
+        aria-label="Report Button"
         onClick={handleFlagClick}
         className="tip"
         style={{
@@ -222,6 +296,25 @@ const QuoteActions = ({ quote, onBookmarkToggle, setAlert }) => {
         <Flag size={22} />
         {!user && <div className="tip-text">Sign in to use this feature!</div>}
       </button>
+      }
+
+      {editable && 
+      <button
+        aria-label="Edit Button"
+        onClick={handleEditClick}
+        className="tip"
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: user ? "#000" : "#0005",
+        }}
+      >
+        <Pencil size={22} />
+      </button>
+      }
+
+      <ReportModal showReportModal={showReportModal} onClose={() => setShowReportModal(false)} user={user} quoteID={quote._id} />
     </div>
   );
 };

@@ -6,7 +6,6 @@ import { UserContext } from "../lib/Contexts";
 import AlertMessage from "./AlertMessage";
 
 export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuoteUsed }) {
-  const [alert, setAlert] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [usedDate, setUsedDate] = useState(null);
   const [user] = useContext(UserContext);
@@ -36,8 +35,8 @@ export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuote
 
           {showLogin && <LoginOverlay setShowLogin={setShowLogin} />}
 
-          <div className="modal-header">
-            <div style={{ textDecoration: "none" }}>
+          <div className="modal-header" style={{borderBottom:"none"}}>
+            <div>
               {quote.tags.map((tag, i) => (
                 <Tag key={i} text={tag} />
               ))}
@@ -50,7 +49,6 @@ export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuote
             <QuoteActions
               quote={quote}
               onBookmarkToggle={onBookmarkToggle}
-              setAlert={setAlert}
               setShowLogin={setShowLogin}
             />
             {usedDate && (
@@ -61,7 +59,6 @@ export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuote
             <div style={{ display: "flex", gap: "12px", justifyContent: "space-between", marginTop: "20px" }}>
               <QuoteUseButton
                 quote={quote}
-                setAlert={setAlert}
                 setShowLogin={setShowLogin}
                 onQuoteUsed={onQuoteUsed}
               />

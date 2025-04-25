@@ -16,6 +16,7 @@ import com.ibm.websphere.security.jwt.InvalidConsumerException;
 import com.ibm.websphere.security.jwt.InvalidTokenException;
 import com.ibm.websphere.security.jwt.JwtConsumer;
 import com.ibm.websphere.security.jwt.JwtToken;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.client.*;
@@ -39,9 +40,12 @@ import static com.mongodb.client.model.Filters.eq;
 public class AuthResource {
 
 
-    public static AccountService accountService = new AccountService();
-    public static SessionService sessionService = new SessionService();
-    public static String HOME_URL = "http://localhost:9080";
+    @Inject
+    AccountService accountService;
+
+    @Inject
+    SessionService sessionService;
+    public static String HOME_URL = System.getenv("HOME_URL");
 
 
     @GET
@@ -156,7 +160,6 @@ public class AuthResource {
                 .value(sessionId)
                 .path("/")
                 .maxAge(21 * 24 * 60 * 60)
-                .secure(true)
                 .sameSite(NewCookie.SameSite.LAX)
                 .httpOnly(true)
                 .build();
@@ -318,7 +321,6 @@ public class AuthResource {
                     .value("")
                     .path("/")
                     .maxAge(0)
-                    .secure(true)
                     .sameSite(NewCookie.SameSite.LAX)
                     .httpOnly(true)
                     .build();

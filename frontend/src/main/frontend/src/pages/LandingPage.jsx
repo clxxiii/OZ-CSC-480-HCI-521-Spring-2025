@@ -4,14 +4,13 @@ import QuoteUploadModal from "../components/QuoteUploadModal";
 import Splash from "../components/Splash";
 import LoginOverlay from "../components/LoginOverlay";
 import QuoteList from "../components/QuoteList";
-import AlertMessage from "../components/AlertMessage";
 import { FetchTopQuotes } from "../lib/FetchTopQuotes";
-import { UserContext } from "../lib/Contexts";
+import { AlertContent, UserContext } from "../lib/Contexts";
 import AccountSetup from "../pages/AccountSetup"; 
 import { logout } from "../lib/api"; 
 
 const LandingPage = () => {
-  const [alert, setAlert] = useState(null);
+  const [_, setAlert] = useContext(AlertContext);
   const [quoteText, setQuoteText] = useState(""); 
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -107,6 +106,7 @@ const LandingPage = () => {
       />
 
       {showAccountSetup && <AccountSetup user={user} onClose={() => setShowAccountSetup(false)} />}
+
 
       <QuoteList topQuotes={topQuotes} loading={loading} error={error} />
     </>
