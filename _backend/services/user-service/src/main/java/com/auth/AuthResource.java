@@ -16,6 +16,7 @@ import com.ibm.websphere.security.jwt.InvalidConsumerException;
 import com.ibm.websphere.security.jwt.InvalidTokenException;
 import com.ibm.websphere.security.jwt.JwtConsumer;
 import com.ibm.websphere.security.jwt.JwtToken;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.client.*;
@@ -39,8 +40,11 @@ import static com.mongodb.client.model.Filters.eq;
 public class AuthResource {
 
 
-    public static AccountService accountService = new AccountService();
-    public static SessionService sessionService = new SessionService();
+    @Inject
+    AccountService accountService;
+
+    @Inject
+    SessionService sessionService;
     public static String HOME_URL = System.getenv("FRONTEND_URL");
 
 
