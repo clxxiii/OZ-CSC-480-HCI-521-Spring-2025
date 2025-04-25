@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import {handleSend} from "../lib/api.js";
+import { handleSend, searchUsersByQuery } from "../lib/api.js";
 
 const ShareQuotePopup = ({ quote, onClose }) => {
   const [input, setInput] = useState("");
@@ -8,33 +8,27 @@ const ShareQuotePopup = ({ quote, onClose }) => {
   const [isTyping, setIsTyping] = useState(false);
   const popupRef = useRef(null);
 
-const dummyAccounts = [
-    { name: "Samantha Brown", email: "sbrown27@oswego.edu" },
-    { name: "Shrishtika Bajracharya", email: "sbajrac2@oswego.edu" },
-    { name: "Praneeta Pradhan", email: "ppradhan@oswego.edu" },
-    { name: "Lgzr", email: "logywankanobi@gmail.com" },
-    { name: "Bryan McLean", email: "bmclean2@oswego.edu" },
-    { name: "Manali Sanjay Shivapurkar", email: "mshivapu@oswego.edu" },
-    { name: "Sriram Venkatassamy", email: "svenkata@oswego.edu" },
-    { name: "Sriram Venkatassamy", email: "uxpayan@gmail.com" },
-    { name: "Joseph Vega", email: "jvega2@oswego.edu" },
-];
-
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    const timeout = setTimeout(async () => {
       if (!input.trim()) {
         setFilteredUsers([]);
         setIsTyping(false);
         return;
       }
 
-      const results = dummyAccounts.filter(
-        (user) =>
-          user.name.toLowerCase().includes(input.toLowerCase()) ||
-          user.email.toLowerCase().includes(input.toLowerCase())
-      );
-      setFilteredUsers(results);
-      setIsTyping(false);
+      try {
+        const results = await searchUsersByQuery(input);
+        const mappedResults = results.map((user) => ({
+          name: user.Username,
+          email: user.Email,
+          id: user._id?.$oid,
+        }));
+        setFilteredUsers(mappedResults);
+      } catch (err) {
+        console.error("Error searching users:", err);
+      } finally {
+        setIsTyping(false);
+      }
     }, 300);
 
     return () => clearTimeout(timeout);
@@ -71,8 +65,11 @@ const dummyAccounts = [
     //
     //     return () => clearTimeout(timeout);
     // }, [input]);
+  const handleUserClick = (user) => {
+    setInput(user.email); 
+    setFilteredUsers([]);
+  };
 
-    // Add/remove from selected
   const toggleUser = (user) => {
     setSelectedUsers((prev) =>
       prev.some((u) => u.email === user.email)
@@ -190,8 +187,8 @@ const dummyAccounts = [
         >
           {filteredUsers.map((user) => (
             <li
-              key={user.email}
-              onClick={() => toggleUser(user)}
+              key={user.id}
+              onClick={() => handleUserClick(user)}
               style={{
                 padding: "6px",
                 cursor: "pointer",
