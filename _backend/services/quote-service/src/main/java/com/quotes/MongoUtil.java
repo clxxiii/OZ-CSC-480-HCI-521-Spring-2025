@@ -36,9 +36,9 @@ public class MongoUtil {
         database = mongoClient.getDatabase(DATABASE_NAME);
     }
 
-    public MongoUtil(String connectionString) {
+    public MongoUtil(String connectionString, String database1) {
         mongoClient = MongoClients.create(connectionString);
-        database = mongoClient.getDatabase(DATABASE_NAME);
+        database = mongoClient.getDatabase(database1);
     }
 
     private static String getConnectionString() {

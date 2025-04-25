@@ -1,5 +1,7 @@
 package quotes;
 
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.quotes.MongoUtil;
 import com.quotes.QuoteObject;
 import jakarta.json.Json;
@@ -7,22 +9,37 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObjectBuilder;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.*;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Testcontainers
 public class MongoUtilTesting {
     public static MongoUtil mongoUtil;
     public static QuoteObject quoteObject;
     ObjectId id;
     public static ArrayList<ObjectId> ids;
 
+    @Container
+    private static final MongoDBContainer mongoDBContainer =
+            new MongoDBContainer("mongo:6.0");
+
     @BeforeAll
     public static void setUp() {
-        mongoUtil = new MongoUtil("mongodb+srv://database_admin:pXzO2cMkmk7LXVCH@csc480cluster.ldmco.mongodb.net/?retryWrites=true&w=majority");
         ids = new ArrayList<>();
+        String connectionString = mongoDBContainer.getConnectionString();
+        System.out.println(connectionString);
+        mongoUtil = new MongoUtil(connectionString, "test");
+//        MongoClient client = MongoClients.create(connectionString);
+//        accountService = new AccountService(client, "Test", "Users");
+//        mongoUtil = new MongoUtil("mongodb+srv://database_admin:pXzO2cMkmk7LXVCH@csc480cluster.ldmco.mongodb.net/?retryWrites=true&w=majority");
+//        ids = new ArrayList<>();
     }
 
     @BeforeEach
@@ -52,7 +69,7 @@ public class MongoUtilTesting {
     @Test
     @Order(1)
     public void testCreateQuote() {
-        assertEquals(5, ids.size());
+        assertEquals(1, ids.size());
     }
 
 
@@ -61,7 +78,7 @@ public class MongoUtilTesting {
     public void testCreateQuoteWithIdAndText(){
         quoteObject.setText("test");
         ids.add(mongoUtil.createQuote(quoteObject));
-        assertEquals(8, ids.size());
+        assertEquals(3, ids.size());
     }
 
 
