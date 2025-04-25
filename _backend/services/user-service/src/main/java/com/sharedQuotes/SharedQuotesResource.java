@@ -2,6 +2,7 @@ package com.sharedQuotes;
 
 
 
+import com.notifications.NotificationService;
 import org.bson.Document;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;

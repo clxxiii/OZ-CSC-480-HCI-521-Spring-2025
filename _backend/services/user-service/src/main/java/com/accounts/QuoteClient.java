@@ -5,7 +5,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-@RegisterRestClient(baseUri = "http://quotes-service:9082")
+@RegisterRestClient(baseUri = "http://localhost:9082")
 public interface QuoteClient{
    
     @PUT
