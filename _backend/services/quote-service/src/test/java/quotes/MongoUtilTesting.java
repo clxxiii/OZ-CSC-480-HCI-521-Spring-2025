@@ -78,7 +78,7 @@ public class MongoUtilTesting {
     }
 
 
-      //create Quote with empty text
+    //create Quote with empty text
     @Test
     @Order(3)
     public void testCreateQuoteWithEmptyText(){
@@ -144,7 +144,7 @@ public class MongoUtilTesting {
     //Testing parseQuote methods
     //method is private
 
-     //test when we update quotes
+    //test when we update quotes
     @Test
     @Order(9)
     public void testUpdateQuotes(){

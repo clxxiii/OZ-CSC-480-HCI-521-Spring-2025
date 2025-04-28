@@ -22,14 +22,10 @@ import static com.mongodb.client.model.Filters.eq;
 @ApplicationScoped
 public class MongoUtil {
 
-    private static final String DATABASE_NAME = "Test";
+    private static final String DATABASE_NAME = "Data";
     private static MongoClient mongoClient;
     private static MongoDatabase database;
 
-//    static {
-//        mongoClient = MongoClients.create(getConnectionString());
-//        database = mongoClient.getDatabase(DATABASE_NAME);
-//    }
 
     public MongoUtil() {
         mongoClient = MongoClients.create(getConnectionString());
@@ -53,7 +49,6 @@ public class MongoUtil {
         try {
             MongoDatabase UserDatabase = mongoClient.getDatabase("Accounts");
             MongoCollection<Document> userCollection = UserDatabase.getCollection("Users");
-            //this test cause error while testing
             JwtConsumer consumer = JwtConsumer.create("defaultJwtConsumer");
             JwtToken jwt = consumer.createJwt(jwtString);
 
@@ -272,6 +267,13 @@ public class MongoUtil {
             System.out.println("Og Quote null for some reason");
             return false;
         }
+
+        //quote.PrintQuote();
+        if(quote.getId() == null) {
+            System.out.print("Missing ID");
+            return false;
+        }
+        System.out.print("Has ID");
 
         try {
             Document IdQuery = new Document();
