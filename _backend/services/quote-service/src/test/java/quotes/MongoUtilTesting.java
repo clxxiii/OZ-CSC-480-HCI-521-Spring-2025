@@ -36,10 +36,6 @@ public class MongoUtilTesting {
         String connectionString = mongoDBContainer.getConnectionString();
         System.out.println(connectionString);
         mongoUtil = new MongoUtil(connectionString, "test");
-//        MongoClient client = MongoClients.create(connectionString);
-//        accountService = new AccountService(client, "Test", "Users");
-//        mongoUtil = new MongoUtil("mongodb+srv://database_admin:pXzO2cMkmk7LXVCH@csc480cluster.ldmco.mongodb.net/?retryWrites=true&w=majority");
-//        ids = new ArrayList<>();
     }
 
     @BeforeEach
@@ -187,61 +183,4 @@ public class MongoUtilTesting {
         quoteObject.setId(null);
         assertFalse(mongoUtil.updateQuote(quoteObject));
     }
-
-
-
-
-
-
-    //the jwtString creates error
-//    @Test
-//    void testSearchWithoutFilters() {
-//        String searchQuery = "test";
-//        boolean filterUsed = false;
-//        boolean filterBookmarked = false;
-//        boolean filterUploaded = false;
-//        String includeTerms = null;
-//        String excludeTerms = null;
-//        String jwtString = "jwtString";
-//        String result = mongoUtil.searchQuote(searchQuery, filterUsed, filterBookmarked, filterUploaded, includeTerms, excludeTerms, jwtString);
-//        assertNotNull(result);
-//        assertTrue(result.contains("test"));  // Ensure the search term "test" is present in the result
-//    }
-//
-//    @Test
-//    void testSearchWithFuzzyQuery() {
-//        String searchQuery = "tst";
-//        boolean filterUsed = false;
-//        boolean filterBookmarked = false;
-//        boolean filterUploaded = false;
-//        String includeTerms = null;
-//        String excludeTerms = null;
-//        String jwtString = "jwtString";
-//        String result = mongoUtil.searchQuote(searchQuery, filterUsed, filterBookmarked, filterUploaded, includeTerms, excludeTerms, jwtString);
-//        assertNotNull(result);
-//        assertTrue(result.contains("test"));
-//    }
-//
-//        // Test Case 3: Search with an empty query but getting error because while creating jwt from string gets error
-//    @Test
-//    void testSearchWithEmptyQuery() {
-//        String searchQuery = "";
-//        boolean filterUsed = false;
-//        boolean filterBookmarked = false;
-//        boolean filterUploaded = false;
-//        String includeTerms = null;
-//        String excludeTerms = null;
-//        String jwtString = "jwtString";
-//        String result = mongoUtil.searchQuote(searchQuery, filterUsed, filterBookmarked, filterUploaded, includeTerms, excludeTerms, jwtString);
-//        assertNotNull(result);
-//        assertTrue(result.isEmpty() || result.contains("no results"));  // Handle no results case
-//    }
-
-
-
-
-
-
-
-
 }
