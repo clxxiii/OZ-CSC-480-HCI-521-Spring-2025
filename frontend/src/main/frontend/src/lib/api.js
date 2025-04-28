@@ -28,7 +28,7 @@ export const createQuote = async ({ quote, author, tags, private: isPrivate }) =
     if (!response.ok) {
       const errorMessage = await response.text();
       console.error("Backend Error:", errorMessage);
-      throw new Error("Failed to create quote");
+      throw new Error(errorMessage);
     }
     return await response.json();
   } catch (error) {
@@ -50,6 +50,11 @@ export const deleteQuote = async (quoteId) => {
         method: "DELETE",
       }),
     });
+
+    if (!response.ok) {
+      const message = await response.json();
+      throw new Error(message);
+    }
 
     const contentType = response.headers.get("Content-Type");
     if (contentType && contentType.includes("application/json")) {
@@ -84,6 +89,7 @@ export const reportQuote = async (reportData) => {
     return data;
   } catch (error) {
     console.error("Error reporting quote:", error);
+    throw "Error reporting quote:" + error;
   }
  
 };
@@ -334,7 +340,7 @@ export const updateMe = async (updatedData) => {
     return await response.json();
   } catch (error) {
     console.error("Error updating user:", error);
-    throw error;
+    throw new Error(error);
   }
 };
 
@@ -613,6 +619,29 @@ export const fetchReportedQuotes = async () => {
     return data.reports || [];
   } catch (error) {
     console.error("Error fetching reported quotes:", error);
+    throw error;
+  }
+};
+
+export const searchUsersByQuery = async (query) => {
+  try {
+    const response = await fetch(
+      `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/users/accounts/search/query/${query}`)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          method: "GET",
+        }),
+      }
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error searching users:", error);
     throw error;
   }
 };

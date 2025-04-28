@@ -1,5 +1,4 @@
 import { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import { UserContext } from "../lib/Contexts";
 import AlertMessage from "./AlertMessage";
 import LoginOverlay from "./LoginOverlay";
@@ -9,30 +8,19 @@ import QuoteActions from "../buttons/QuoteActions";
 import QuoteUseButton from "../buttons/QuoteUseButton";
 
 const QuoteCard = ({ quote, onBookmarkToggle, showViewModal, onQuoteUsed }) => {
-  const navigate = useNavigate();
   const [user] = useContext(UserContext);
-  const [editable, setEditable] = useState(false);
-  const [alert, setAlert] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [usedDate, setUsedDate] = useState(null);
 
   useEffect(() => {
-    setEditable(user?.MyQuotes.includes(quote._id) || user?.admin || false);
-
     const usedQuotes = JSON.parse(localStorage.getItem("usedQuotes")) || [];
     const usedQuote = usedQuotes.find((q) => q.id === quote._id);
     setUsedDate(usedQuote?.usedDate || null);
-  }, [user, quote]);
-
-  const handleClick = () => {
-    editable
-      ? navigate(`/edit-quote/${quote._id}`, { state: { quote: { ...quote, tags: quote.tags || [] } } })
-      : showViewModal(quote);
-  };
+  }, [quote])
 
   return (
     <div
-      onClick={handleClick}
+      onClick={() => showViewModal(quote)}
       style={{
         background: "#D6F0C2",
         borderRadius: "23px",
@@ -68,7 +56,6 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal, onQuoteUsed }) => {
       <QuoteActions
         quote={quote}
         onBookmarkToggle={onBookmarkToggle}
-        setAlert={setAlert}
         setShowLogin={setShowLogin}
         user={user}
       />
@@ -77,12 +64,11 @@ const QuoteCard = ({ quote, onBookmarkToggle, showViewModal, onQuoteUsed }) => {
           Used on: {new Date(usedDate).toLocaleDateString()}
         </div>
       )}
-      <QuoteUseButton
+      {user && <QuoteUseButton
         quote={quote}
-        setAlert={setAlert}
         setShowLogin={setShowLogin}
         onQuoteUsed={onQuoteUsed}
-      />
+      />}
     </div>
   );
 };
