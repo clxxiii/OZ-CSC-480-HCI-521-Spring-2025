@@ -4,6 +4,7 @@ import QuoteActions from "../buttons/QuoteActions";
 import QuoteUseButton from "../buttons/QuoteUseButton";
 import { UserContext } from "../lib/Contexts";
 import AlertMessage from "./AlertMessage";
+import { fetchUserProfile } from "../lib/api"; 
 
 export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuoteUsed }) {
   const [alert, setAlert] = useState(null);
@@ -11,15 +12,22 @@ export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuote
   const [usedDate, setUsedDate] = useState(null);
   const [user] = useContext(UserContext);
   const [editable, setEditable] = useState(false);
+  const [uploadedBy, setUploadedBy] = useState("Loading...");
 
-    useEffect(() => {
-      setEditable(user?.MyQuotes.includes(quote._id) || user?.admin || false);
-  
-      const usedQuotes = JSON.parse(localStorage.getItem("usedQuotes")) || [];
-      const usedQuote = usedQuotes.find((q) => q.id === quote._id);
-      setUsedDate(usedQuote?.usedDate || null);
-    }, [user, quote]);
+  useEffect(() => {
+    const usedQuotes = JSON.parse(localStorage.getItem("usedQuotes")) || [];
+    const usedQuote = usedQuotes.find((q) => q.id === quote._id);
+    setUsedDate(usedQuote?.usedDate || null);
 
+    const creatorId = quote.creator?.$oid || quote.creator;
+    if (creatorId) {
+      fetchUserProfile(creatorId)
+        .then((profile) => setUploadedBy(profile?.Username || "Unknown"))
+        .catch(() => setUploadedBy("Unknown"));
+    } else {
+      setUploadedBy("Unknown");
+    }
+  }, [quote]);
 
   return (
     <div className="modal show" style={{ display: "block" }}>
@@ -47,6 +55,9 @@ export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuote
           <div className="modal-body">
             <p style={{ color: "#1E1E1E", fontSize: "24px", textAlign: "left" }}>{'"' + quote.quote + '"'}</p>
             <p style={{ textAlign: "left", marginBottom: "40px" }}>— {quote.author}</p>
+            <p style={{ textAlign: "left", fontSize: "14px", color: "#5A5A5A" }}>
+              Uploaded by: <strong>{uploadedBy}</strong>
+            </p>
             <QuoteActions
               quote={quote}
               onBookmarkToggle={onBookmarkToggle}

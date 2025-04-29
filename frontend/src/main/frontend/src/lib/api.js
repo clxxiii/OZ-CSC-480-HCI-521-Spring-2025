@@ -151,7 +151,7 @@ export const fetchUserProfile = async (userId) => {
   //fetch user profile data using the user ID
   try {
     const response = await fetch(
-        `${PROXY_URL}/users/search/id/${userId}`
+        `${PROXY_URL}/users/accounts/search/${userId}`
     );
     if (!response.ok) throw new Error("Failed to fetch user profile");
     return await response.json();
