@@ -14,7 +14,9 @@ const CommunityGuidelinesPage = () => {
             <p className="text-start" style={{fontStyle:"italic"}}>
                 We believe that great quotes shouldn’t be forgotten, and everyone has something worth quoting. So whether you're here to browse, post, or just find that one perfect line – welcome to the Quotable community!
             </p>
+
             <br/>
+            
             <h4 className="text-start" style={{fontWeight:"bold"}}>
                 Community Guidelines
             </h4>
