@@ -5,9 +5,8 @@ import Splash from "../components/Splash";
 import LoginOverlay from "../components/LoginOverlay";
 import QuoteList from "../components/QuoteList";
 import { FetchTopQuotes } from "../lib/FetchTopQuotes";
-import { AlertContent, UserContext } from "../lib/Contexts";
-import AccountSetup from "../pages/AccountSetup"; 
-import { logout } from "../lib/api"; 
+import { AlertContext, UserContext } from "../lib/Contexts";
+import AccountSetup from "../pages/AccountSetup"; // adjust path if it's in pages
 
 const LandingPage = () => {
   const [_, setAlert] = useContext(AlertContext);
@@ -16,7 +15,7 @@ const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showAccountSetup, setShowAccountSetup] = useState(false);
-  const [user, setUser] = useContext(UserContext); 
+  const [user] = useContext(UserContext);
 
   const { topQuotes, loading, error } = FetchTopQuotes();
 
@@ -64,37 +63,10 @@ const LandingPage = () => {
     setShowModal(false); 
   };
 
-  const handleLogout = async () => {
-    try {
-      const success = await logout();
-      if (success) {
-        localStorage.removeItem("hasLoggedIn");
-        setIsLoggedIn(false);
-        setUser(null); 
-        setAlert({ type: "success", message: "Successfully logged out." });
-        setShowLogin(true);
-      } else {
-        throw new Error();
-      }
-    } catch {
-      setAlert({ type: "danger", message: "An error occurred during logout." });
-    }
-  };
-
   return (
     <>
       {showLogin && <LoginOverlay aria-label="Login Overlay" aria-live="assertive" setShowLogin={setShowLogin} setIsLoggedIn={setIsLoggedIn}/>}
       
-      {alert && (
-        <div className="position-fixed top-0 start-50 translate-middle-x mt-3 px-4" style={{ zIndex: 1050 }}>
-          <AlertMessage type={alert.type} message={alert.message} autoDismiss={true} />
-        </div>
-      )}
-      {isLoggedIn && user && (
-        <button className="btn btn-danger position-absolute top-0 end-0 m-3" onClick={handleLogout}>
-          Log Out
-        </button>
-      )}
       <Splash />
 
       <QuoteUploadModal
@@ -106,7 +78,6 @@ const LandingPage = () => {
       />
 
       {showAccountSetup && <AccountSetup user={user} onClose={() => setShowAccountSetup(false)} />}
-
 
       <QuoteList topQuotes={topQuotes} loading={loading} error={error} />
     </>
