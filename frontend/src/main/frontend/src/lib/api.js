@@ -228,7 +228,6 @@ export const fetchMe = async () => {
 };
 
 export const bookmarkQuote = async (quoteId) => {
-  //send a request to bookmark a quote by its ID
   try {
     console.log("Sending bookmark request for quote ID:", quoteId);
 
@@ -409,6 +408,28 @@ export const useQuote = async (quoteId) => {
   } catch (error) {
     console.error("Error using quote:", error);
     throw error;
+  }
+};
+
+export const fetchUsedQuotes = async () => {
+  try {
+    const user = await fetchMe(); 
+    if (!user?.UsedQuotes) return [];
+    
+    const usedQuoteIds = Object.values(user.UsedQuotes); 
+
+    const responses = await Promise.all(
+      usedQuoteIds.map((id) =>
+        fetch(`${PROXY_URL}/useQuote/use/search/${id}`).then((res) =>
+          res.ok ? res.json() : null
+        )
+      )
+    );
+
+    return responses.filter(Boolean); 
+  } catch (error) {
+    console.error("Error fetching used quotes:", error);
+    return [];
   }
 };
 

@@ -22,49 +22,37 @@ const QuoteActions = ({ quote, onBookmarkToggle }) => {
   const [user] = useContext(UserContext);
 
   useEffect(() => {
-    const bookmarkedQuotes =
-      JSON.parse(localStorage.getItem("bookmarkedQuotes")) || [];
-    setIsBookmarked(bookmarkedQuotes.includes(quote._id));
+    if (!user) return;
+    const isUserBookmarked = user.BookmarkedQuotes?.includes(quote._id);
+    setIsBookmarked(isUserBookmarked || false);
 
     setEditable(user?.MyQuotes.includes(quote._id) || user?.admin || false);
-  }, [quote._id]);
-
+  }, [user, quote._id]);
+  
   useEffect(() => {
   }, [user, quote]);
 
   const handleBookmarkClick = async (e) => {
     e.stopPropagation();
-
+  
     if (!user) {
       setAlert({ type: "danger", message: "Please sign in to bookmark!" });
       return;
     }
-
+  
     const newBookmarkState = !isBookmarked;
     setIsBookmarked(newBookmarkState);
-    setBookmarkCount((prevCount) =>
-      newBookmarkState ? prevCount + 1 : prevCount - 1,
-    );
-
+    setBookmarkCount((prevCount) => newBookmarkState ? prevCount + 1 : prevCount - 1);
+  
     try {
       let updatedQuote;
-      const bookmarkedQuotes =
-        JSON.parse(localStorage.getItem("bookmarkedQuotes")) || [];
-
+  
       if (newBookmarkState) {
         updatedQuote = await bookmarkQuote(quote._id);
-        localStorage.setItem(
-          "bookmarkedQuotes",
-          JSON.stringify([...bookmarkedQuotes, quote._id]),
-        );
       } else {
-        await deleteBookmark(quote._id);
-        localStorage.setItem(
-          "bookmarkedQuotes",
-          JSON.stringify(bookmarkedQuotes.filter((id) => id !== quote._id)),
-        );
+        updatedQuote = await deleteBookmark(quote._id);
       }
-
+  
       if (typeof onBookmarkToggle === "function") {
         onBookmarkToggle(updatedQuote || quote, newBookmarkState);
       }

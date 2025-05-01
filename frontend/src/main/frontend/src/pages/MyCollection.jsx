@@ -3,7 +3,7 @@ import QuoteCard from "../components/QuoteCard";
 import Input from "../components/Input";
 import Sidebar from "../components/Sidebar";
 import ToggleButton from "../buttons/ToggleButton";
-import { fetchQuoteById, fetchUserQuotes } from "../lib/api";
+import { fetchQuoteById, fetchUserQuotes, fetchUsedQuotes } from "../lib/api";
 import { UserContext } from "../lib/Contexts";
 
 const MyCollection = () => { 
@@ -44,22 +44,27 @@ const MyCollection = () => {
   }, [user]);
 
   useEffect(() => {
-    const storedUsedQuotes = JSON.parse(localStorage.getItem("usedQuotes")) || [];
-    setUsedQuotes(storedUsedQuotes.map((quote) => quote.id));
-  }, []);
+    const getUsedQuotes = async () => {
+      const used = await fetchUsedQuotes();
+      const ids = Object.keys(user?.UsedQuotes || {});
+      setUsedQuotes(ids);
+    };
+    getUsedQuotes();
+  }, [user]);
+
 
   const handleFilterChange = useCallback((filtered) => {
     setFilteredQuotes((prev) => (JSON.stringify(prev) !== JSON.stringify(filtered) ? filtered : prev));
   }, []);
 
-  const handleQuoteUsed = (quoteId) => {
-    const updatedUsedQuotes = [...usedQuotes, quoteId];
-    setUsedQuotes(updatedUsedQuotes);
-    localStorage.setItem(
-      "usedQuotes",
-      JSON.stringify(updatedUsedQuotes.map((id) => ({ id, usedDate: new Date().toISOString() })))
-    );
-    setFilteredQuotes((prev) => prev.filter((quote) => quote._id !== quoteId));
+  const handleQuoteUsed = async (quoteId) => {
+    try {
+      await useQuote(quoteId);
+      setUsedQuotes((prev) => [...new Set([...prev, quoteId])]);
+      setFilteredQuotes((prev) => prev.filter((quote) => quote._id !== quoteId));
+    } catch (error) {
+      console.error("Failed to mark quote as used:", error);
+    }
   };
 
   const displayedQuotes = filteredQuotes.filter(({ _id, author, quote, tags }) => {
