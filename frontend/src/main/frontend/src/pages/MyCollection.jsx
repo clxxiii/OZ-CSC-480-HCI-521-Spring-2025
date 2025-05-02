@@ -67,7 +67,10 @@ const MyCollection = () => {
     }
   };
 
-  const displayedQuotes = filteredQuotes.filter(({ _id, author, quote, tags }) => {
+  const displayedQuotes = Array.from(
+    new Set(filteredQuotes.map((quote) => quote._id))
+  ).map((id) => filteredQuotes.find((quote) => quote._id === id))
+  .filter(({ _id, author, quote, tags }) => {
     const matchesSearch =
       author.toLowerCase().includes(searchTerm) ||
       quote.toLowerCase().includes(searchTerm) ||

@@ -23,10 +23,11 @@ const QuoteActions = ({ quote, onBookmarkToggle }) => {
 
   useEffect(() => {
     if (!user) return;
+
     const isUserBookmarked = user.BookmarkedQuotes?.includes(quote._id);
     setIsBookmarked(isUserBookmarked || false);
 
-    setEditable(user?.MyQuotes.includes(quote._id) || user?.admin || false);
+    setEditable(user?.MyQuotes?.includes(quote._id) || user?.admin || false);
   }, [user, quote._id]);
   
   useEffect(() => {
@@ -54,7 +55,7 @@ const QuoteActions = ({ quote, onBookmarkToggle }) => {
       }
   
       if (typeof onBookmarkToggle === "function") {
-        onBookmarkToggle(updatedQuote || quote, newBookmarkState);
+        onBookmarkToggle(quote, newBookmarkState); 
       }
     } catch (error) {
       console.error("Error updating bookmark:", error);
