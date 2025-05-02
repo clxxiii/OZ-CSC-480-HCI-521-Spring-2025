@@ -5,10 +5,12 @@ import LoginBox from './Login';
 import Footer from './Footer';
 import { AlertContext } from '../lib/Contexts';
 import AlertMessage from './AlertMessage';
+import { useContext, useState } from 'react';
 
 const Layout = () => {
   const [showLogin, setShowLogin] = useState(null); //track whether to show the login modal
   const [showFooter, setShowFooter] = useState(true); // Track whether to show the footer
+
   const [alert] = useContext(AlertContext);
 
   const handleGoogleLogin = () => {
@@ -37,6 +39,13 @@ const Layout = () => {
   return (
     <div className="container">
       <TopNavigation /> {/* display the top navigation bar with user data */}
+
+      {alert && (
+        <div className="position-fixed top-0 start-50 translate-middle-x mt-3 px-4" style={{ zIndex: 1050 }}>
+          <AlertMessage autoDismiss={true} />
+        </div>
+      )}
+
       <main>
         {showLogin && (
           // Display the login modal if user needs to log in

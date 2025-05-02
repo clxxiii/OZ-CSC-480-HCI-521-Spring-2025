@@ -26,9 +26,15 @@ public class MongoUtil {
     private static MongoClient mongoClient;
     private static MongoDatabase database;
 
-    static {
+
+    public MongoUtil() {
         mongoClient = MongoClients.create(getConnectionString());
         database = mongoClient.getDatabase(DATABASE_NAME);
+    }
+
+    public MongoUtil(String connectionString, String database1) {
+        mongoClient = MongoClients.create(connectionString);
+        database = mongoClient.getDatabase(database1);
     }
 
     private static String getConnectionString() {
@@ -69,6 +75,11 @@ public class MongoUtil {
 
         if(result != null) {
             result.put("_id", result.getObjectId("_id").toString()); //gets rid of "$oid" subfield
+            ObjectId creator = result.getObjectId("creator");
+            if(creator == null) {
+                System.out.println("creator is null");
+                return null;
+            }
             result.put("creator", result.getObjectId("creator").toString());
             return result.toJson();
         }
@@ -239,8 +250,17 @@ public class MongoUtil {
     public boolean updateQuote(QuoteObject quote) {
         MongoCollection<Document> collection = database.getCollection("Quotes");
 
+        if(quote == null) {
+            System.out.println("Quote object is null");
+            return false;
+        }
+
         //get current quote for reference
         String originalQuote = getQuote(quote.getId());
+        if(originalQuote == null) {
+            System.out.println("Quote id is null or invalid");
+            return false;
+        }
         QuoteObject ogQuote = parseQuote(originalQuote);
 
         if(ogQuote == null) {
