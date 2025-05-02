@@ -28,7 +28,7 @@ export const createQuote = async ({ quote, author, tags, private: isPrivate }) =
     if (!response.ok) {
       const errorMessage = await response.text();
       console.error("Backend Error:", errorMessage);
-      throw new Error("Failed to create quote");
+      throw new Error(errorMessage);
     }
     return await response.json();
   } catch (error) {
@@ -50,6 +50,11 @@ export const deleteQuote = async (quoteId) => {
         method: "DELETE",
       }),
     });
+
+    if (!response.ok) {
+      const message = await response.json();
+      throw new Error(message);
+    }
 
     const contentType = response.headers.get("Content-Type");
     if (contentType && contentType.includes("application/json")) {
@@ -84,6 +89,7 @@ export const reportQuote = async (reportData) => {
     return data;
   } catch (error) {
     console.error("Error reporting quote:", error);
+    throw "Error reporting quote:" + error;
   }
  
 };
@@ -222,7 +228,6 @@ export const fetchMe = async () => {
 };
 
 export const bookmarkQuote = async (quoteId) => {
-  //send a request to bookmark a quote by its ID
   try {
     console.log("Sending bookmark request for quote ID:", quoteId);
 
@@ -334,7 +339,7 @@ export const updateMe = async (updatedData) => {
     return await response.json();
   } catch (error) {
     console.error("Error updating user:", error);
-    throw error;
+    throw new Error(error);
   }
 };
 
@@ -403,6 +408,28 @@ export const useQuote = async (quoteId) => {
   } catch (error) {
     console.error("Error using quote:", error);
     throw error;
+  }
+};
+
+export const fetchUsedQuotes = async () => {
+  try {
+    const user = await fetchMe(); 
+    if (!user?.UsedQuotes) return [];
+    
+    const usedQuoteIds = Object.values(user.UsedQuotes); 
+
+    const responses = await Promise.all(
+      usedQuoteIds.map((id) =>
+        fetch(`${PROXY_URL}/useQuote/use/search/${id}`).then((res) =>
+          res.ok ? res.json() : null
+        )
+      )
+    );
+
+    return responses.filter(Boolean); 
+  } catch (error) {
+    console.error("Error fetching used quotes:", error);
+    return [];
   }
 };
 

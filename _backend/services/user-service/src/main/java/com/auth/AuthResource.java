@@ -108,6 +108,23 @@ public class AuthResource {
     }
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/PlaywrightLogin/{username}/{password}")
+    public Response playwrightLogin(@PathParam("username") String username, @PathParam("password") String password) {
+        if (!Objects.equals(username, System.getenv("PLAYWRIGHTUSERNAME")) || !Objects.equals(password, System.getenv("PLAYWRIGHTPASSWORD"))) {
+            return Response
+                    .status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Username or password is incorrect!").toJson())
+                    .build();
+        }
+
+        Account account = new Account("testEmail@test.com", "Test User", 1,
+                "", "", 0L, new ArrayList<>(), "");
+
+        return accountService.newUserWithCookie(account);
+    }
+
+    @GET
     @Path("/checkJWT/{jwt}")
     public Response checkJWT(@PathParam("jwt") String jwt) {
         ArrayList<String> groups;
@@ -160,7 +177,6 @@ public class AuthResource {
                 .value(sessionId)
                 .path("/")
                 .maxAge(21 * 24 * 60 * 60)
-                .secure(true)
                 .sameSite(NewCookie.SameSite.LAX)
                 .httpOnly(true)
                 .build();
@@ -322,7 +338,6 @@ public class AuthResource {
                     .value("")
                     .path("/")
                     .maxAge(0)
-                    .secure(true)
                     .sameSite(NewCookie.SameSite.LAX)
                     .httpOnly(true)
                     .build();

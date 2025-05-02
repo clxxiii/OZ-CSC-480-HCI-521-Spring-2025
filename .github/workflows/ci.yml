@@ -19,3 +19,7 @@ jobs:
       - name: Run tests
         working-directory: ./_backend/services/user-service
         run: mvn test
+
+      - name: Run quoteServiceTest
+        working-directory: ./_backend/services/quote-service
+        run: mvn test

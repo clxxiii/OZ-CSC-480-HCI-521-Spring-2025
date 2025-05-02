@@ -7,7 +7,6 @@ import AlertMessage from "./AlertMessage";
 import { fetchUserProfile } from "../lib/api"; 
 
 export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuoteUsed }) {
-  const [alert, setAlert] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [usedDate, setUsedDate] = useState(null);
   const [user] = useContext(UserContext);
@@ -61,7 +60,6 @@ export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuote
             <QuoteActions
               quote={quote}
               onBookmarkToggle={onBookmarkToggle}
-              setAlert={setAlert}
               setShowLogin={setShowLogin}
             />
             {usedDate && (
@@ -72,7 +70,6 @@ export default function QuoteViewModal({ quote, close, onBookmarkToggle, onQuote
             <div style={{ display: "flex", gap: "12px", justifyContent: "space-between", marginTop: "20px" }}>
               <QuoteUseButton
                 quote={quote}
-                setAlert={setAlert}
                 setShowLogin={setShowLogin}
                 onQuoteUsed={onQuoteUsed}
               />

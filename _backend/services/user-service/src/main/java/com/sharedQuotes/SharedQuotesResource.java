@@ -63,9 +63,12 @@ public class SharedQuotesResource {
         }
 
         String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        System.out.println(email);
      
       Response searchUserTo = accountService.retrieveUserByEmail(email, false);
       if(searchUserTo.getStatus()!=Response.Status.OK.getStatusCode()){
+          System.out.println("not found here");
         return Response.status(Response.Status.NOT_FOUND)
                     .entity(new Document("error", "No user found with that email").toJson())
                     .build();
@@ -141,6 +144,7 @@ public class SharedQuotesResource {
            
         }
             else{
+                System.out.println("not found here at quote");
                 return Response.status(Response.Status.NOT_FOUND)
                     .entity(new Document("error", "No quote found with that id").toJson())
                     .build();
