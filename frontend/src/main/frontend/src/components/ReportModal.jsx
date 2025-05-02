@@ -30,7 +30,7 @@ const ReportModal = ({ showReportModal, onClose, user, quoteID }) => {
             .then(() => {
                 setAlert({ type: "success", message: "Your report was submitted successfully!"})
             })
-            .catch(() => {
+            .catch((err) => {
                 setAlert({ type: "danger", message: "Something went wrong submitting your report"})
             })
         onClose();
