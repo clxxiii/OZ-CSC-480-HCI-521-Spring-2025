@@ -4,7 +4,7 @@ import { useContext } from "react";
 import NotificationItem from "./Notification";
 import { useState, useEffect, useRef } from "react";
 import { fetchNotifications, deleteNotification, clearAllNotifications } from "../lib/api";
-import { UserContext } from "../lib/Contexts";
+import { AlertContext, UserContext } from "../lib/Contexts";
 import { BsPersonCircle, BsBell, BsBoxArrowRight } from "react-icons/bs";
 
 const NotificationDropdown = ({ isVisible }) => {

@@ -3,10 +3,13 @@ import { Outlet } from 'react-router-dom';
 import TopNavigation from './TopNavigation';
 import LoginBox from './Login';
 import Footer from './Footer';
+import { AlertContext } from '../lib/Contexts';
+import AlertMessage from './AlertMessage';
 
 const Layout = () => {
   const [showLogin, setShowLogin] = useState(null); //track whether to show the login modal
   const [showFooter, setShowFooter] = useState(true); // Track whether to show the footer
+  const [alert] = useContext(AlertContext);
 
   const handleGoogleLogin = () => {
     //redirect user to the Google login page
