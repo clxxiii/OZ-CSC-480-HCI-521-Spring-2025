@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import TopNavigation from './TopNavigation';
 import LoginBox from './Login';
+import Footer from './Footer';
 
 const Layout = () => {
   const [showLogin, setShowLogin] = useState(null); //track whether to show the login modal
+  const [showFooter, setShowFooter] = useState(true); // Track whether to show the footer
 
   const handleGoogleLogin = () => {
     //redirect user to the Google login page
@@ -17,19 +19,40 @@ const Layout = () => {
     setShowLogin(false);
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrollable = document.documentElement.scrollHeight > document.documentElement.clientHeight;
+      const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight;
+      setShowFooter(!isScrollable || isAtBottom);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="container">
       <TopNavigation /> {/* display the top navigation bar with user data */}
       <main>
         {showLogin && (
-          //display the login modal if user needs to log in
-          <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1050 }}>
-              <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin}  />   
+          // Display the login modal if user needs to log in
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1050 }}
+          >
+            <LoginBox
+              handleGoogleLogin={handleGoogleLogin}
+              handleGuestLogin={handleGuestLogin}
+            />
           </div>
         )}
 
-        <Outlet /> {/* render the appropriate page content based on the current route */}
+        <Footer isVisible={showFooter} /> {/* Display the footer if conditions are met */}
+
+        <Outlet /> {/* Render the appropriate page content based on the current route */}
       </main>
+      {showFooter && <Footer />} {/* Conditionally display the footer */}
     </div>
   );
 };
