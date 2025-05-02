@@ -16,6 +16,7 @@ import { shareQuote } from "../lib/api"; // near top
 import { AlertContext, UserContext } from "../lib/Contexts";
 import { useContext, createContext } from "react";
 import { useNavigate } from "react-router-dom";
+import DeleteQuoteModal from "../components/DeleteQuoteModal";
 
 const QuoteContext = createContext(null);
 
@@ -237,8 +238,9 @@ const DeleteButton = () => {
   const [user] = useContext(UserContext);
   const quote = useContext(QuoteContext);
   const [_, setAlert] = useContext(AlertContext);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const handleTrashClick = async (e) => {
+  const handleDeleteConfirm = async (e) => {
     e.stopPropagation();
 
     try {
@@ -250,21 +252,34 @@ const DeleteButton = () => {
     }
   };
 
+  const onclick = (e) => {
+    e.stopPropagation();
+    setShowDeleteModal(true);
+  };
+
   return (
-    <button
-      aria-label="Delete Button"
-      onClick={handleTrashClick}
-      className="tip"
-      style={{
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        color: user ? "#8B0000" : "#8B000055",
-      }}
-    >
-      <Trash size={22} />
-      <div className="tip-text">Warning! This action is permanent!</div>
-    </button>
+    <>
+      <button
+        aria-label="Delete Button"
+        onClick={onclick}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: user ? "#8B0000" : "#8B000055",
+        }}
+      >
+        <Trash size={22} />
+      </button>
+
+      {showDeleteModal && (
+        <DeleteQuoteModal
+          show={showDeleteModal}
+          onCancel={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
+    </>
   );
 };
 
