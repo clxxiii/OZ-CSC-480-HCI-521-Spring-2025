@@ -1,11 +1,12 @@
 import React, { useContext, useState } from "react";
+import { useQuote } from "../lib/api";
 import { UserContext } from "../lib/Contexts";
 
 const QuoteUseButton = ({ quote, setShowLogin, onQuoteUsed }) => {
   const [used, setUsed] = useState(false);
   const [_, setAlert] = useContext(UserContext);
 
-  const handleUsedClick = (e) => {
+  const handleUsedClick = async (e) => {
     e.stopPropagation();
     if (!setAlert) {
       setAlert({ type: "danger", message: "You must be signed in to use a quote!" });
@@ -14,15 +15,11 @@ const QuoteUseButton = ({ quote, setShowLogin, onQuoteUsed }) => {
     }
 
     try {
-      const usedQuotes = JSON.parse(localStorage.getItem("usedQuotes")) || [];
-      if (!usedQuotes.some((q) => q.id === quote._id)) {
-        usedQuotes.push({ id: quote._id, usedDate: new Date().toISOString() });
-        localStorage.setItem("usedQuotes", JSON.stringify(usedQuotes));
-        setAlert({ type: "success", message: "Quote marked as used!" });
-        setUsed(true);
-        onQuoteUsed?.(quote._id);
-      }
-    } catch {
+      await useQuote(quote._id); 
+      setAlert({ type: "success", message: "Quote marked as used!" });
+      setUsed(true);
+      onQuoteUsed?.(quote._id); 
+    } catch (error) {
       setAlert({ type: "danger", message: "Failed to mark quote as used." });
     }
   };
