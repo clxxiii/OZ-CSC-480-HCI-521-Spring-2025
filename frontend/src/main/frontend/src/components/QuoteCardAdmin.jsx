@@ -42,24 +42,18 @@ const QuoteCardAdmin = ({
         console.log(" handleDeleteConfirm called for ID:", quote._id);
 
         try {
-            await deleteQuote(quote._id);     
-            console.log(" deleteQuote result:", result);
-                      
-            // fire the deleteQuote method
+            await deleteQuote(quote._id);
             setAlert({ type: "success", message: "Quote deleted" }); 
-            // show success
-            // onRemoved(_id);         
-            onRemoved?.(quote._id);
-            // tell parent to drop it
+            onRemoved?.(quote._id); 
         } catch (err) {
             console.error(" deleteQuote threw:", err);
 
             setAlert({ type: "danger", message: err.message || "Delete failed" });
         } finally {
-            setShowDeleteModal(false);                        
-            //  close modal
+            setShowDeleteModal(false);
+            window.location.reload();
         }
-        };
+    };
 
 //   useEffect(() => {
 //     const usedQuotes = JSON.parse(localStorage.getItem("usedQuotes")) || [];
@@ -156,7 +150,7 @@ const QuoteCardAdmin = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 1000
+            zIndex: 9999
           }}
         >
           <div onClick={e => e.stopPropagation()}>
