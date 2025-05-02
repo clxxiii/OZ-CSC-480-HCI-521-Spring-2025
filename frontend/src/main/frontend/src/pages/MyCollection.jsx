@@ -87,14 +87,12 @@ const MyCollection = () => {
   return (
     <div className="container">
       <div className="row">
+        <div className="col-12 text-start" style={{ paddingTop: "35px" }}>
+          <h1 style={{ fontSize: "30px", color: "#4a4a4a" }}>My Collection</h1>
+        </div>
+      </div>
+      <div className="row">
         <div className="col-12 text-center mb-4">
-          <Input
-            type="text"
-            placeholder="Search by tag, author, or keyword..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
-            className="form-control"
-          />
           <div className="mt-3">
             <ToggleButton
               activeIndex={["all", "unused", "used"].indexOf(showUsed)}
@@ -102,6 +100,7 @@ const MyCollection = () => {
               labels={["All", "Unused", "Used"]}
             />
           </div>
+          <hr style={{ marginTop: "20px", borderTop: "2px solid #ccc" }} />
         </div>
       </div>
       <div className="row">
