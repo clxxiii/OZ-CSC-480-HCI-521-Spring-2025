@@ -34,8 +34,8 @@ REDIRECT_URI=http://localhost:9081/users/auth/callback # <-- default
 VITE_PROXY_URL=http://localhost:9083 # <-- default
 
  # Add the following service URLs used by the backend
- USER_SERVICE_URL=http://localhost:9081/
- QUOTE_SERVICE_URL=http://localhost:9082/
+ USER_SERVICE_URL=http://localhost:9081
+ QUOTE_SERVICE_URL=http://localhost:9082
 ```
 
 To start the whole stack, run the following command in the root directory:

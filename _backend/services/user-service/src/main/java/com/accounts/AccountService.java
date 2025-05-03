@@ -62,7 +62,8 @@ public class AccountService {
     @PostConstruct
     public void init() {
         String connectionString = System.getenv("CONNECTION_STRING");
-        client = mongoUtil.getMongoClient();
+        client = MongoClients.create(connectionString);
+//        client = mongoUtil.getMongoClient();
         accountDB = client.getDatabase("Accounts");
         accountCollection = accountDB.getCollection("Users");
     }
@@ -192,14 +193,16 @@ public class AccountService {
 
     public Response retrieveUserByEmail(String email, boolean includePrivateData) {
         try {
+            System.out.println("email: " + email);
             if (email == null) {
+                System.out.println("email is null");
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity(new Document("error", "Email is null!").toJson())
                         .build();
             }
 
             Document user = accountCollection.find(eq("Email", email)).first();
-
+            
             if (user == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity(new Document("error", "User with email " + email + " not found").toJson())
@@ -216,6 +219,7 @@ public class AccountService {
 
             return Response.status(Response.Status.OK).entity(user.toJson()).build();
         } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new Document("error", "Error retrieving user: " + e.getMessage()).toJson())
                     .build();

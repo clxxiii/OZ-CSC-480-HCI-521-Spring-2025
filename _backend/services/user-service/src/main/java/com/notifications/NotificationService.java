@@ -51,7 +51,7 @@ public class NotificationService {
         reportCollection = moderationDatabase.getCollection("Reports");
 
 
-        accountService = new AccountService();
+        accountService = new AccountService(mongoClient, "Accounts", "Users");
     }
 
     public MongoCollection<Document> getNotificationsCollection() {return notificationsCollection;}

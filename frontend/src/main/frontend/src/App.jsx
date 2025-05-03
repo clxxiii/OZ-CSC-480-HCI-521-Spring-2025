@@ -12,6 +12,8 @@ import SearchPage from './pages/SearchPage';
 import { AlertProvider, UserProvider } from "./lib/Contexts";
 import CommunityGuidelinesPage from "./pages/CommunityGuidelinesPage";
 import AdminPanel from "./pages/AdminPanel";
+import QuotePage from './pages/QuotePage'; // Page that shows individual quote
+
 
 const App = () => {
 
@@ -38,6 +40,8 @@ const App = () => {
               <Route path="/search" element={<SearchPage />} />
               <Route path="/community-guidelines" element={<CommunityGuidelinesPage/>} />
               <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/quote/:quote_id" component={QuotePage} />
+
             </Route>
           </Routes>
         </Router>
