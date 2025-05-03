@@ -1,12 +1,32 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { handleSend, searchUsersByQuery } from "../lib/api.js";
+import { AlertContext } from "../lib/Contexts.jsx";
 
 const ShareQuotePopup = ({ quote, onClose }) => {
   const [input, setInput] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [_, setAlert] = useContext(AlertContext)
+  const [statusMessage, setStatusMessage] = useState(null); 
+  // New state for status message
+
+  const [linkCopied, setLinkCopied] = useState(false); 
+  // Track link copied status
+
   const popupRef = useRef(null);
+
+    // Close the popup when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (e) => {
+        if (popupRef.current && !popupRef.current.contains(e.target)) {
+          onClose();
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [onClose]);
 
   useEffect(() => {
     const timeout = setTimeout(async () => {
@@ -65,6 +85,7 @@ const ShareQuotePopup = ({ quote, onClose }) => {
     //
     //     return () => clearTimeout(timeout);
     // }, [input]);
+    
   const handleUserClick = (user) => {
     setInput(user.email); 
     setFilteredUsers([]);
@@ -82,11 +103,36 @@ const ShareQuotePopup = ({ quote, onClose }) => {
     const link = `${window.location.origin}/quote/${quote._id}`;
     navigator.clipboard.writeText(link);
     alert("Link copied to clipboard!");
+    setLinkCopied(true); 
+
+    setTimeout(() => {
+      setLinkCopied(false); // Reset linkCopied after 2 seconds
+    }, 2000);
+
+  };
+
+
+
+
+  const handleSendMessage = async () => {
+    handleSend(input, quote._id)
+      .then(() => {
+        setStatusMessage("Message sent successfully!")
+      })
+      .catch((e) => {
+        console.error("Error sending message:", e);
+        setStatusMessage("Failed to send message. Please try again.");
+      })
+      .finally(() => {
+        // Close the popup after 2s of showing the message
+        setTimeout(() => onClose(), 2000); 
+      })
   };
 
   return (
     <div
       ref={popupRef}
+      // to prevent clicks from bubbling up to the document
       onClick={(e) => e.stopPropagation()}
       style={{
         background: "#fff",
@@ -239,11 +285,13 @@ const ShareQuotePopup = ({ quote, onClose }) => {
       )}
 
       <button
-        onClick={() => handleSend(input, quote._id)}
+        // onClick={() => handleSend(input, quote._id)}
+        onClick={handleSendMessage}
+
         style={{
           width: "100%",
           padding: "8px",
-          background: "#007bff",
+          background: "#146C43",
           color: "#fff",
           border: "none",
           borderRadius: "6px",
@@ -254,21 +302,48 @@ const ShareQuotePopup = ({ quote, onClose }) => {
         Send
       </button>
 
+      {statusMessage && (
+        <div
+          style={{
+            marginTop: "12px",
+            color: statusMessage === "Message sent successfully!" ? "#28a745" : "#dc3545",
+            textAlign: "center",
+            fontWeight: "bold",
+          }}
+        >
+          {statusMessage}
+        </div>
+      )}
       <hr style={{ margin: "12px 0" }} />
 
       <div
         onClick={copyLink}
         style={{
           textAlign: "center",
-          color: "#007bff",
+          color: "#146C43",
           cursor: "pointer",
           fontWeight: "bold",
         }}
       >
         🔗 Copy Shareable Link
       </div>
+
+      {linkCopied && (
+        <div
+          style={{
+            textAlign: "center",
+            color: "#28a745",
+            fontWeight: "bold",
+            marginTop: "8px",
+          }}
+        >
+          Link copied to clipboard!
+        </div>
+      )}
     </div>
-  );
+
+    
+      );
 };
 
 export default ShareQuotePopup;

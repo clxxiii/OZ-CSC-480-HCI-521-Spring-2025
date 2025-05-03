@@ -157,7 +157,7 @@ export const fetchUserProfile = async (userId) => {
   //fetch user profile data using the user ID
   try {
     const response = await fetch(
-        `${PROXY_URL}/users/search/id/${userId}`
+        `${PROXY_URL}/users/accounts/search/${userId}`
     );
     if (!response.ok) throw new Error("Failed to fetch user profile");
     return await response.json();
@@ -197,9 +197,10 @@ export const handleSend = async (input, quoteId) => {
 
     if (!response.ok) {
       const error = await response.json();
-      alert(`Failed to share with ${input}: ${error.error}`);
+      throw new Error(error.error);
     } else {
-      alert("Quote successfully shared!");
+      const value = await response.json();
+      return value;
     }
   } catch (err) {
     console.error("Error sharing quote:", err);
@@ -228,7 +229,6 @@ export const fetchMe = async () => {
 };
 
 export const bookmarkQuote = async (quoteId) => {
-  //send a request to bookmark a quote by its ID
   try {
     console.log("Sending bookmark request for quote ID:", quoteId);
 
@@ -412,6 +412,28 @@ export const useQuote = async (quoteId) => {
   }
 };
 
+export const fetchUsedQuotes = async () => {
+  try {
+    const user = await fetchMe(); 
+    if (!user?.UsedQuotes) return [];
+    
+    const usedQuoteIds = Object.values(user.UsedQuotes); 
+
+    const responses = await Promise.all(
+      usedQuoteIds.map((id) =>
+        fetch(`${PROXY_URL}/useQuote/use/search/${id}`).then((res) =>
+          res.ok ? res.json() : null
+        )
+      )
+    );
+
+    return responses.filter(Boolean); 
+  } catch (error) {
+    console.error("Error fetching used quotes:", error);
+    return [];
+  }
+};
+
 {/* Notification Related */}
 export const fetchNotifications = async (userId) => {
   try {
@@ -562,29 +584,32 @@ export const filteredSearch = async (query, filters = {}) => {
 
     const isGuest = !JSON.parse(localStorage.getItem("hasLoggedIn"));
 
-    const endpoint = isGuest
-      ? `${PROXY_URL}/quotes/search/query?${params.toString()}`
-      : `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/search/query?${params.toString()}`)}`;
+    // const endpoint = isGuest
+    //   ? `${PROXY_URL}/quotes/search/query?${params.toString()}`
+    //   : `${PROXY_URL}/users/auth/jwt?redirectURL=${encodeURIComponent(`${PROXY_URL}/quotes/search/query?${params.toString()}`)}`;
 
-    const options = isGuest
-      ? {
+    const endpoint = 
+       `${PROXY_URL}/quotes/search/query?${params.toString()}`
+    // const options = isGuest
+    //   ? {
+    
+      const options = {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      : {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            method: "GET",
-          }),
-        };
+          headers: { "Content-Type": "application/json" },
+      }
+        //}
+      // : {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json" },
+      //     credentials: "include",
+      //     body: JSON.stringify({ method: "GET" }),
+      //   };
+
 
     const response = await fetch(endpoint, options);
+
+    // Log HTTP response status
+    console.log("Response Status:", response.status);
 
     if (!response.ok) {
       const errorMessage = await response.text();
@@ -592,12 +617,18 @@ export const filteredSearch = async (query, filters = {}) => {
       throw new Error(`Failed to perform filtered search: ${errorMessage}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // Log API Response Data
+    console.log("Filtered Search API Response:", data);
+
+    return data;
   } catch (error) {
     console.error("Error in filteredSearch:", error);
     throw error;
   }
 };
+
 
 export const fetchReportedQuotes = async () => {
   try {

@@ -1,6 +1,7 @@
 import { useContext, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import TopNavigation from './TopNavigation';
+import SearchNavigation from './SearchNavigation';
 import LoginBox from './Login';
 import AlertMessage from './AlertMessage';
 import { AlertContext } from '../lib/Contexts';
@@ -8,6 +9,7 @@ import { AlertContext } from '../lib/Contexts';
 const Layout = () => {
   const [showLogin, setShowLogin] = useState(null); //track whether to show the login modal
   const [alert] = useContext(AlertContext);
+  const location = useLocation();
 
   const handleGoogleLogin = () => {
     //redirect user to the Google login page
@@ -20,9 +22,11 @@ const Layout = () => {
     setShowLogin(false);
   };
 
+  const isLandingPage = location.pathname === "/"; 
+
   return (
     <div className="container">
-      <TopNavigation /> {/* display the top navigation bar with user data */}
+      {isLandingPage ? <TopNavigation /> : <SearchNavigation />} 
 
       {alert && (
         <div className="position-fixed top-0 start-50 translate-middle-x mt-3 px-4" style={{ zIndex: 1050 }}>
@@ -34,7 +38,7 @@ const Layout = () => {
         {showLogin && (
           //display the login modal if user needs to log in
           <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 1050 }}>
-              <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin}  />   
+              <LoginBox handleGoogleLogin={handleGoogleLogin} handleGuestLogin={handleGuestLogin}   />   
           </div>
         )}
 
