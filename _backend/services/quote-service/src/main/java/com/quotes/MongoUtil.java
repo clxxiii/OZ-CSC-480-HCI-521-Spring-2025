@@ -6,16 +6,20 @@ import com.ibm.websphere.security.jwt.InvalidTokenException;
 import com.ibm.websphere.security.jwt.JwtConsumer;
 import com.ibm.websphere.security.jwt.JwtToken;
 import com.mongodb.client.*;
+import com.mongodb.client.model.Projections;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.*;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.StringWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -37,6 +41,43 @@ public class MongoUtil {
 
     public static MongoDatabase getDatabase() {
         return database;
+    }
+
+    public Response retrieveUser(String accountID, Boolean includeOauth) {
+        MongoDatabase UserDatabase = mongoClient.getDatabase("Accounts");
+        MongoCollection<Document> accountCollection = UserDatabase.getCollection("Users");
+        ArrayList<String> fieldsList = new ArrayList<String>(
+                List.of("Email", "Username", "admin", "Notifications", "MyQuotes",
+                        "BookmarkedQuotes", "SharedQuotes", "MyTags", "Profession", "PersonalQuote","UsedQuotes"));
+        if (includeOauth) {
+            List<String> oauthList = List.of("access_token", "refresh_token", "expires_at", "scope",
+                    "token_type");
+            fieldsList.addAll(oauthList);
+        }
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(accountID);
+        } catch (Exception e) {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(new Document("error", "Invalid object id!").toJson())
+                    .build();
+        }
+        Bson projectionFields = Projections.fields(
+                Projections.include(fieldsList));
+        Document doc = accountCollection.find(eq("_id", objectId))
+                .projection(projectionFields)
+                .first();
+        if (doc == null) {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(new Document("error", "Account not found!").toJson())
+                    .build();
+        }
+        return Response
+                .ok(doc.toJson())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 
     private Document retrieveUserFromJWT(String jwtString) {
@@ -97,18 +138,20 @@ public class MongoUtil {
         }
     }
 
-    private List<String> fetchUserBookmarkedQuotes(Document account) {
+    private List<ObjectId> fetchUserBookmarkedQuotes(Document account) {
         try {
-            return account.getList("BookmarkedQuotes", String.class);
+            List<String> list = account.getList("BookmarkedQuotes", String.class);
+            return list.stream().map(ObjectId::new).toList();
         } catch (Exception e) {
             System.out.println("Failed getting users bookmarked quotes");
             return Collections.emptyList();
         }
     }
 
-    private List<String> fetchUserUploadedQuotes(Document account) {
+    private List<ObjectId> fetchUserUploadedQuotes(Document account) {
         try {
-            return account.getList("MyQuotes", String.class);
+            List<String> list = account.getList("MyQuotes", String.class);
+            return list.stream().map(ObjectId::new).toList();
         } catch (Exception e) {
             System.out.println("Failed getting users uploaded quotes");
             return Collections.emptyList();
@@ -121,7 +164,7 @@ public class MongoUtil {
         MongoCollection<Document> collection = database.getCollection("Quotes");
 
         //certain filter fields only available to user
-        List<String> filterQuoteIds = new ArrayList<>(); //instantiate list of quote id's to compare to
+        List<ObjectId> filterQuoteIds = new ArrayList<>(); //instantiate list of quote id's to compare to
         Document userDoc = new Document();
         String userId = null;
         if(!isGuest) {
@@ -133,7 +176,8 @@ public class MongoUtil {
         }
 
         if(filterUsed && !isGuest) { //if filter true, add quote ids to filter list
-            filterQuoteIds.addAll(fetchUserUsedQuoteIds(userDoc)); // append list containing used quote id's
+            List<String> temp = fetchUserUsedQuoteIds(userDoc);
+            filterQuoteIds.addAll(temp.stream().map(ObjectId::new).toList()); // append list containing used quote id's
         }
         if(filterBookmarked && !isGuest) {
             filterQuoteIds.addAll(fetchUserBookmarkedQuotes(userDoc));
@@ -142,13 +186,15 @@ public class MongoUtil {
             filterQuoteIds.addAll(fetchUserUploadedQuotes(userDoc));
         }
 
+        //System.out.println(filterQuoteIds);
+
         //following fields will still work for guest
         List<String> TermsToInclude = new ArrayList<>();
-        List<Document> ShouldClause = new ArrayList<>();
+        List<Document> MustClause = new ArrayList<>();
         if(IncludeTerms != null) {
             TermsToInclude = Arrays.stream(IncludeTerms.split(",")).toList(); //split terms into list
             //create clause specifying quote must should include specified terms
-            ShouldClause.add(new Document("text", new Document("query", TermsToInclude).append("path", "quote")));
+            MustClause.add(new Document("text", new Document("query", TermsToInclude).append("path", "quote")));
         }
 
         List<String> TermsToExclude = new ArrayList<>();
@@ -160,18 +206,30 @@ public class MongoUtil {
         }
 
         //Base clause
-        List<Document> MustClause = List.of( //search that "must" occur
+        List<Document> ShouldClause = List.of( //search that "must" occur
                 new Document("text", new Document("query", searchQuery) //set query string to user query
-                        .append("path", Arrays.asList("quote", "author", "tags")) // fields to search and compare to
-                        .append("fuzzy", new Document("maxEdits", 2)))
+                        .append("path", Arrays.asList("quote", "author", "tags"))// field to search and compare to
+                        .append("fuzzy", new Document("maxEdits", 2))
+                ),
+                new Document("text", new Document("query", searchQuery) //set query string to user query
+                        .append("path", "author")// field to search and compare to
+                        .append("score", new Document("boost", new Document("value", 1.5)))
+                        .append("fuzzy", new Document("maxEdits", 2))
+                ),
+                new Document("text", new Document("query", searchQuery) //set query string to user query
+                        .append("path", "tags")// field to search and compare to
+                        .append("score", new Document("boost", new Document("value", 1)))
+                        .append("fuzzy", new Document("maxEdits", 2))
+                )/*
+                */
         );
 
         //build search query document
         //The should/mustNot can cause search issues if lists are empty, so they must be dynamically appended to query document
-        Document CompoundDoc = new Document("must", MustClause); //default searching
+        Document CompoundDoc = new Document("should", ShouldClause); //default searching
         //append include/exclude clauses if specified
         if(!TermsToInclude.isEmpty()) {
-            CompoundDoc.append("should", ShouldClause).append("minimumShouldMatch", 1); //Min num of elements the quote text must include
+            CompoundDoc.append("must", MustClause).append("minimumShouldMatch", 1); //Min num of elements the quote text must include
         }
         if(!TermsToExclude.isEmpty()) {
             CompoundDoc.append("mustNot", MustNotClause);
@@ -185,7 +243,7 @@ public class MongoUtil {
                             .append("compound", CompoundDoc)),
                     //post search section
                     new Document("$match", new Document("private", new Document("$ne", true))), //Exclude private quotes
-                    new Document("$match", new Document("_id.oid", new Document("$nin", filterQuoteIds))), //Ignore specified quotes
+                    new Document("$match", new Document("_id", new Document("$nin", filterQuoteIds))), //Ignore specified quotes
                     new Document("$sort", new Document("score", -1)), //sort by relevance
                     new Document("$limit", 50) //limit to 50 results
             ));
@@ -198,7 +256,7 @@ public class MongoUtil {
                             new Document("private", new Document("$ne", true)), //exclude private quotes
                             new Document("$expr", new Document("$eq", List.of("$creator", userId))) //unless is creator
                     ))),
-                    new Document("$match", new Document("_id.oid", new Document("$nin", filterQuoteIds))), //Ignore specified quotes
+                    new Document("$match", new Document("_id", new Document("$nin", filterQuoteIds))), //Ignore specified quotes
                     new Document("$sort", new Document("score", -1)), //sort by relevance
                     new Document("$limit", 50) //limit to 50 results
             ));
@@ -218,10 +276,6 @@ public class MongoUtil {
         return stringWriter.toString();
     }
 
-    public void searchByAuthor(String authorQuery) {
-        MongoCollection<Document> collection = database.getCollection("Quotes");
-        //might not need
-    }
 
     private QuoteObject parseQuote(String jsonQuote) {
         //parses json from string form to Java Object
