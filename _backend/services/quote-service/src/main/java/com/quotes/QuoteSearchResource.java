@@ -109,7 +109,7 @@ public class QuoteSearchResource {
             }
             query = SanitizerClass.sanitize(query); //removes special characters
             //search database using Atlas Search
-            String result = mongo.searchQuote(query, filterUsed, filterBookmarked, filterUploaded, Included, Excluded, jwtString, false);
+            String result = mongo.searchQuote(query, filterUsed, filterBookmarked, filterUploaded, Included, Excluded, jwtString, isGuest);
             if(result == null) {
                 return Response.status(Response.Status.NOT_FOUND).entity("No quotes matched the search criteria").build();
             }
