@@ -229,10 +229,9 @@ public class MongoUtil {
                 ),
                 new Document("text", new Document("query", searchQuery) //set query string to user query
                         .append("path", "tags")// field to search and compare to
-                        .append("score", new Document("boost", new Document("value", 1)))
+                        .append("score", new Document("boost", new Document("value", 1.5)))
                         .append("fuzzy", new Document("maxEdits", 2))
-                )/*
-                */
+                )
         );
 
         //build search query document
