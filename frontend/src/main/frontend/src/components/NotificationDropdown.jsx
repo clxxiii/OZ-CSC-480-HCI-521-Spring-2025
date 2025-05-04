@@ -1,6 +1,6 @@
 import { IoIosArrowDown } from "react-icons/io";
 import { Link } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useRef } from "react";
 import NotificationItem from "./Notification";
 import { useState, useEffect } from "react";
 import { fetchNotifications, deleteNotification, clearAllNotifications, logout } from "../lib/api";
