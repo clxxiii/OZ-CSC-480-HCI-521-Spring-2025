@@ -105,13 +105,8 @@ const BookmarkButton = () => {
 
   useEffect(() => {
     if (!user) return;
-
     const isUserBookmarked = user.BookmarkedQuotes?.includes(quote._id);
     setIsBookmarked(isUserBookmarked || false);
-
-    
-    setEditable(user?.MyQuotes?.includes(quote._id) || user?.admin || false);
-
   }, [user, quote._id]);
 
   const handleBookmarkClick = async (e) => {
@@ -132,7 +127,6 @@ const BookmarkButton = () => {
       if (newBookmarkState) {
         await bookmarkQuote(quote._id);
       } else {
-
         await deleteBookmark(quote._id);
       }
     } catch (error) {
