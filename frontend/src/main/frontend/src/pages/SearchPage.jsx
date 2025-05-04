@@ -11,24 +11,29 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
-  const [viewedQuote, setViewedQuote] = useState(null); 
+  const [viewedQuote, setViewedQuote] = useState(null);
   const location = useLocation();
 
-  const closeView = () => setViewedQuote(null); 
+  const closeView = () => setViewedQuote(null);
 
   useEffect(() => {
+    console.log("Location state on SearchPage load:", location.state); // Debugging location state
+  
     const query = new URLSearchParams(location.search).get("q") || "*";
-    const include = location.state?.include || "";
-
+    const filters = {
+      filterUsed: location.state?.filterUsed || false,
+      filterBookmarked: location.state?.filterBookmarked || false,
+      filterUploaded: location.state?.filterUploaded || false,
+      include: location.state?.include || "",
+      exclude: location.state?.exclude || "",
+    };
+  
+    console.log("Filters extracted from location state:", filters); // Debugging filters
+  
     (async () => {
       try {
-        const results = await filteredSearch(query === "*" ? "" : query, {
-          filterUsed: false,
-          filterBookmarked: false,
-          filterUploaded: false,
-          include: query === "*" ? "" : include,
-          exclude: "",
-        });
+        const results = await filteredSearch(query === "*" ? "" : query, filters);
+        console.log("Filtered search results:", results); // Debugging API response
         setSearchResults(results);
         setError(null);
       } catch (err) {
@@ -39,6 +44,8 @@ const SearchPage = () => {
       }
     })();
   }, [location.search, location.state]);
+  
+
 
   return (
     <div className="container">
@@ -61,7 +68,7 @@ const SearchPage = () => {
       {!loading && !error && searchResults.length > 0 ? (
         <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
           {searchResults.map((quote) => (
-            <div className="col" key={quote.id}>
+            <div className="col" key={quote._id.$oid}>
               <QuoteCard quote={quote} showViewModal={setViewedQuote} />
             </div>
           ))}

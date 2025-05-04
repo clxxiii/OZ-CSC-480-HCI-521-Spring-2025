@@ -2,20 +2,58 @@ import { useState } from "react"; //import useState to manage component state
 import { useNavigate } from "react-router-dom"; //import useNavigate to navigate between pages
 import searchSvg from "../assets/search.svg";
 import Tag from "./Tag";
+import { Funnel } from 'react-bootstrap-icons';
+import FilteredSearch from '../components/FilteredSearch';
 
 export default function Splash() {
   const [searchQuery, setSearchQuery] = useState(""); //store the user's search input
   const navigate = useNavigate(); //initialize navigation function for page redirection
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState({
+    filterUsed: false,
+    filterBookmarked: false,
+    filterUploaded: false,
+    include: "",
+    exclude: "",
+  });
+
 
   const handleSearchRedirect = async () => {
     try {
       const query = searchQuery.trim() || "*";
-      navigate("/search?q=" + query, { state: { include: query } }); 
+  
+      console.log("Filters passed to SearchPage:", selectedFilters); // Debugging filters before navigation
+  
+      navigate("/search?q=" + query, {
+        state: {
+          filterUsed: selectedFilters.filterUsed,
+          filterBookmarked: selectedFilters.filterBookmarked,
+          filterUploaded: selectedFilters.filterUploaded,
+          include: selectedFilters.include,
+          exclude: selectedFilters.exclude 
+        }
+      });
     } catch (error) {
       console.error("Error during search:", error);
     }
   };
+  
 
+  const handleFilteredSearch = (filterOptions) => {
+    console.log("Filter options applied:", filterOptions);
+    
+    setSelectedFilters({
+      filterUsed: filterOptions.includeUsed,
+      filterBookmarked: filterOptions.includeBookmarked,
+      filterUploaded: filterOptions.includeUploaded,
+      include: filterOptions.includeTerm, 
+      exclude: filterOptions.excludeTerm 
+    });
+  
+    setIsFilterModalVisible(false);
+  };
+  
+  
   const handleSearchChange = (e) => {
     //update the searchQuery state whenever the user types in the input field
     setSearchQuery(e.target.value);
@@ -54,7 +92,7 @@ export default function Splash() {
     fontWeight: "700",
     lineHeight: "48px",
   }
-  
+
   const splashH2Style = {
     //styling for the subheading
     color: "rgba(30, 30, 30, 0.45)",
@@ -102,36 +140,51 @@ export default function Splash() {
     <div style={splashStyle}>
       <div style={splashContainerStyle}>
 
-      <h1 style={splashH1Style}>Find, Share & Save Quotes <span style={{color: "#146C43"}}>Effortlessly</span></h1>
-      <h2 style={splashH2Style}>Find insightful quotes from various authors and themes. Copy and paste with just one click</h2>
-      <div style={{width: "100%", position: "relative", maxWidth: "600px"}}>
-        <img src={searchSvg} style={{position: "absolute", top: "0", left: "0", padding: "10px", aspectRatio: "1", height: "100%"}} alt="" />
-        <input
+        <h1 style={splashH1Style}>Find, Share & Save Quotes <span style={{ color: "#146C43" }}>Effortlessly</span></h1>
+        <h2 style={splashH2Style}>Find insightful quotes from various authors and themes. Copy and paste with just one click</h2>
+        <div style={{ display: "flex", alignItems: "center", width: "100%", maxWidth: "600px", position: "relative" }}>
+          <img src={searchSvg} style={{ position: "absolute", left: "10px", height: "24px" }} alt="Search" />
+          <input
             type="text"
             className="form-control"
             style={{
-                fontFamily: "Inter",
-                fontSize: "16px",
-                fontWeight: "400",
-                lineHeight: "20px",
-                padding: "12px 20px 12px 40px",
-
+              fontFamily: "Inter",
+              fontSize: "16px",
+              fontWeight: "400",
+              lineHeight: "20px",
+              padding: "12px 40px 12px 40px", // Extra padding on both sides
+              width: "100%", // Ensure the input takes full width
             }}
             placeholder="Search quotes, authors, or themes..."
-            onChange={handleSearchChange} //update the searchQuery state when input changes
+            onChange={handleSearchChange}
+          />
+          <Funnel
+            size={24}
+            style={{
+              cursor: "pointer",
+              color: "#146C43",
+              position: "absolute",
+              right: "10px",
+            }}
+            onClick={() => setIsFilterModalVisible(true)}
+          />
+        </div>
+
+        <FilteredSearch
+          isVisible={isFilterModalVisible}
+          onClose={() => setIsFilterModalVisible(false)}
+          onFiltersApplied={(filters) => handleFilteredSearch(filters)}
         />
-      </div>
 
+        <button className="btn" style={searchButton} onClick={handleSearchRedirect}>
+          <span style={searchText}>Search</span>
+        </button>
 
-      <button className="btn" style={searchButton} onClick={handleSearchRedirect}>
-        <span style={searchText}>Search</span>
-      </button>
+        <h3 style={splashH3Style}>Explore the following popular tags to get started:</h3>
 
-      <h3 style={splashH3Style}>Explore the following popular tags to get started:</h3>
-
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-        {["Inspiration", "Love"].map((tag, i) => <Tag text={tag} key={i} />)}
-      </div>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {["Inspiration", "Love"].map((tag, i) => <Tag text={tag} key={i} />)}
+        </div>
 
       </div>
     </div>
