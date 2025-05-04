@@ -2,11 +2,10 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useContext, useState } from "react";
 import QuoteUploadModal from "./QuoteUploadModal";
 import { BsPersonCircle } from "react-icons/bs";
-import '../TopNav.css';
+import "../TopNav.css";
 import { UserContext } from "../lib/Contexts";
-import logo from "../assets/logo.png"; 
+import logo from "../assets/logo.png";
 import NotificationDropdown from "./NotificationDropdown";
-
 
 const TopNavigation = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,12 +26,14 @@ const TopNavigation = () => {
       }
     }
   };
-  
+
   const handleRemoveNotification = async (index) => {
     try {
       const notificationId = notifications[index]._id;
       await deleteNotification(notificationId);
-      setNotifications((prevNotifications) => prevNotifications.filter((_, i) => i !== index));
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((_, i) => i !== index),
+      );
     } catch (error) {
       console.error("Failed to remove notification:", error);
     }
@@ -55,89 +56,123 @@ const TopNavigation = () => {
     <>
       <nav
         className="navbar navbar-expand-lg navbar-light sticky-top custom-nav"
-        style={{ backgroundColor: "#fffcf4" }}
+        style={{
+          backgroundColor: "#fffcf4",
+        }}
       >
         <Link className="navbar-brand pl-2" to="/">
-          <img src={logo} alt="Logo" style={{ height: "40px" }} /> 
+          <img src={logo} alt="Logo" style={{ height: "40px" }} />
         </Link>
-        <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className="collapse navbar-collapse pr-2" id="navbarNav">
           <ul className="navbar-nav ml-auto">
             <li className={`nav-item ${isActive("/") ? "active" : ""}`}>
-              <Link className="nav-link" to="/">Home</Link>
+              <Link className="nav-link" to="/">
+                Home
+              </Link>
             </li>
-            <li className={`nav-item ${isActive("/add-quote") ? "active" : ""}`}>
-              <span 
-                className="nav-link" 
-                style={{ cursor: "pointer" }} 
+            <li
+              className={`nav-item ${isActive("/add-quote") ? "active" : ""}`}
+            >
+              <span
+                className="nav-link"
+                style={{ cursor: "pointer" }}
                 onClick={() => setIsModalOpen(true)}
               >
                 Add Quote
               </span>
             </li>
-            { user ? (
-              <li className={`nav-item ${isActive("/my-collection") ? "active" : ""}`}>
-                <Link className="nav-link" to="/my-collection">My Collection</Link> {/* Updated path */}
+            {user ? (
+              <li
+                className={`nav-item ${isActive("/my-collection") ? "active" : ""}`}
+              >
+                <Link className="nav-link" to="/my-collection">
+                  My Collection
+                </Link>{" "}
+                {/* Updated path */}
               </li>
             ) : (
               <></>
             )}
             {user && user.admin === 1 && (
               <li className={`nav-item ${isActive("/admin") ? "active" : ""}`}>
-                <Link className="nav-link" to="/admin">Admin Panel</Link>
+                <Link className="nav-link" to="/admin">
+                  Admin Panel
+                </Link>
               </li>
             )}
-            { !user ? (
+            {!user ? (
               <li className="nav-item">
-                <button className="btn btn-dark" onClick={() => navigate("/login")}>Sign in</button>
+                <button
+                  className="btn btn-dark"
+                  onClick={() => navigate("/login")}
+                >
+                  Sign in
+                </button>
               </li>
             ) : (
               <></>
-
             )}
-            <li className="nav-item ml-3 mr-3" style={{ position: 'relative' }} title={user?.Username || "Click sign in to sign in"}>
-              <div style={{ cursor: "pointer" }} 
-              onClick={() => { 
-                setIsNotificationOpen(!isNotificationOpen);
-                if (!isNotificationOpen) handleFetchNotifications();
-              }}>
-              
-                {user && <BsPersonCircle size={40} style={{ color: "#146C43" }} />}
+            <li
+              className="nav-item ml-3 mr-3"
+              style={{ position: "relative" }}
+              title={user?.Username || "Click sign in to sign in"}
+            >
+              <div
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  setIsNotificationOpen(!isNotificationOpen);
+                  if (!isNotificationOpen) handleFetchNotifications();
+                }}
+              >
+                {user && (
+                  <BsPersonCircle size={40} style={{ color: "#146C43" }} />
+                )}
 
-               {/* Notification Dot */}
-               {notifications.length > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  bottom: '5px', 
-                  right: '-5px',
-                  minWidth: '24px',
-                  height: '24px',
-                  backgroundColor: 'red',
-                  color: 'white',
-                  borderRadius: '50%',
-                  border: '2px solid white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  padding: '2px',
-                  lineHeight: 1,
-                }}>
-                  {notifications.length > 9 ? '9+' : notifications.length} 
-                </span>
-              )}
+                {/* Notification Dot */}
+                {notifications.length > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      bottom: "5px",
+                      right: "-5px",
+                      minWidth: "24px",
+                      height: "24px",
+                      backgroundColor: "red",
+                      color: "white",
+                      borderRadius: "50%",
+                      border: "2px solid white",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "14px",
+                      padding: "2px",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {notifications.length > 9 ? "9+" : notifications.length}
+                  </span>
+                )}
               </div>
 
               {/* Notification Dropdown */}
-            <NotificationDropdown
-              isVisible={isNotificationOpen}
-              onClose={() => setIsNotificationOpen(false)}
-              notifications={notifications}
-              onRemoveNotification={handleRemoveNotification}
-              onClearAll={handleClearAllNotifications}
-            />
+              <NotificationDropdown
+                isVisible={isNotificationOpen}
+                onClose={() => setIsNotificationOpen(false)}
+                notifications={notifications}
+                onRemoveNotification={handleRemoveNotification}
+                onClearAll={handleClearAllNotifications}
+              />
             </li>
           </ul>
         </div>
