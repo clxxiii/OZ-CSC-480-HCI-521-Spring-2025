@@ -24,6 +24,7 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
@@ -56,13 +57,6 @@ public class ReportResource {
         dataDB = client.getDatabase("Data");
         quotesCollection = dataDB.getCollection("Quotes");
     }
-
-    /*
-     * TODO: send notification to owner of the quote that thier quote has been reported
-     *      set quote_id as the id of the report
-     *      set type as report
-     */
-
 
     @POST
     @Path("/create")
@@ -151,10 +145,16 @@ public class ReportResource {
                 // add new context_type if its not the same as an existing one
                 @SuppressWarnings("unchecked")
                 List<String> contextTypes = (List<String>) existingReport.get("context_types");
-                if (!contextTypes.contains(contextType)) {
-                    contextTypes.add(contextType);
-                    existingReport.put("context_types", contextTypes);
+                
+                // support for single user, multiple resons
+                String[] splitTypes = contextType.split(",");
+                for (String type : splitTypes) {
+                    String trimmed = type.trim();
+                    if (!trimmed.isEmpty() && !contextTypes.contains(trimmed)) {
+                        contextTypes.add(trimmed);
+                    }
                 }
+                existingReport.put("context_types", contextTypes);
                 
                 // add custom_message (ignores if empty)
                 if (message != null && !message.trim().isEmpty()) {
@@ -175,9 +175,21 @@ public class ReportResource {
                 Document newReport = new Document()
                         .append("_id", new ObjectId())
                         .append("quote_id", quoteId)
-                        .append("reporter_ids", new ArrayList<String>(List.of(accountID)))
-                        .append("context_types", new ArrayList<String>(List.of(contextType)))
-                        .append("report_date", (int)(System.currentTimeMillis() / 1000))
+                        .append("reporter_ids", new ArrayList<String>(List.of(accountID)));
+                
+                // support for single user, multiple resons
+                List<String> contextTypesList = new ArrayList<>();
+                String[] splitTypes = contextType.split(",");
+                for (String type : splitTypes) {
+                    String trimmed = type.trim();
+                    if (!trimmed.isEmpty()) {
+                        contextTypesList.add(trimmed);
+                    }
+                }
+                newReport.append("context_types", contextTypesList);
+                
+                
+                newReport.append("report_date", (int)(System.currentTimeMillis() / 1000))
                         .append("status", ReportObject.STATUS_OPEN);
                 
                 // add custom_message (ignores if empty)
@@ -278,6 +290,168 @@ public class ReportResource {
         } catch (Exception e) {
             return Response.status(Response.Status.CONFLICT)
                     .entity(new Document("error", "Error retrieving reports: " + e.getMessage()).toJson())
+                    .build();
+        }
+    }
+
+    @GET
+    @Path("/filter")
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Successfully retrieved filtered reports"),
+            @APIResponse(responseCode = "400", description = "Invalid filter or sort parameters"),
+            @APIResponse(responseCode = "409", description = "Exception occurred during operation")
+    })
+    @Operation(summary = "Get filtered and sorted reports", 
+              description = "Returns JSON array of reports filtered by type and/or sorted by specified criteria")
+    public Response getFilteredReports(
+            @Parameter(
+                description = "Filter by report context_type -- for multiple filters, use comma-separated values (ex: 'offensive,spam,hateful')",
+                required = false
+            )
+            @QueryParam("filterType") String filterType,
+            
+            @Parameter(
+                description = "Field to sort by -- valid values: 'date' or 'flags'",
+                required = false,
+                schema = @Schema(defaultValue = "date", enumeration = {"date", "flags"})
+            )
+            @QueryParam("sortBy") @DefaultValue("date") String sortBy,
+            
+            @Parameter(
+                description = "Sort order -- valid values: 'asc' or 'desc'",
+                required = false,
+                schema = @Schema(defaultValue = "desc", enumeration = {"asc", "desc"})
+            )
+            @QueryParam("sortOrder") @DefaultValue("desc") String sortOrder,
+            
+            @Context HttpHeaders headers) {
+
+        // auth 
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new Document("error", "Missing or invalid Authorization header").toJson())
+                    .build();
+        }
+
+        String jwtString = authHeader.replaceFirst("(?i)^Bearer\\s+", "");
+
+        Map<String, String> jwtMap= QuotesRetrieveAccount.retrieveJWTData(jwtString);
+
+        if (jwtMap == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized for admin panel").toJson()).build();
+        }
+        // get account ID from JWT
+        String accountID = jwtMap.get("subject");
+
+        // get group from JWT
+        String group = jwtMap.get("group");
+        if (group == null || accountID == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(new Document("error", "User not authorized for admin panel").toJson()).build();
+        } 
+        
+        
+        try {
+            List<Document> filteredReports = new ArrayList<>();
+            
+            if (filterType != null && !filterType.isEmpty()) {
+                String[] types = filterType.split(",");
+                List<String> typesList = new ArrayList<>();
+                for (String type : types) {
+                    String trimmed = type.trim();
+                    if (!trimmed.isEmpty()) {
+                        typesList.add(trimmed);
+                    }
+                }
+                
+                List<Document> regexPatterns = new ArrayList<>();
+                for (String type : typesList) {
+                    regexPatterns.add(new Document("context_types", 
+                        new Document("$regex", type).append("$options", "i")));
+                }
+                
+                if (!regexPatterns.isEmpty()) {
+                    filteredReports = reportsCollection.find(new Document("$or", regexPatterns))
+                        .into(new ArrayList<>());
+                } else {
+                    filteredReports = reportsCollection.find().into(new ArrayList<>());
+                }
+            } else {
+                filteredReports = reportsCollection.find().into(new ArrayList<>());
+            }
+            
+            if (!sortBy.equalsIgnoreCase("flags") && !sortBy.equalsIgnoreCase("date")) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new Document("error", "Invalid sortBy parameter. Use 'flags' or 'date'").toJson())
+                        .build();
+            }
+            
+            if (!sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new Document("error", "Invalid sortOrder parameter. Use 'asc' or 'desc'").toJson())
+                        .build();
+            }
+            
+
+            for (Document report : filteredReports) {
+                if (report.containsKey("_id")) {
+                    report.put("_id", report.getObjectId("_id").toString());
+                }
+                
+                //full quote information from id, add to report
+                String quoteId = report.getString("quote_id");
+                if (quoteId != null && SanitizerClass.validObjectId(quoteId)) {
+                    ObjectId quoteObjectId = new ObjectId(quoteId);
+                    Document quote = quotesCollection.find(eq("_id", quoteObjectId)).first();
+                    if (quote != null) {
+                        quote.put("_id", quote.getObjectId("_id").toString());
+                        report.put("quote", quote);
+                    }
+                }
+            }
+            
+            final boolean ascending = sortOrder.equalsIgnoreCase("asc");
+            
+            if (sortBy.equalsIgnoreCase("flags")) {
+                List<Document> validReports = new ArrayList<>();
+                
+                for (Document report : filteredReports) {
+                    Document quote = (Document) report.get("quote");
+                    
+                    // only includes reports where -- quote exists, flags field exists, flags value is greater than 0
+                    if (quote != null && quote.containsKey("flags") && quote.getInteger("flags") > 0) {
+                        validReports.add(report);
+                    }
+                }
+                
+                filteredReports = validReports;
+                
+                filteredReports.sort((a, b) -> {
+                    Document quoteA = (Document) a.get("quote");
+                    Document quoteB = (Document) b.get("quote");
+                    
+                    int flagsA = quoteA.getInteger("flags");
+                    int flagsB = quoteB.getInteger("flags");
+                    
+                    return ascending ? Integer.compare(flagsA, flagsB) : Integer.compare(flagsB, flagsA);
+                });
+            } else {
+                filteredReports.sort((a, b) -> {
+                    int dateA = a.getInteger("report_date", 0);
+                    int dateB = b.getInteger("report_date", 0);
+                    
+                    return ascending ? Integer.compare(dateA, dateB) : Integer.compare(dateB, dateA);
+                });
+            }
+            
+            Document result = new Document("reports", filteredReports);
+            return Response.ok(result.toJson()).build();
+            
+        } catch (Exception e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new Document("error", "Error retrieving filtered reports: " + e.getMessage()).toJson())
                     .build();
         }
     }
