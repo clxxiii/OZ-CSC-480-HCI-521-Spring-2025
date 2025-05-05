@@ -1,6 +1,6 @@
 import React from "react";
 
-const QuoteContent = ({ quote }) => {
+const QuoteContent = ({ quote, onAuthorClick }) => {
   const quoteTextStyle = {
     color: "#1E1E1E",
     fontFamily: "Inter",
@@ -17,6 +17,8 @@ const QuoteContent = ({ quote }) => {
     fontWeight: "bold",
     marginTop: "10px",
     fontSize: "14px",
+    cursor: "pointer",
+    textDecoration: "underline",
   };
 
   const truncateText = (text, maxLength) => {
@@ -34,7 +36,12 @@ const QuoteContent = ({ quote }) => {
       }}
     >
       <span style={quoteTextStyle}>{'"' + truncateText(quote.quote, 90) + '"'}</span>
-      <span style={authorTextStyle}>— {quote.author}</span>
+      <span style={authorTextStyle} onClick={(e) => {
+        e.stopPropagation();
+        onAuthorClick();
+      }}>
+        — {quote.author}
+      </span>
     </div>
   );
 };
