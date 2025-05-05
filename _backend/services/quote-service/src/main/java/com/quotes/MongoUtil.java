@@ -49,43 +49,6 @@ public class MongoUtil {
         return database;
     }
 
-    public Response retrieveUser(String accountID, Boolean includeOauth) {
-        MongoDatabase UserDatabase = mongoClient.getDatabase("Accounts");
-        MongoCollection<Document> accountCollection = UserDatabase.getCollection("Users");
-        ArrayList<String> fieldsList = new ArrayList<String>(
-                List.of("Email", "Username", "admin", "Notifications", "MyQuotes",
-                        "BookmarkedQuotes", "SharedQuotes", "MyTags", "Profession", "PersonalQuote","UsedQuotes"));
-        if (includeOauth) {
-            List<String> oauthList = List.of("access_token", "refresh_token", "expires_at", "scope",
-                    "token_type");
-            fieldsList.addAll(oauthList);
-        }
-        ObjectId objectId;
-        try {
-            objectId = new ObjectId(accountID);
-        } catch (Exception e) {
-            return Response
-                    .status(Response.Status.NOT_FOUND)
-                    .entity(new Document("error", "Invalid object id!").toJson())
-                    .build();
-        }
-        Bson projectionFields = Projections.fields(
-                Projections.include(fieldsList));
-        Document doc = accountCollection.find(eq("_id", objectId))
-                .projection(projectionFields)
-                .first();
-        if (doc == null) {
-            return Response
-                    .status(Response.Status.NOT_FOUND)
-                    .entity(new Document("error", "Account not found!").toJson())
-                    .build();
-        }
-        return Response
-                .ok(doc.toJson())
-                .type(MediaType.APPLICATION_JSON)
-                .build();
-    }
-
     private Document retrieveUserFromJWT(String jwtString) {
         try {
             MongoDatabase UserDatabase = mongoClient.getDatabase("Accounts");
