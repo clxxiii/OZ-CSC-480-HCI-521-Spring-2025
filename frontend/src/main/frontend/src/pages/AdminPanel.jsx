@@ -12,7 +12,7 @@ export default function AdminPanel() {
 
 
   // State for sorting
-  const [filter, setFilter] = useState("Most Reported");
+  const [filter, _] = useState("Most Reported");
   const [showFiltered, setShowFiltered] = useState(false)
   // Tags filter state
   const [selectedTags, setSelectedTags] = useState([]);
@@ -31,31 +31,55 @@ export default function AdminPanel() {
 
 
     const map = new Map();
+// Merge reports based on quote ID, splitting comma-separated reasons
+     filtered.forEach((r) => {
+       const id = r.quote._id;
+      // split each context_type on commas, trim whitespace:
+      const splitReasons = r.context_types
+          .flatMap((ct) => ct.split(","))
+          .map((reason) => reason.trim());
 
-
-    // Merge reports based on quote ID
-    filtered.forEach((r) => {
-      const id = r.quote._id;
       if (!map.has(id)) {
         map.set(id, {
           quote: r.quote,
           reportCount: r.reporter_ids.length,
-          reportReasons: [...r.context_types],
+          reportReasons: splitReasons,
         });
       } else {
         const existing = map.get(id);
         existing.reportCount += r.reporter_ids.length;
         existing.reportReasons = Array.from(
-            new Set([...existing.reportReasons, ...r.context_types])
+            new Set([...existing.reportReasons, ...splitReasons])
         );
       }
     });
 
 
+
+
+    // // Merge reports based on quote ID
+    // filtered.forEach((r) => {
+    //   const id = r.quote._id;
+    //   if (!map.has(id)) {
+    //     map.set(id, {
+    //       quote: r.quote,
+    //       reportCount: r.reporter_ids.length,
+    //       reportReasons: [...r.context_types],
+    //     });
+    //   } else {
+    //     const existing = map.get(id);
+    //     existing.reportCount += r.reporter_ids.length;
+    //     existing.reportReasons = Array.from(
+    //         new Set([...existing.reportReasons, ...r.context_types])
+    //     );
+    //   }
+    // });
+
+
     let reportsArray = Array.from(map.values());
 
 
-    // Apply sort filter
+    //  sort filter
     const sortOptions = {
       MostReported: (a, b) => b.reportCount - a.reportCount,
       DateCreatedRecent: (a, b) => new Date(b.quote.date) - new Date(a.quote.date),
@@ -69,13 +93,13 @@ export default function AdminPanel() {
     // Filter by selected tags
     if (selectedTags.length > 0) {
       reportsArray = reportsArray.filter((report) =>
-          selectedTags.every((tag) => report.quote.tags.includes(tag))
+          selectedTags.some((tag) => report.reportReasons.includes(tag))
       );
     }
 
 
     // Debugging, Log the filtered reports
-    console.log("Filtered Reports:", reportsArray);
+    // console.log("Filtered Reports:", reportsArray);
 
 
     return reportsArray;

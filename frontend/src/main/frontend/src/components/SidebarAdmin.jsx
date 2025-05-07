@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { LayoutSidebar } from "react-bootstrap-icons";
 
-/**
- * SidebarAdmin
- *
- * Props:
- * - onFilterChange: (frequency: string, created: string, reasons: string[]) => void
- *
- * This sidebar allows filtering report cards by reason, sort frequency, and creation date.
- */
-const SidebarAdmin = ({ onFilterChange }) => {
+const SidebarAdmin = ({ onFilterChange, onTagSelect }) => {
     const [selectedTags, setSelectedTags] = useState([]);
     const [selectedReportFrequency, setSelectedReportFrequency] = useState("Most Reported");
     const [selectedReportCreated, setSelectedReportCreated] = useState("Recent Reports");
@@ -19,15 +11,19 @@ const SidebarAdmin = ({ onFilterChange }) => {
         "Hate speech/Harassment",
         "Privacy Violation",
         "Intellectual Property Violation/False Information",
-        "Advertisement/Promotion of Illegal Activity or Content",
+        "Advertisement/Promotion of illegal activity or content",
         "Impersonation",
         "Other",
     ];
 
     // Re-run filter whenever any filter state changes
+    // useEffect(() => {
+    //     onFilterChange(selectedReportFrequency, selectedReportCreated, selectedTags);
+    // }, [selectedReportFrequency, selectedReportCreated, selectedTags, onFilterChange]);
     useEffect(() => {
         onFilterChange(selectedReportFrequency, selectedReportCreated, selectedTags);
-    }, [selectedReportFrequency, selectedReportCreated, selectedTags, onFilterChange]);
+        onTagSelect(selectedTags);
+        }, [selectedReportFrequency, selectedReportCreated, selectedTags, onFilterChange, onTagSelect]);
 
     // Toggle a report reason tag on/off
     const toggleReason = (reason) => {
