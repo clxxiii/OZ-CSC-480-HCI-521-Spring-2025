@@ -1,26 +1,22 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { BorderBottom, TextLeft, LayoutSidebar } from "react-bootstrap-icons";
 
-const Sidebar = ({ userQuotes = [], bookmarkedQuotes = [], sharedQuotes = [], onFilterChange }) => {
+const Sidebar = ({ bookmarkedQuotes = [], sharedQuotes = [], onFilterChange, myQuotesIds = [] }) => {
   const [selectedTags, setSelectedTags] = useState([]);
   const [filter, setFilter] = useState("public");
   const [sortBy, setSortBy] = useState("dateUsedRecent");
   const [isOpen, setIsOpen] = useState(true);
 
-  const allQuotes = [...bookmarkedQuotes, ...userQuotes, ...sharedQuotes];
-  const uniqueTags = Array.from(new Set(allQuotes.flatMap((quote) => quote.tags)));
+  const filteredQuotes = useMemo(() => {
+    let quotes = [...bookmarkedQuotes, ...sharedQuotes];
 
-  const updateFilteredQuotes = useCallback(() => {
-    let filteredQuotes = allQuotes;
-
-    if (filter === "public") filteredQuotes = filteredQuotes.filter((q) => !q.private);
-    if (filter === "private") filteredQuotes = filteredQuotes.filter((q) => q.private);
-    if (filter === "uploaded") filteredQuotes = filteredQuotes.filter((q) => userQuotes.includes(q));
-    if (filter === "bookmarked") filteredQuotes = filteredQuotes.filter((q) => bookmarkedQuotes.includes(q));
-    if (filter === "shared") filteredQuotes = filteredQuotes.filter((q) => sharedQuotes.includes(q));
-
+    if (filter === "public") quotes = quotes.filter((q) => myQuotesIds.includes(q._id) && !q.private);
+    if (filter === "private") quotes = quotes.filter((q) => myQuotesIds.includes(q._id) && q.private);
+    if (filter === "uploaded") quotes = quotes.filter((q) => myQuotesIds.includes(q._id));
+    if (filter === "bookmarked") quotes = quotes.filter((q) => bookmarkedQuotes.includes(q));
+    if (filter === "shared") quotes = quotes.filter((q) => sharedQuotes.includes(q));
     if (selectedTags.length > 0) {
-      filteredQuotes = filteredQuotes.filter((q) => selectedTags.every((tag) => q.tags.includes(tag)));
+      quotes = quotes.filter((q) => selectedTags.every((tag) => q.tags.includes(tag)));
     }
 
     const sortOptions = {
@@ -30,16 +26,13 @@ const Sidebar = ({ userQuotes = [], bookmarkedQuotes = [], sharedQuotes = [], on
       dateCreatedOldest: (a, b) => new Date(a.date) - new Date(b.date),
     };
 
-    filteredQuotes.sort(sortOptions[sortBy]);
-
-    onFilterChange(filteredQuotes);
-  }, [filter, selectedTags, sortBy, allQuotes, bookmarkedQuotes, userQuotes, sharedQuotes, onFilterChange]);
+    quotes.sort(sortOptions[sortBy]);
+    return quotes;
+  }, [filter, selectedTags, sortBy, bookmarkedQuotes, sharedQuotes, myQuotesIds]);
 
   useEffect(() => {
-    if (allQuotes.length > 0) {
-      updateFilteredQuotes();
-    }
-  }, [updateFilteredQuotes, allQuotes.length]); 
+    onFilterChange(filteredQuotes);
+  }, [filteredQuotes, onFilterChange]);
 
   const toggleTag = (tag) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -107,8 +100,8 @@ const Sidebar = ({ userQuotes = [], bookmarkedQuotes = [], sharedQuotes = [], on
               Most Used Tags
             </h4>
             <ul className="list-unstyled d-flex flex-wrap gap-2">
-              {uniqueTags.map((tag) => (
-                <li key={tag}>
+              {filteredQuotes.flatMap((quote) => quote.tags).map((tag, index) => (
+                <li key={index}>
                   <button
                     className={`btn btn-sm ${
                       selectedTags.includes(tag) ? "btn-success text-white" : "btn-outline-success"
