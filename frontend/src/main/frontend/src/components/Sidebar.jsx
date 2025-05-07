@@ -20,7 +20,17 @@ const Sidebar = ({ userQuotes = [], bookmarkedQuotes = [], sharedQuotes = [], on
     if (filter === "shared") quotes = quotes.filter((q) => sharedQuotes.includes(q));
 
     if (selectedTags.length > 0) {
-      quotes = quotes.filter((q) => selectedTags.every((tag) => q.tags.includes(tag)));
+      quotes = quotes.filter((q) => q.tags.some((tag) => selectedTags.includes(tag)));
+
+      quotes.sort((a, b) => {
+        const aMatches = a.tags.filter((tag) => selectedTags.includes(tag)).length;
+        const bMatches = b.tags.filter((tag) => selectedTags.includes(tag)).length;
+
+        if (aMatches === selectedTags.length && bMatches !== selectedTags.length) return -1;
+        if (bMatches === selectedTags.length && aMatches !== selectedTags.length) return 1;
+
+        return bMatches - aMatches;
+      });
     }
 
     const sortOptions = {
