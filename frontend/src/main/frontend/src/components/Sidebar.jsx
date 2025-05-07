@@ -1,20 +1,24 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { BorderBottom, TextLeft, LayoutSidebar } from "react-bootstrap-icons";
 
-const Sidebar = ({ bookmarkedQuotes = [], sharedQuotes = [], onFilterChange, myQuotesIds = [] }) => {
+const Sidebar = ({ userQuotes = [], bookmarkedQuotes = [], sharedQuotes = [], onFilterChange, myQuotesIds = [] }) => {
   const [selectedTags, setSelectedTags] = useState([]);
   const [filter, setFilter] = useState("public");
   const [sortBy, setSortBy] = useState("dateUsedRecent");
   const [isOpen, setIsOpen] = useState(true);
 
+  const allQuotes = [...bookmarkedQuotes, ...userQuotes, ...sharedQuotes];
+  const uniqueTags = Array.from(new Set(allQuotes.flatMap((quote) => quote.tags)));
+
   const filteredQuotes = useMemo(() => {
-    let quotes = [...bookmarkedQuotes, ...sharedQuotes];
+    let quotes = [...userQuotes, ...bookmarkedQuotes, ...sharedQuotes];
 
     if (filter === "public") quotes = quotes.filter((q) => myQuotesIds.includes(q._id) && !q.private);
     if (filter === "private") quotes = quotes.filter((q) => myQuotesIds.includes(q._id) && q.private);
     if (filter === "uploaded") quotes = quotes.filter((q) => myQuotesIds.includes(q._id));
     if (filter === "bookmarked") quotes = quotes.filter((q) => bookmarkedQuotes.includes(q));
     if (filter === "shared") quotes = quotes.filter((q) => sharedQuotes.includes(q));
+
     if (selectedTags.length > 0) {
       quotes = quotes.filter((q) => selectedTags.every((tag) => q.tags.includes(tag)));
     }
@@ -28,7 +32,7 @@ const Sidebar = ({ bookmarkedQuotes = [], sharedQuotes = [], onFilterChange, myQ
 
     quotes.sort(sortOptions[sortBy]);
     return quotes;
-  }, [filter, selectedTags, sortBy, bookmarkedQuotes, sharedQuotes, myQuotesIds]);
+  }, [filter, selectedTags, sortBy, userQuotes, bookmarkedQuotes, sharedQuotes, myQuotesIds]);
 
   useEffect(() => {
     onFilterChange(filteredQuotes);
@@ -100,8 +104,8 @@ const Sidebar = ({ bookmarkedQuotes = [], sharedQuotes = [], onFilterChange, myQ
               Most Used Tags
             </h4>
             <ul className="list-unstyled d-flex flex-wrap gap-2">
-              {filteredQuotes.flatMap((quote) => quote.tags).map((tag, index) => (
-                <li key={index}>
+              {uniqueTags.map((tag) => (
+                <li key={tag}>
                   <button
                     className={`btn btn-sm ${
                       selectedTags.includes(tag) ? "btn-success text-white" : "btn-outline-success"

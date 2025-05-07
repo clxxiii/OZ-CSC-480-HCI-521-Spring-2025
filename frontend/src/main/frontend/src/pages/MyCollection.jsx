@@ -9,6 +9,7 @@ import { UserContext } from "../lib/Contexts";
 
 const MyCollection = () => { 
   const [searchTerm, setSearchTerm] = useState("");
+  const [userQuotes, setUserQuotes] = useState([]);
   const [bookmarkedQuotes, setBookmarkedQuotes] = useState([]);
   const [sharedQuotes, setSharedQuotes] = useState([]); 
   const [filteredQuotes, setFilteredQuotes] = useState([]);
@@ -25,7 +26,8 @@ const MyCollection = () => {
 
     const fetchData = async () => {
       try {
-        const [bookmarkedQuotes, sharedQuotes] = await Promise.all([
+        const [userQuotes, bookmarkedQuotes, sharedQuotes] = await Promise.all([
+          fetchUserQuotes(user._id.$oid),
           Promise.all(user.BookmarkedQuotes.map(fetchQuoteById)).then((quotes) =>
             quotes.filter(Boolean)
           ),
@@ -33,9 +35,10 @@ const MyCollection = () => {
             user.SharedQuotes.map((shared) => fetchQuoteById(shared.quoteId))
           ).then((quotes) => quotes.filter(Boolean)),
         ]);
+        setUserQuotes(userQuotes);
         setBookmarkedQuotes(bookmarkedQuotes);
         setSharedQuotes(sharedQuotes);
-        setFilteredQuotes([...user.MyQuotes, ...bookmarkedQuotes, ...sharedQuotes]);
+        setFilteredQuotes([...userQuotes, ...bookmarkedQuotes, ...sharedQuotes]);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -52,6 +55,7 @@ const MyCollection = () => {
     };
     getUsedQuotes();
   }, [user]);
+
 
   const handleFilterChange = useCallback((filtered) => {
     setFilteredQuotes((prev) => (JSON.stringify(prev) !== JSON.stringify(filtered) ? filtered : prev));
@@ -108,6 +112,7 @@ const MyCollection = () => {
       </div>
       <div className="row">
         <Sidebar
+          userQuotes={userQuotes}
           bookmarkedQuotes={bookmarkedQuotes}
           sharedQuotes={sharedQuotes} 
           onFilterChange={handleFilterChange}
