@@ -22,7 +22,9 @@ export default function AdminPanel() {
   useEffect(() => {
     fetchReportedQuotes()
         .then((reports) => setRawReports(reports))
-        .catch((err) => console.error(err));
+        .catch(() => {
+
+        });
   }, []);
 
 
@@ -110,8 +112,8 @@ export default function AdminPanel() {
   const handleFilterChange = (selectedReportFrequency, selectedReportCreated, selectedTags) => {
     setShowFiltered(true)
     let filteredQuote = [...mergedReports];
-    console.log("filtered quotes: ", filteredQuote);
-    console.log("selected Tags: ", selectedTags);
+    // console.log("filtered quotes: ", filteredQuote);
+    // console.log("selected Tags: ", selectedTags);
 
 
     // Filter by selected report reasons (tags)
@@ -123,7 +125,7 @@ export default function AdminPanel() {
     }
 
 
-    console.log(filteredQuote)
+    // console.log(filteredQuote)
 
 
     // Apply additional filters based on report frequency and created time
