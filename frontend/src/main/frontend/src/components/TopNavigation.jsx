@@ -72,7 +72,7 @@ const TopNavigation = () => {
               <span 
                 className="nav-link" 
                 style={{ cursor: "pointer" }} 
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => user ? setIsModalOpen(true) : navigate("/login")}
               >
                 Add Quote
               </span>
