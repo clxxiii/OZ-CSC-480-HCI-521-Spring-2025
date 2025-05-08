@@ -1,182 +1,141 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { fetchReportedQuotes } from "../lib/api";
-import QuoteCardAdmin from "../components/QuoteCardAdmin";
-import { useMemo } from "react";
-// import Sidebar from "../components/SidebarAdmin";
 import SidebarAdmin from "../components/SidebarAdmin";
-// import { LayoutSidebar } from "react-bootstrap-icons";
+import QuoteCardAdmin from "../components/QuoteCardAdmin";
 
 
 
-export default function AdminPanel() {
+const AdminPanel = () => {
   const [rawReports, setRawReports] = useState([]);
 
+  //states for sorting
 
-  // State for sorting
-  const [filter, _] = useState("Most Reported");
-  const [showFiltered, setShowFiltered] = useState(false)
-  // Tags filter state
-  const [selectedTags, setSelectedTags] = useState([]);
+  //controls whether we are showing the sidebar filtered list
+  const [showFiltered, setShowFiltered] = useState(false);
+
+  //capture list of filtered reports from the sidebar
   const [filteredQuotes, setFilteredQuotes] = useState([]);
 
+  //keeping track of selected tags
+  const [_, setSelectedTags] = useState([]);
 
+  // fetching all reported quotes once on mount
   useEffect(() => {
     fetchReportedQuotes()
         .then((reports) => setRawReports(reports))
-        .catch(() => {
-
-        });
+        .catch(()=> {});
   }, []);
 
+  // merging duplicate reports by quote ID and memo
+  //splitting based on ','
+  //trim whitespave also
 
   const mergedReports = useMemo(() => {
-    const filtered = rawReports.filter((r) => r.quote);
-
 
     const map = new Map();
-// Merge reports based on quote ID, splitting comma-separated reasons
-     filtered.forEach((r) => {
-       const id = r.quote._id;
-      // split each context_type on commas, trim whitespace:
-      const splitReasons = r.context_types
-          .flatMap((ct) => ct.split(","))
-          .map((reason) => reason.trim());
 
-      if (!map.has(id)) {
-        map.set(id, {
-          quote: r.quote,
-          reportCount: r.reporter_ids.length,
-          reportReasons: splitReasons,
+    rawReports
+        .filter((r) => r.quote)
+        .forEach((r) => {
+          const id = r.quote._id;
+          const splitReasons = r.context_types
+              .flatMap((ct) => ct.split(","))
+              .map((reason) => reason.trim());
+
+          if (!map.has(id)) {
+            map.set(id, {
+              quote: r.quote,
+              reportCount: r.reporter_ids.length,
+              reportReasons: splitReasons,
+            });
+
+          } else {
+            const existing = map.get(id);
+            existing.reportCount += r.reporter_ids.length;
+            existing.reportReasons = Array.from(
+                new Set([...existing.reportReasons, ...splitReasons])
+            );
+          }
         });
-      } else {
-        const existing = map.get(id);
-        existing.reportCount += r.reporter_ids.length;
-        existing.reportReasons = Array.from(
-            new Set([...existing.reportReasons, ...splitReasons])
-        );
-      }
-    });
 
 
 
+    return Array.from(map.values());
+  }, [rawReports]);
 
 
+  // memoized handler for sidebar filters
+  const handleFilterChange = useCallback(
+      (selectedReportFrequency, selectedReportCreated, tags) => {
+        setShowFiltered(true);
 
+        let out = [...mergedReports];
 
-    let reportsArray = Array.from(map.values());
+        // filter by tag
+        if (tags.length) {
+          out = out.filter((r) =>
+              tags.some((tag) => r.reportReasons.includes(tag))
+          );
+        }
 
+        // sort by frequency
+        if (selectedReportFrequency === "Most Reported") {
+          out.sort((a, b) => b.reportCount - a.reportCount);
+        } else if (selectedReportFrequency === "Least Reported") {
+          out.sort((a, b) => a.reportCount - b.reportCount);
+        }
 
-    //  sort filter
-    const sortOptions = {
-      MostReported: (a, b) => b.reportCount - a.reportCount,
-      DateCreatedRecent: (a, b) => new Date(b.quote.date) - new Date(a.quote.date),
-      DateCreatedOldest: (a, b) => new Date(a.quote.date) - new Date(b.quote.date),
-    };
+        // sort by created date
+        if (selectedReportCreated === "Recent Reports") {
+          out.sort((a, b) => new Date(b.quote.date) - new Date(a.quote.date));
+        } else if (selectedReportCreated === "Oldest Reports") {
+          out.sort((a, b) => new Date(a.quote.date) - new Date(b.quote.date));
+        }
 
+        setFilteredQuotes(out);
+      },
+      [mergedReports]
+  );
 
-    reportsArray.sort(sortOptions[filter]);
-
-
-    // Filter by selected tags
-    if (selectedTags.length > 0) {
-      reportsArray = reportsArray.filter((report) =>
-          selectedTags.some((tag) => report.reportReasons.includes(tag))
-      );
-    }
-
-
-    // Debugging, Log the filtered reports
-    // console.log("Filtered Reports:", reportsArray);
-
-
-    return reportsArray;
-  }, [rawReports, filter, selectedTags]);
-
-
-  // Handle filter changes (called from SidebarAdmin)
-  const handleFilterChange = (selectedReportFrequency, selectedReportCreated, selectedTags) => {
-    setShowFiltered(true)
-    let filteredQuote = [...mergedReports];
-    // console.log("filtered quotes: ", filteredQuote);
-    // console.log("selected Tags: ", selectedTags);
-
-
-    // Filter by selected report reasons (tags)
-    if (selectedTags.length > 0) {
-      filteredQuote = filteredQuote.filter((quote) =>
-              selectedTags.some((tag) => quote.reportReasons.includes(tag))
-          // Assuming each quote has a 'reportReasons' array
-      );
-    }
-
-
-    // console.log(filteredQuote)
-
-
-    // Apply additional filters based on report frequency and created time
-    if (selectedReportFrequency === "Most Reported") {
-      filteredQuote = filteredQuote.sort((a, b) => b.reportCount - a.reportCount);
-    }
-
-
-    if (selectedReportCreated === "Recent Reports") {
-      filteredQuote = filteredQuote.sort((a, b) => new Date(b.date) - new Date(a.date));
-    }
-
-
-    // Update the state with filtered quotes
-    setFilteredQuotes(filteredQuote);
-  };
-
-
-
+  // memoized handler for tag selection
+  const handleTagSelect = useCallback((tags) => {
+    setSelectedTags(tags);
+  }, []);
 
   return (
       <div style={{ padding: 20 }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+        <div style={{ display: "flex", gap: 20 }}>
+
+          {/* SidebarAdmin will call onFilterChange + onTagSelect */}
           <SidebarAdmin
               onFilterChange={handleFilterChange}
-              onTagSelect={setSelectedTags}
+              onTagSelect={handleTagSelect}
           />
 
-
           <div style={{ flex: 1 }}>
-            {/* Display filtered quotes if filters are applied */}
-            {showFiltered && filteredQuotes.length > 0 ? (
-                filteredQuotes.map(({ quote, reportCount, reportReasons }) => (
-                    <QuoteCardAdmin
-                        key={quote._id}
-                        quote={quote}
-                        reportCount={reportCount}
-                        reportReasons={reportReasons}
-                    />
-                ))
+
+            {/* If the user has applied any filters,
+            show that list;
+             otherwise show all merged */}
+
+            {(showFiltered ? filteredQuotes : mergedReports).length > 0 ? (
+                (showFiltered ? filteredQuotes : mergedReports).map(
+                    ({ quote, reportCount, reportReasons }) => (
+                        <QuoteCardAdmin
+                            key={quote._id}
+                            quote={quote}
+                            reportCount={reportCount}
+                            reportReasons={reportReasons}
+                        />
+                    )
+                )
             ) : (
-                <div>
-
-
-                  {/* Display merged quotes by default */}
-                  {!showFiltered && mergedReports.length > 0 ? (
-                      mergedReports.map(({ quote, reportCount, reportReasons }) => (
-                          <QuoteCardAdmin
-                              key={quote._id}
-                              quote={quote}
-                              reportCount={reportCount}
-                              reportReasons={reportReasons}
-                          />
-                      ))
-                  ) : (
-                      <p>No reports found based on the selected filters.</p>
-                  )}
-                </div>
+                <p>No reports found based on the selected filters.</p>
             )}
           </div>
         </div>
       </div>
   );
-}
+};
 
-
-
-
-
+export default AdminPanel;
