@@ -7,6 +7,7 @@ import SidebarAdmin from "../components/SidebarAdmin";
 // import { LayoutSidebar } from "react-bootstrap-icons";
 
 
+
 export default function AdminPanel() {
   const [rawReports, setRawReports] = useState([]);
 
@@ -59,23 +60,7 @@ export default function AdminPanel() {
 
 
 
-    // // Merge reports based on quote ID
-    // filtered.forEach((r) => {
-    //   const id = r.quote._id;
-    //   if (!map.has(id)) {
-    //     map.set(id, {
-    //       quote: r.quote,
-    //       reportCount: r.reporter_ids.length,
-    //       reportReasons: [...r.context_types],
-    //     });
-    //   } else {
-    //     const existing = map.get(id);
-    //     existing.reportCount += r.reporter_ids.length;
-    //     existing.reportReasons = Array.from(
-    //         new Set([...existing.reportReasons, ...r.context_types])
-    //     );
-    //   }
-    // });
+
 
 
     let reportsArray = Array.from(map.values());
@@ -144,37 +129,6 @@ export default function AdminPanel() {
   };
 
 
-
-
-//   return (
-//     <div style={{ padding: 20 }}>
-//       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
-//           {/* Display Sidebar and filter by tags */}
-//           <SidebarAdmin
-//               onFilterChange={handleFilterChange}
-//               onTagSelect={setSelectedTags}
-//             />
-
-
-// <div style={{ flex: 1 }}>
-//           {mergedReports.length > 0 ? (
-//              mergedReports.map(({ quote, reportCount, reportReasons }) => (
-//               <QuoteCardAdmin
-//                 key={quote._id}
-//                 quote={quote}
-//                 reportCount={reportCount}
-//                 reportReasons={reportReasons}
-//               />
-//             ))
-//           ) : (
-//             <p>No reports found based on the selected filters.</p>
-//           )}
-//         </div>
-
-
-//       </div>
-//     </div>
-//   );
 
 
   return (
