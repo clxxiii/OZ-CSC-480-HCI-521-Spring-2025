@@ -3,7 +3,7 @@ import { useContext, useState } from "react";
 import QuoteUploadModal from "./QuoteUploadModal";
 import { BsPersonCircle } from "react-icons/bs";
 import '../TopNav.css';
-import { UserContext } from "../lib/Contexts";
+import { AlertContext, UserContext } from "../lib/Contexts";
 import logo from "../assets/logo.png"; 
 import NotificationDropdown from "./NotificationDropdown";
 
@@ -14,6 +14,7 @@ const TopNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user] = useContext(UserContext);
+  const [_, setAlert] = useContext(AlertContext);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
@@ -48,6 +49,16 @@ const TopNavigation = () => {
       }
     }
   };
+  
+  const addQuoteClick = () => {
+    if (!user) {
+      setAlert({ message: "You must be signed in to add a quote!" })
+      navigate("/login");
+      return;
+    }
+    
+    setIsModalOpen(true);
+  }
 
   const isActive = (path) => location.pathname === path;
 
@@ -72,7 +83,7 @@ const TopNavigation = () => {
               <span 
                 className="nav-link" 
                 style={{ cursor: "pointer" }} 
-                onClick={() => setIsModalOpen(true)}
+                onClick={addQuoteClick}
               >
                 Add Quote
               </span>

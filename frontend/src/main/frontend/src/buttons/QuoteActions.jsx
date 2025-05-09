@@ -104,7 +104,7 @@ const CopyButton = () => {
 };
 
 const BookmarkButton = () => {
-  const [user] = useContext(UserContext);
+  const [user, setUser] = useContext(UserContext);
   const quote = useContext(QuoteContext);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkCount, setBookmarkCount] = useState(quote.bookmarks || 0);
@@ -133,8 +133,17 @@ const BookmarkButton = () => {
     try {
       if (newBookmarkState) {
         await bookmarkQuote(quote._id);
+        setUser((user) => {
+          user.BookmarkedQuotes.push(quote._id);
+          return user;
+        })
       } else {
         await deleteBookmark(quote._id);
+        setUser((user) => {
+          const idx = user.BookmarkedQuotes.indexOf(quote._id);
+          if (idx != -1) user.BookmarkedQuotes.splice(idx, 1);
+          return user;
+        })
       }
     } catch (error) {
       console.error("Error updating bookmark:", error);
