@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect} from "react";
 import {
   BookmarkFill,
   Bookmark,
@@ -20,14 +20,21 @@ import DeleteQuoteModal from "../components/DeleteQuoteModal";
 
 const QuoteContext = createContext(null);
 
-const QuoteActions = ({ quote }) => {
-  const [editable, setEditable] = useState(false);
-  const [user] = useContext(UserContext);
+export default function QuoteActions({ quote, _ }) {
+    const [user] = useContext(UserContext);
+    const [editable, setEditable] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    setEditable(user.MyQuotes.includes(quote._id));
-  }, [quote, user]);
+    // Determine if the current user is the creator
+    useEffect(() => {
+        if (!user || !quote.creator) return;
+        const userId =
+            typeof user._id === "object" ? user._id.$oid : user._id;
+        const creatorId =
+            typeof quote.creator === "object"
+                ? quote.creator.$oid
+                : quote.creator;
+        setEditable(userId === creatorId);
+    }, [user, quote.creator]);
 
   return (
     <div
@@ -356,4 +363,3 @@ const EditButton = () => {
   );
 };
 
-export default QuoteActions;
