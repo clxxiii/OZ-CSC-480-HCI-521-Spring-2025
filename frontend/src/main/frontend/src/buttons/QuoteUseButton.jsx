@@ -15,11 +15,21 @@ const QuoteUseButton = ({ quote, setShowLogin, onQuoteUsed }) => {
     }
 
     try {
-      await useQuote(quote._id); 
+      await useQuote(quote._id);
+
+      const usedQuotes = JSON.parse(localStorage.getItem("usedQuotes") || "[]");
+
+      const updatedUsedQuotes = [
+        ...usedQuotes.filter((q) => q.id !== quote._id),
+        { id: quote._id, usedDate: new Date().toISOString() },
+      ];
+
+      localStorage.setItem("usedQuotes", JSON.stringify(updatedUsedQuotes));
+
       setAlert({ type: "success", message: "Quote marked as used!" });
-      setUsed(true);
       window.location.reload(); 
-      onQuoteUsed?.(quote._id); 
+      setUsed(true);
+      onQuoteUsed?.(quote._id);
     } catch (error) {
       setAlert({ type: "danger", message: "Failed to mark quote as used." });
     }
