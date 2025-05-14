@@ -112,7 +112,8 @@ const BookmarkButton = () => {
 
   useEffect(() => {
     if (!user) return;
-    const isUserBookmarked = user.BookmarkedQuotes?.includes(quote._id);
+    let id = typeof quote._id == "string" ? quote._id : quote._id.$oid;
+    const isUserBookmarked = user.BookmarkedQuotes?.includes(id);
     setIsBookmarked(isUserBookmarked || false);
   }, [user, quote._id]);
 
@@ -130,17 +131,19 @@ const BookmarkButton = () => {
       newBookmarkState ? prevCount + 1 : prevCount - 1,
     );
 
+    let id = typeof quote._id == "string" ? quote._id : quote._id.$oid;
+
     try {
       if (newBookmarkState) {
-        await bookmarkQuote(quote._id);
+        await bookmarkQuote(id);
         setUser((user) => {
-          user.BookmarkedQuotes.push(quote._id);
+          user.BookmarkedQuotes.push(id);
           return user;
         })
       } else {
-        await deleteBookmark(quote._id);
+        await deleteBookmark(id);
         setUser((user) => {
-          const idx = user.BookmarkedQuotes.indexOf(quote._id);
+          const idx = user.BookmarkedQuotes.indexOf(id);
           if (idx != -1) user.BookmarkedQuotes.splice(idx, 1);
           return user;
         })
@@ -198,8 +201,10 @@ const ShareButton = () => {
   };
 
   const handleSendQuote = async (user) => {
+    let id = typeof quote._id == "string" ? quote._id : quote._id.$oid;
+
     try {
-      await shareQuote(quote._id, user.email);
+      await shareQuote(id, user.email);
       setAlert({
         type: "success",
         message: `Quote successfully shared with ${user.name}!`,
@@ -259,8 +264,10 @@ const DeleteButton = () => {
   const handleDeleteConfirm = async (e) => {
     e.stopPropagation();
 
+    let id = typeof quote._id == "string" ? quote._id : quote._id.$oid;
+
     try {
-      await deleteQuote(quote._id);
+      await deleteQuote(id);
       setAlert({ type: "success", message: "Quote deleted successfully!" });
       setTimeout(() => window.location.reload(), 3000);
     } catch (error) {
@@ -339,7 +346,7 @@ const ReportButton = () => {
         showReportModal={showReportModal}
         onClose={() => setShowReportModal(false)}
         user={user}
-        quoteID={quote._id}
+        quoteID={typeof quote._id == "string" ? quote._id : quote._id.$oid}
       />
     </>
   );
@@ -349,8 +356,11 @@ const EditButton = () => {
   const navigate = useNavigate();
   const [user] = useContext(UserContext);
   const quote = useContext(QuoteContext);
+
+  let id = typeof quote._id == "string" ? quote._id : quote._id.$oid;
+
   const handleEditClick = () => {
-    navigate(`/edit-quote/${quote._id}`, {
+    navigate(`/edit-quote/${id}`, {
       state: { quote: { ...quote, tags: quote.tags || [] } },
     });
   };
