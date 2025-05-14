@@ -7,6 +7,7 @@ import QuoteCardAdmin from "../components/QuoteCardAdmin";
 
 const AdminPanel = () => {
   const [rawReports, setRawReports] = useState([]);
+  const [loading, setLoading] = useState(true); 
 
   //states for sorting
 
@@ -22,47 +23,39 @@ const AdminPanel = () => {
   // fetching all reported quotes once on mount
   useEffect(() => {
     fetchReportedQuotes()
-        .then((reports) => setRawReports(reports))
-        .catch(()=> {});
+      .then((reports) => setRawReports(reports))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  // merging duplicate reports by quote ID and memo
-  //splitting based on ','
-  //trim whitespave also
-
   const mergedReports = useMemo(() => {
-
     const map = new Map();
 
     rawReports
-        .filter((r) => r.quote)
-        .forEach((r) => {
-          const id = r.quote._id;
-          const splitReasons = r.context_types
-              .flatMap((ct) => ct.split(","))
-              .map((reason) => reason.trim());
+      .filter((r) => r.quote)
+      .forEach((r) => {
+        const id = r.quote._id;
+        const splitReasons = r.context_types
+          .flatMap((ct) => ct.split(","))
+          .map((reason) => reason.trim());
 
-          if (!map.has(id)) {
-            map.set(id, {
-              quote: r.quote,
-              reportCount: r.reporter_ids.length,
-              reportReasons: splitReasons,
-            });
-
-          } else {
-            const existing = map.get(id);
-            existing.reportCount += r.reporter_ids.length;
-            existing.reportReasons = Array.from(
-                new Set([...existing.reportReasons, ...splitReasons])
-            );
-          }
-        });
-
-
+        if (!map.has(id)) {
+          map.set(id, {
+            quote: r.quote,
+            reportCount: r.reporter_ids.length,
+            reportReasons: splitReasons,
+          });
+        } else {
+          const existing = map.get(id);
+          existing.reportCount += r.reporter_ids.length;
+          existing.reportReasons = Array.from(
+            new Set([...existing.reportReasons, ...splitReasons])
+          );
+        }
+      });
 
     return Array.from(map.values());
   }, [rawReports]);
-
 
   // memoized handler for sidebar filters
   const handleFilterChange = useCallback(
@@ -78,23 +71,23 @@ const AdminPanel = () => {
           );
         }
 
-        // sort by frequency
-        if (selectedReportFrequency === "Most Reported") {
-          out.sort((a, b) => b.reportCount - a.reportCount);
-        } else if (selectedReportFrequency === "Least Reported") {
-          out.sort((a, b) => a.reportCount - b.reportCount);
-        }
+      // sort by frequency
+      if (selectedReportFrequency === "Most Reported") {
+        out.sort((a, b) => b.reportCount - a.reportCount);
+      } else if (selectedReportFrequency === "Least Reported") {
+        out.sort((a, b) => a.reportCount - b.reportCount);
+      }
 
-        // sort by created date
-        if (selectedReportCreated === "Recent Reports") {
-          out.sort((a, b) => new Date(b.quote.date) - new Date(a.quote.date));
-        } else if (selectedReportCreated === "Oldest Reports") {
-          out.sort((a, b) => new Date(a.quote.date) - new Date(b.quote.date));
-        }
+      // sort by created date
+      if (selectedReportCreated === "Recent Reports") {
+        out.sort((a, b) => new Date(b.quote.date) - new Date(a.quote.date));
+      } else if (selectedReportCreated === "Oldest Reports") {
+        out.sort((a, b) => new Date(a.quote.date) - new Date(b.quote.date));
+      }
 
-        setFilteredQuotes(out);
-      },
-      [mergedReports]
+      setFilteredQuotes(out);
+    },
+    [mergedReports]
   );
 
   // memoized handler for tag selection
@@ -103,39 +96,45 @@ const AdminPanel = () => {
   }, []);
 
   return (
-      <div style={{ padding: 20 }}>
-        <div style={{ display: "flex", gap: 20 }}>
+    <div style={{ padding: 20 }}>
+      <div style={{ display: "flex", gap: 20 }}>
+        <SidebarAdmin
+          onFilterChange={handleFilterChange}
+          onTagSelect={handleTagSelect}
+        />
 
-          {/* SidebarAdmin will call onFilterChange + onTagSelect */}
-          <SidebarAdmin
-              onFilterChange={handleFilterChange}
-              onTagSelect={handleTagSelect}
-          />
-
-          <div style={{ flex: 1 }}>
-
-            {/* If the user has applied any filters,
-            show that list;
-             otherwise show all merged */}
-
-            {(showFiltered ? filteredQuotes : mergedReports).length > 0 ? (
-                (showFiltered ? filteredQuotes : mergedReports).map(
-                    ({ quote, reportCount, reportReasons }) => (
-                        <QuoteCardAdmin
-                            key={quote._id}
-                            quote={quote}
-                            reportCount={reportCount}
-                            reportReasons={reportReasons}
-                        />
-                    )
-                )
+        <div style={{ flex: 1 }}>
+          {loading ? ( 
+            <p>Loading...</p>
+          ) : (
+            (showFiltered ? filteredQuotes : mergedReports).length > 0 ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  rowGap: "20px", 
+                }}
+              >
+                {(showFiltered ? filteredQuotes : mergedReports).map(
+                  ({ quote, reportCount, reportReasons }) => (
+                    <QuoteCardAdmin
+                      key={quote._id}
+                      quote={quote}
+                      reportCount={reportCount}
+                      reportReasons={reportReasons}
+                    />
+                  )
+                )}
+              </div>
             ) : (
-                <p>No reports found based on the selected filters.</p>
-            )}
-          </div>
+              <p>No reports found based on the selected filters.</p>
+            )
+          )}
         </div>
       </div>
+    </div>
   );
 };
 
 export default AdminPanel;
+

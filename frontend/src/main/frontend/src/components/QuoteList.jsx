@@ -6,6 +6,7 @@ import { fetchUserProfile } from "../lib/api";
 const QuoteList = ({ topQuotes, loading, error, setShowLogin }) => {
   const [viewedQuote, setViewedQuote] = useState(null);
   const [viewedAuthorInfo, setViewedAuthorInfo] = useState(null);
+  const [visibleQuotes, setVisibleQuotes] = useState(5);
 
   const closeView = () => {
     setViewedQuote(null);
@@ -15,7 +16,6 @@ const QuoteList = ({ topQuotes, loading, error, setShowLogin }) => {
   const viewQuote = async (quote) => {
     setViewedQuote(quote);
     const creatorId = quote.creator?.$oid || quote.creator;
-  
     if (creatorId) {
       try {
         const profile = await fetchUserProfile(creatorId);
@@ -28,12 +28,9 @@ const QuoteList = ({ topQuotes, loading, error, setShowLogin }) => {
       setViewedAuthorInfo(null);
     }
   };
-  
 
-  const handleQuoteUsed = (quoteId) => {
-    const usedQuotes = JSON.parse(localStorage.getItem("usedQuotes")) || [];
-    const updatedUsedQuotes = [...usedQuotes, { id: quoteId, usedDate: new Date().toISOString() }];
-    localStorage.setItem("usedQuotes", JSON.stringify(updatedUsedQuotes));
+  const handleViewMore = () => {
+    setVisibleQuotes(topQuotes.length);
   };
 
   return (
@@ -43,14 +40,17 @@ const QuoteList = ({ topQuotes, loading, error, setShowLogin }) => {
           quote={viewedQuote}
           close={closeView}
           setShowLogin={setShowLogin}
-          onQuoteUsed={handleQuoteUsed}
           authorInfo={viewedAuthorInfo}
         />
       )}
       <div style={{ padding: "40px", display: "flex", flexDirection: "column", gap: "24px", justifyContent: "center", alignItems: "center", width: "100%" }}>
         <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
           <h1>Top Quotes</h1>
-          <button className="rounded-button-style">View More</button>
+          {topQuotes.length > visibleQuotes && (
+            <button className="rounded-button-style" onClick={handleViewMore}>
+              View More
+            </button>
+          )}
         </div>
         <div className="d-flex w-100" style={{ gap: "40px", flexWrap: "wrap", justifyContent: "center" }}>
           {loading ? (
@@ -58,7 +58,7 @@ const QuoteList = ({ topQuotes, loading, error, setShowLogin }) => {
           ) : error ? (
             <p className="text-center w-100">{error}</p>
           ) : topQuotes.length > 0 ? (
-            topQuotes.map((quote) => (
+            topQuotes.slice(0, visibleQuotes).map((quote) => (
               <QuoteCard
                 key={quote._id}
                 quote={quote}

@@ -1,9 +1,10 @@
-import { useState } from "react"; //import useState to manage component state
-import { useNavigate } from "react-router-dom"; //import useNavigate to navigate between pages
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import searchSvg from "../assets/search.svg";
 import Tag from "./Tag";
-import { Funnel } from 'react-bootstrap-icons';
-import FilteredSearch from '../components/FilteredSearch';
+import { Funnel } from "react-bootstrap-icons";
+import FilteredSearch from "../components/FilteredSearch";
+import { FetchTopQuotes } from "../lib/FetchTopQuotes";
 
 export default function Splash() {
   const [searchQuery, setSearchQuery] = useState(""); //store the user's search input
@@ -16,44 +17,55 @@ export default function Splash() {
     include: "",
     exclude: "",
   });
+  const { topQuotes } = FetchTopQuotes();
+  const [topTags, setTopTags] = useState([]);
 
+  useEffect(() => {
+    const tags = topQuotes
+      .flatMap((quote) => quote.tags || [])
+      .reduce((acc, tag) => {
+        acc[tag] = (acc[tag] || 0) + 1;
+        return acc;
+      }, {});
+    const sortedTags = Object.entries(tags)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([tag]) => tag);
+    setTopTags(sortedTags);
+  }, [topQuotes]);
 
   const handleSearchRedirect = async () => {
     try {
       const query = searchQuery.trim() || "*";
-  
-      console.log("Filters passed to SearchPage:", selectedFilters); // Debugging filters before navigation
-  
       navigate("/search?q=" + query, {
         state: {
           filterUsed: selectedFilters.filterUsed,
           filterBookmarked: selectedFilters.filterBookmarked,
           filterUploaded: selectedFilters.filterUploaded,
           include: selectedFilters.include,
-          exclude: selectedFilters.exclude 
-        }
+          exclude: selectedFilters.exclude,
+        },
       });
     } catch (error) {
       console.error("Error during search:", error);
     }
   };
-  
+
+  const handleTagClick = (tag) => {
+    navigate(`/search?q=${encodeURIComponent(tag)}`);
+  };
 
   const handleFilteredSearch = (filterOptions) => {
-    console.log("Filter options applied:", filterOptions);
-    
     setSelectedFilters({
       filterUsed: filterOptions.includeUsed,
       filterBookmarked: filterOptions.includeBookmarked,
       filterUploaded: filterOptions.includeUploaded,
       include: filterOptions.includeTerm, 
-      exclude: filterOptions.excludeTerm 
+      exclude: filterOptions.excludeTerm,
     });
-  
     setIsFilterModalVisible(false);
   };
-  
-  
+
   const handleSearchChange = (e) => {
     //update the searchQuery state whenever the user types in the input field
     setSearchQuery(e.target.value);
@@ -80,7 +92,7 @@ export default function Splash() {
     alignItems: "center",
     gap: "20px",
     flex: "1 0 0",
-  }
+  };
 
   const splashH1Style = {
     //styling for the main heading
@@ -91,10 +103,9 @@ export default function Splash() {
     fontStyle: "normal",
     fontWeight: "700",
     lineHeight: "48px",
-  }
+  };
 
   const splashH2Style = {
-    //styling for the subheading
     color: "rgba(30, 30, 30, 0.45)",
     textAlign: "center",
     fontFamily: "Inter",
@@ -103,7 +114,7 @@ export default function Splash() {
     fontStyle: "normal",
     fontWeight: "500",
     lineHeight: "normal",
-  }
+  };
 
   const splashH3Style = {
     color: "#000",
@@ -115,7 +126,6 @@ export default function Splash() {
     lineHeight: "22px", /* 110% */
   }
 
-
   const searchText = {
     color: "#FFF",
     fontFamily: "Roboto",
@@ -123,7 +133,7 @@ export default function Splash() {
     fontStyle: "normal",
     fontWeight: "500",
     lineHeight: "24px", /* 120% */
-  }
+  };
 
   const searchButton = {
     display: "flex",
@@ -133,15 +143,18 @@ export default function Splash() {
     justifyContent: "center",
     alignItems: "center",
     borderRadius: "8px",
-    background: "#146C43"
-  }
+    background: "#146C43",
+  };
 
   return (
     <div style={splashStyle}>
       <div style={splashContainerStyle}>
-
-        <h1 style={splashH1Style}>Find, Share & Save Quotes <span style={{ color: "#146C43" }}>Effortlessly</span></h1>
-        <h2 style={splashH2Style}>Find insightful quotes from various authors and themes. Copy and paste with just one click</h2>
+        <h1 style={splashH1Style}>
+          Find, Share & Save Quotes <span style={{ color: "#146C43" }}>Effortlessly</span>
+        </h1>
+        <h2 style={splashH2Style}>
+          Find insightful quotes from various authors and themes. Copy and paste with just one click
+        </h2>
         <div style={{ display: "flex", alignItems: "center", width: "100%", maxWidth: "600px", position: "relative" }}>
           <img src={searchSvg} style={{ position: "absolute", left: "10px", height: "24px" }} alt="Search" />
           <input
@@ -152,8 +165,8 @@ export default function Splash() {
               fontSize: "16px",
               fontWeight: "400",
               lineHeight: "20px",
-              padding: "12px 40px 12px 40px", // Extra padding on both sides
-              width: "100%", // Ensure the input takes full width
+              padding: "12px 40px 12px 40px",
+              width: "100%",
             }}
             placeholder="Search quotes, authors, or themes..."
             onChange={handleSearchChange}
@@ -183,10 +196,17 @@ export default function Splash() {
         <h3 style={splashH3Style}>Explore the following popular tags to get started:</h3>
 
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          {["Inspiration", "Love"].map((tag, i) => <Tag text={tag} key={i} />)}
+          {topTags.map((tag, i) => (
+            <div
+              key={i}
+              onClick={() => handleTagClick(tag)}
+              style={{ cursor: "pointer" }}
+            >
+              <Tag text={tag} />
+            </div>
+          ))}
         </div>
-
       </div>
     </div>
-  )
+  );
 }
